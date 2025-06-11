@@ -115,9 +115,17 @@ export class ValidationUtils {
   }
 
   /**
-   * Validate daily total hours
+   * Validate daily total hours - overloaded version for ProjectEntry
    */
-  static validateDailyTotal(projects: ProjectEntry[], rules: ValidationRules = ValidationUtils.defaultRules): string | null {
+  static validateDailyTotal(projects: ProjectEntry[], rules?: ValidationRules): string | null;
+  /**
+   * Validate daily total hours - overloaded version for Omit<ProjectEntry, 'id'>
+   */
+  static validateDailyTotal(projects: Omit<ProjectEntry, 'id'>[], rules?: ValidationRules): string | null;
+  /**
+   * Implementation
+   */
+  static validateDailyTotal(projects: ProjectEntry[] | Omit<ProjectEntry, 'id'>[], rules: ValidationRules = ValidationUtils.defaultRules): string | null {
     const totalHours = projects.reduce((sum, project) => sum + project.hours, 0);
     
     if (totalHours > rules.maxDailyHours) {
@@ -193,9 +201,17 @@ export class ValidationUtils {
  */
 export class DataUtils {
   /**
-   * Calculate total hours from projects
+   * Calculate total hours from projects - overloaded version for ProjectEntry
    */
-  static calculateTotalHours(projects: ProjectEntry[]): number {
+  static calculateTotalHours(projects: ProjectEntry[]): number;
+  /**
+   * Calculate total hours from projects - overloaded version for Omit<ProjectEntry, 'id'>
+   */
+  static calculateTotalHours(projects: Omit<ProjectEntry, 'id'>[]): number;
+  /**
+   * Implementation
+   */
+  static calculateTotalHours(projects: ProjectEntry[] | Omit<ProjectEntry, 'id'>[]): number {
     return projects.reduce((sum, project) => sum + project.hours, 0);
   }
 

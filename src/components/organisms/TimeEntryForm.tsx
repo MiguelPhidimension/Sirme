@@ -146,7 +146,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(({
   const totalHours = DataUtils.calculateTotalHours(formData.projects);
 
   return (
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-6">
+    <div class="min-h-screen p-6">
       <div class="max-w-4xl mx-auto space-y-8">
         {/* Modern Header with Gradient */}
         <div class="text-center space-y-4">
@@ -166,97 +166,6 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(({
           </p>
         </div>
 
-        {/* Employee Information - Modern Card Design */}
-        <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/20 overflow-hidden">
-          <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-6">
-            <div class="flex items-center space-x-3">
-              <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              <h2 class="text-2xl font-bold text-white">Employee Information</h2>
-            </div>
-          </div>
-          
-          <div class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div class="space-y-2">
-                <label class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center space-x-2">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  <span>Full Name</span>
-                </label>
-                <input
-                  type="text"
-                  class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200 placeholder-gray-500"
-                  placeholder="Enter employee name"
-                  value={formData.employeeName}
-                  onInput$={(e) => {
-                    formData.employeeName = (e.target as HTMLInputElement).value;
-                  }}
-                />
-                {errors.employeeName && (
-                  <p class="text-red-500 text-sm flex items-center space-x-1">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                    </svg>
-                    <span>{errors.employeeName}</span>
-                  </p>
-                )}
-              </div>
-
-              <div class="space-y-2">
-                <label class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center space-x-2">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span>Date</span>
-                </label>
-                <input
-                  type="date"
-                  class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200"
-                  value={formData.date}
-                  onInput$={(e) => {
-                    formData.date = (e.target as HTMLInputElement).value;
-                  }}
-                />
-                {errors.date && (
-                  <p class="text-red-500 text-sm flex items-center space-x-1">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                    </svg>
-                    <span>{errors.date}</span>
-                  </p>
-                )}
-              </div>
-
-              <div class="space-y-2">
-                <label class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center space-x-2">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6M8 8v10l4-2 4 2V8" />
-                  </svg>
-                  <span>Role</span>
-                </label>
-                <select
-                  class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200"
-                  value={formData.role}
-                  onChange$={(e) => {
-                    formData.role = (e.target as HTMLSelectElement).value as EmployeeRole;
-                  }}
-                >
-                  {DataUtils.getEmployeeRoles().map((role) => (
-                    <option key={role} value={role}>
-                      {role}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Project Entries - Modern Card Design */}
         <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/20 overflow-hidden">
           <div class="bg-gradient-to-r from-emerald-500 to-teal-600 p-6">
@@ -267,7 +176,10 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(({
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
                 </div>
-                <h2 class="text-2xl font-bold text-white">Project Entries</h2>
+                <div>
+                  <h2 class="text-2xl font-bold text-white">Project Entries</h2>
+                  <p class="text-white/80 text-sm">Add your role and project details below</p>
+                </div>
               </div>
               <div class="flex items-center space-x-4">
                 <div class="text-white/90 text-right">
@@ -325,18 +237,45 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(({
                 </div>
                 
                 <div class="p-6 space-y-6">
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="space-y-2">
-                      <label class="text-sm font-semibold text-gray-700 dark:text-gray-300">Client Name</label>
-                      <input
-                        type="text"
-                        class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200 placeholder-gray-500"
-                        placeholder="Enter client name"
-                        value={newProject.clientName}
-                        onInput$={(e) => {
-                          newProject.clientName = (e.target as HTMLInputElement).value;
+                      <label class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6M8 8v10l4-2 4 2V8" />
+                        </svg>
+                        <span>Employee Role</span>
+                      </label>
+                      <select
+                        class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200"
+                        value={formData.role}
+                        onChange$={(e) => {
+                          formData.role = (e.target as HTMLSelectElement).value as EmployeeRole;
                         }}
-                      />
+                      >
+                        {DataUtils.getEmployeeRoles().map((role) => (
+                          <option key={role} value={role}>
+                            {role}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div class="space-y-2">
+                      <label class="text-sm font-semibold text-gray-700 dark:text-gray-300">Client/Project Name</label>
+                      <select
+                        class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200"
+                        value={newProject.clientName}
+                        onChange$={(e) => {
+                          newProject.clientName = (e.target as HTMLSelectElement).value;
+                        }}
+                      >
+                        <option value="">Select client/project</option>
+                        <option value="client/project 1">client/project 1</option>
+                        <option value="client/project 2">client/project 2</option>
+                        <option value="client/project 3">client/project 3</option>
+                        <option value="client/project 4">client/project 4</option>
+                        <option value="client/project 5">client/project 5</option>
+                      </select>
                     </div>
 
                     <div class="space-y-2">
@@ -370,7 +309,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(({
                       </label>
                     </div>
 
-                    <div class="md:col-span-2 space-y-2">
+                    <div class="md:col-span-3 space-y-2">
                       <label class="text-sm font-semibold text-gray-700 dark:text-gray-300">Notes (Optional)</label>
                       <textarea
                         class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200 placeholder-gray-500 resize-none"
@@ -410,6 +349,8 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(({
                   <div key={`project-${index}`} class="bg-gradient-to-r from-white to-gray-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-gray-200 dark:border-slate-600 shadow-lg hover:shadow-xl transition-all duration-200">
                     <ProjectEntryCard
                       project={projectWithId}
+                      role={formData.role}
+                      date={formData.date}
                       isEditing={editingProjectId.value === `project-${index}`}
                       onEdit$={() => editingProjectId.value = `project-${index}`}
                       onSave$={(updatedProject) => handleEditProject(index, updatedProject)}
