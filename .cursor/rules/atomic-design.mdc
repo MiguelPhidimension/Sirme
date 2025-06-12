@@ -1,0 +1,120 @@
+---
+description: Organize all UI components using Atomic Design principles
+globs: 
+alwaysApply: false
+---
+
+# Your rule content
+
+- You can @ files here
+- You can use markdown but dont have to
+rules:
+  - name: "Atomic Design Structure"
+    description: |
+      Organize all UI components using Atomic Design principles in `/src/components`:
+        - atoms/
+        - molecules/
+        - organisms/
+        - templates/
+        - pages/
+    files: ["src/components/**/*"]
+
+  - name: "Atoms"
+    description: |
+      Atoms are the smallest building blocks (e.g., Button, Input, Label, Icon).
+      - Only use CSS/utilities and props, no business logic.
+      - No dependencies on other components.
+      - Must be standalone Qwik components.
+    files: ["src/components/atoms/*"]
+
+  - name: "Molecules"
+    description: |
+      Molecules combine multiple atoms (e.g., Input + Label).
+      - Can handle local logic (like validation).
+      - Do not import organisms, templates, or pages.
+    files: ["src/components/molecules/*"]
+
+  - name: "Organisms"
+    description: |
+      Organisms are reusable sections (e.g., Header, CardList, Form).
+      - Compose molecules and atoms.
+      - May manage internal state if needed.
+    files: ["src/components/organisms/*"]
+
+  - name: "Templates"
+    description: |
+      Templates arrange organisms and layout structure.
+      - No actual data, just placeholders and layout.
+      - Compose organisms, molecules, and atoms only.
+    files: ["src/components/templates/*"]
+
+  - name: "Pages"
+    description: |
+      Pages are full screens/views handled by routing.
+      - Import templates and pass real data.
+      - Can fetch data and manage side effects.
+    files: ["src/components/pages/*"]
+
+  - name: "Naming and Reusability"
+    description: |
+      Use clear, descriptive PascalCase names for components (e.g., UserAvatar, PrimaryButton).
+      Export components as default.
+    files: ["src/components/**/*"]
+
+  - name: "Styling with daisyUI"
+    description: |
+      Use daisyUI (Tailwind CSS) utility classes for styling.
+      Prefer utility classes over custom CSS.
+    files: ["src/components/**/*"]
+
+  - name: "Props and State Management"
+    description: |
+      Keep components pure when possible.
+      - Avoid global state in atoms/molecules.
+      - Manage state at highest possible level (usually organisms/templates).
+      - Use Qwik signals, stores, or context only as needed.
+    files: ["src/components/**/*"]
+
+  - name: "Documentation"
+    description: |
+      Each component must start with a comment stating its purpose, props, and an example of usage.
+    files: ["src/components/**/*"]
+
+  - name: "Testing"
+    description: |
+      Provide unit tests for atoms, molecules, and organisms in `/tests`.
+      Integration/E2E tests for pages/templates.
+    files: ["src/components/**/*", "tests/**/*"]
+
+  - name: "Component Import Hierarchy"
+    description: |
+      Never import higher-level components into lower ones.
+      (e.g., don't import an organism inside a molecule).
+    files: ["src/components/**/*"]
+
+  - name: "Linting and Formatting"
+    description: |
+      Always use the project's linter and formatter for all code.
+    files: ["src/components/**/*"]
+
+  - name: "Example File Structure"
+    description: |
+      src/components/
+        atoms/
+          Button.tsx
+          Input.tsx
+        molecules/
+          FormField.tsx
+        organisms/
+          LoginForm.tsx
+          Header.tsx
+        templates/
+          AuthLayout.tsx
+        pages/
+          LoginPage.tsx
+    files: []
+
+references:
+  - "Atomic Design by Brad Frost: https://bradfrost.com/blog/post/atomic-web-design/"
+  - "Qwik Documentation: https://qwik.dev/docs/"
+  - "daisyUI Docs: https://daisyui.com/"
