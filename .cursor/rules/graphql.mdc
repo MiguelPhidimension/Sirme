@@ -1,0 +1,131 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Qwik + GraphQL (graphql-request) Project Rules
+
+## Component Guidelines
+
+- Prefer **Qwik components** and use Qwik hooks (`useTask$`, `useResource$`, etc.) for managing side effects and data fetching.
+- Structure components for maximum reusability and lazy loading.
+- Use Qwik's `Resource` component for handling loading, error, and success states in the UI.
+
+---
+
+## GraphQL & graphql-request Best Practices (for Qwik)
+
+### Core Implementation
+- Use `graphql-request` as a lightweight GraphQL client instead of Apollo Client for better Qwik compatibility.
+- Create a centralized GraphQL provider using Qwik's `useStore` for reactive context management.
+- Initialize the GraphQL client in the provider and make it available through context.
+- Use `useResource$` for reactive data fetching that integrates with Qwik's SSR/hydration.
+
+### Context Pattern
+- Use `useStore` instead of `useSignal` for GraphQL context to ensure proper reactivity.
+- Update store properties directly rather than replacing the entire store value.
+- Implement proper client initialization with connection testing.
+- Add comprehensive debugging logs for development.
+
+### Hook Structure
+- Place GraphQL hooks in `src/graphql/hooks/` directory.
+- Each hook should use `useResource$` for reactive data fetching.
+- Track the GraphQL client in resources to make them reactive to client changes.
+- Handle client availability gracefully with loading states.
+- Include proper error handling and logging.
+
+### Query Organization
+- Define GraphQL queries as template literals within hook files.
+- Use clear, descriptive query names (e.g., `GET_ROLES_QUERY`).
+- Match query field names exactly with your database schema.
+- Include aggregate queries when you need count information.
+
+### Error Handling
+- Always implement robust error handling in GraphQL hooks.
+- Use try-catch blocks in `useResource$` callbacks.
+- Provide meaningful error messages and logging.
+- Handle network errors, GraphQL errors, and client unavailability.
+
+### TypeScript Integration
+- Define interfaces that match your actual database schema exactly.
+- Use proper TypeScript generics for GraphQL request functions.
+- Export types from hook files for reuse in components.
+- Ensure field names in interfaces match database column names.
+
+### UI Integration
+- Use Qwik's `Resource` component for handling async states in templates.
+- Provide loading, error, and success state handlers.
+- Make dropdowns and forms reactive to data changes.
+- Use proper key attributes when rendering lists from GraphQL data.
+
+---
+
+## Recommended Folder Structure
+
+```plaintext
+src/
+  components/
+    providers/
+      GraphQLProvider.tsx    // Central GraphQL context provider
+  graphql/
+    hooks/                   // Custom GraphQL hooks using useResource$
+      useRoles.ts
+      useProjects.ts
+      // ... other entity hooks
+  types/                     // TypeScript interfaces
+  utils/
+```
+
+---
+
+## Example Implementation Patterns
+
+### GraphQL Provider Setup
+```typescript
+// Use useStore for reactive context
+const store = useStore({
+  client: null as GraphQLClient | null,
+  isInitialized: false,
+  error: null as string | null
+});
+
+// Update properties directly for reactivity
+store.client = client;
+store.isInitialized = true;
+```
+
+### Hook Pattern
+```typescript
+export const useEntityName = () => {
+  const { client } = useGraphQLClient();
+  
+  return useResource$<DataType>(async ({ track }) => {
+    const currentClient = track(() => client);
+    
+    if (!currentClient) {
+      return { entities: [], total: 0 };
+    }
+    
+    try {
+      const data = await makeGraphQLRequest<ResponseType>(
+        currentClient, 
+        QUERY_STRING
+      );
+      return data;
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  });
+};
+```
+
+### UI Resource Usage
+```typescript
+<Resource
+  value={dataResource}
+  onPending={() => <LoadingState />}
+  onRejected={() => <ErrorState />}
+  onResolved={(data) => <SuccessState data={data} />}
+/>
+```

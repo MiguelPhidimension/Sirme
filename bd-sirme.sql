@@ -1,18 +1,13 @@
--- ===========================================
--- 1. Tabla de roles (incluye roles específicos del formulario)
--- ===========================================
 CREATE TABLE roles (
-    role_id SERIAL PRIMARY KEY,
+    role_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     role_name VARCHAR(100) UNIQUE NOT NULL,
     description TEXT
 );
 
--- ===========================================
 -- 2. Tabla de usuarios
--- ===========================================
 CREATE TABLE users (
-    user_id     SERIAL PRIMARY KEY,
-    role_id     INT NOT NULL,
+    user_id     UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    role_id     UUID NOT NULL,
     first_name  VARCHAR(100) NOT NULL,
     last_name   VARCHAR(100) NOT NULL,
     email       VARCHAR(100) UNIQUE NOT NULL,
@@ -26,20 +21,16 @@ CREATE TABLE users (
         ON UPDATE CASCADE
 );
 
--- ===========================================
 -- 3. Tabla de clientes
--- ===========================================
 CREATE TABLE clients (
-    client_id SERIAL PRIMARY KEY,
+    client_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL
 );
 
--- ===========================================
 -- 4. Tabla de proyectos
--- ===========================================
 CREATE TABLE projects (
-    project_id   SERIAL PRIMARY KEY,
-    client_id    INT,
+    project_id   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_id    UUID,
     name         VARCHAR(100) NOT NULL,
     description  TEXT,
     start_date   DATE,
@@ -53,12 +44,10 @@ CREATE TABLE projects (
         ON UPDATE CASCADE
 );
 
--- ===========================================
 -- 5. Tabla principal de registro de horas (por día y usuario)
--- ===========================================
 CREATE TABLE time_entries (
-    time_entry_id SERIAL PRIMARY KEY,
-    user_id       INT NOT NULL,
+    time_entry_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id       UUID NOT NULL,
     entry_date    DATE NOT NULL,
     created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at    TIMESTAMP,
@@ -69,13 +58,11 @@ CREATE TABLE time_entries (
         ON UPDATE CASCADE
 );
 
--- ===========================================
 -- 6. Detalle de proyectos reportados por día (múltiples proyectos por registro)
--- ===========================================
 CREATE TABLE time_entry_projects (
-    tep_id         SERIAL PRIMARY KEY,
-    time_entry_id  INT NOT NULL,
-    project_id     INT NOT NULL,
+    tep_id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    time_entry_id  UUID NOT NULL,
+    project_id     UUID NOT NULL,
     hours_reported DECIMAL(4,2) NOT NULL,
     is_mps         BOOLEAN DEFAULT FALSE,
     notes          TEXT,
@@ -91,14 +78,12 @@ CREATE TABLE time_entry_projects (
         ON UPDATE CASCADE
 );
 
--- ===========================================
 -- 7. Tabla de reportes consolidados (para consultas rápidas)
--- ===========================================
 CREATE TABLE time_reports (
-    report_id   SERIAL PRIMARY KEY,
-    user_id     INT NOT NULL,
-    project_id  INT NOT NULL,
-    period      DATE NOT NULL,       -- semana, mes, etc.
+    report_id   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     UUID NOT NULL,
+    project_id  UUID NOT NULL,
+    period      DATE NOT NULL,
     total_hours DECIMAL(5,2) DEFAULT 0,
     created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_tr_user

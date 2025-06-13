@@ -90,6 +90,13 @@ export const Dashboard = component$<DashboardProps>(({
     return 'Keep going! 🚀';
   };
 
+  // Handler for creating new entries for specific dates
+  const handleNewEntryForDate = $((date?: string) => {
+    // Set the date for the time entry form and show it
+    timeEntryFormDate.value = date || new Date().toISOString().split('T')[0];
+    showTimeEntryForm.value = true;
+  });
+
   // Handler for calendar day clicks
   const handleDayClick = $((day: any) => {
     // Handle calendar day click - could show day details or navigate to entry form
@@ -97,13 +104,6 @@ export const Dashboard = component$<DashboardProps>(({
     if (day.date) {
       handleNewEntryForDate(day.date);
     }
-  });
-
-  // Handler for creating new entries for specific dates
-  const handleNewEntryForDate = $((date?: string) => {
-    // Set the date for the time entry form and show it
-    timeEntryFormDate.value = date || new Date().toISOString().split('T')[0];
-    showTimeEntryForm.value = true;
   });
 
   // Handle time entry form submission

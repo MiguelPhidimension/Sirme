@@ -3,6 +3,10 @@ import { Input, Select, Button } from '../atoms';
 import { ProjectEntryCard } from '../molecules';
 import { DataUtils, ValidationUtils, DateUtils } from '~/utils';
 import type { TimeEntryFormData, ProjectEntry, EmployeeRole, FormErrors } from '~/types';
+// Import GraphQL hooks and Resource component for role dropdown
+import { useRoles } from '~/graphql/hooks/useRoles';
+import { Resource } from '@builder.io/qwik';
+import { useClientProjectOptions, type ClientProjectOption } from '../../graphql/hooks/useProjects';
 
 /**
  * Props interface for TimeEntryForm component
@@ -24,6 +28,7 @@ interface TimeEntryFormProps {
  * TimeEntryForm Organism Component
  * Comprehensive form for time entry with project management
  * Supports both daily and weekly entry modes
+ * Now uses GraphQL to fetch roles dynamically
  * 
  * @example
  * <TimeEntryForm 
@@ -44,6 +49,10 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(({
   showAddProjectInHeader = false,
   showAddProjectSignal
 }) => {
+  // GraphQL hook to fetch roles from database
+  const rolesResource = useRoles();
+  const clientProjectResource = useClientProjectOptions();
+  
   // Form state
   const formData = useStore<TimeEntryFormData>({
     employeeName: initialData?.employeeName || '',
@@ -55,7 +64,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(({
   // UI state
   const editingProjectId = useSignal<string | null>(null);
   const errors = useStore<FormErrors>({});
-  const isAddingProject = useSignal(false);
+  const isAddingProject = useSignal(simplified && (initialData?.projects?.length === 0 || !initialData?.projects));
 
   // New project form state
   const newProject = useStore({
@@ -372,37 +381,173 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(({
                     </svg>
                     <span>Employee Role</span>
                   </label>
-                  <select
-                    class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200"
-                    value={formData.role}
-                    onChange$={(e) => {
-                      formData.role = (e.target as HTMLSelectElement).value as EmployeeRole;
-                    }}
-                  >
-                    {DataUtils.getEmployeeRoles().map((role) => (
-                      <option key={role} value={role}>
-                        {role}
-                      </option>
-                    ))}
-                  </select>
+                  
+                  {/* Employee Role Dropdown - Now using GraphQL with improved loading display */}
+                  <div class="form-group relative">
+                    <Resource
+                      value={rolesResource}
+                      onPending={() => (
+                        <div class="relative">
+                          <select 
+                            id="employeeRole" 
+                            name="employeeRole" 
+                            disabled
+                            class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200"
+                          >
+                            <option>Loading roles...</option>
+                          </select>
+                          {/* Loading spinner overlay */}
+                          <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <svg class="animate-spin w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24">
+                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                          </div>
+                        </div>
+                      )}
+                      onRejected={(error) => {
+                        console.warn('Failed to load roles from GraphQL, using fallback:', error);
+                        // Fallback to hardcoded roles if GraphQL fails
+                        const fallbackRoles = DataUtils.getEmployeeRoles();
+                        return (
+                          <select 
+                            id="employeeRole" 
+                            name="employeeRole"
+                            class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200"
+                            value={formData.role}
+                            onChange$={(event) => {
+                              formData.role = (event.target as HTMLSelectElement).value as EmployeeRole;
+                            }}
+                          >
+                            <option value="">Select Role (Offline Mode)</option>
+                            {fallbackRoles.map((role) => (
+                              <option key={role} value={role}>
+                                {role}
+                              </option>
+                            ))}
+                          </select>
+                        );
+                      }}
+                      onResolved={(data) => (
+                        <select 
+                          id="employeeRole" 
+                          name="employeeRole"
+                          class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200"
+                          value={formData.role}
+                          onChange$={(event) => {
+                            formData.role = (event.target as HTMLSelectElement).value as EmployeeRole;
+                          }}
+                        >
+                          <option value="">Select Role</option>
+                          {data.roles.map((role) => (
+                            <option key={role.role_id} value={role.role_name}>
+                              {role.role_name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    />
+                  </div>
+                  
+                  {/* Show total roles count for debugging */}
+                  {/* <Resource
+                    value={rolesResource}
+                    onPending={() => (
+                      <p class="text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-1">
+                        <svg class="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        <span>Loading roles...</span>
+                      </p>
+                    )}
+                    onResolved={(data) => (
+                      <p class="text-xs text-gray-500 dark:text-gray-400">
+                        {data.total} {data.total !== 1 ? 'roles' : 'role'} available
+                      </p>
+                    )}
+                  /> */}
                 </div>
 
                 <div class="space-y-2">
-                  <label class="text-sm font-semibold text-gray-700 dark:text-gray-300">Client/Project Name</label>
-                  <select
-                    class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200"
-                    value={newProject.clientName}
-                    onChange$={(e) => {
-                      newProject.clientName = (e.target as HTMLSelectElement).value;
+                  <label class="text-sm font-semibold text-gray-700 dark:text-gray-300">Project Name</label>
+                  {/* Project Dropdown - Now using GraphQL with improved loading display */}
+                  <div class="relative">
+                    <Resource
+                      value={clientProjectResource}
+                      onPending={() => (
+                        <div class="relative">
+                          <select disabled class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white">
+                            <option>Loading projects...</option>
+                          </select>
+                          {/* Loading spinner overlay */}
+                          <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <svg class="animate-spin w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24">
+                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                          </div>
+                        </div>
+                      )}
+                      onRejected={(error) => {
+                        console.warn('Failed to load projects from GraphQL, using fallback:', error);
+                        // Fallback to simple input if GraphQL fails
+                        return (
+                          <input
+                            type="text"
+                            class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200 placeholder-gray-500"
+                            placeholder="Enter project name (Offline Mode)"
+                            value={newProject.clientName}
+                            onInput$={(event) => {
+                              newProject.clientName = (event.target as HTMLInputElement).value;
+                            }}
+                          />
+                        );
+                      }}
+                      onResolved={(data) => {
+                        // Filter to show only projects, not clients
+                        const projects = data.options.filter((option: ClientProjectOption) => option.type === 'project');
+                        return (
+                          <select 
+                            class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200"
+                            value={newProject.clientName}
+                            onChange$={(event) => {
+                              newProject.clientName = (event.target as HTMLSelectElement).value;
+                            }}
+                          >
+                            <option value="">Select Project</option>
+                            {projects.map((project: ClientProjectOption) => (
+                              <option key={project.id} value={project.name}>
+                                {project.name}
+                              </option>
+                            ))}
+                          </select>
+                        );
+                      }}
+                    />
+                  </div>
+                  
+                  {/* Show project count with loading state */}
+                  {/* <Resource
+                    value={clientProjectResource}
+                    onPending={() => (
+                      <p class="text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-1">
+                        <svg class="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        <span>Loading projects...</span>
+                      </p>
+                    )}
+                    onResolved={(data) => {
+                      const projectCount = data.options.filter((option: ClientProjectOption) => option.type === 'project').length;
+                      return (
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                          {projectCount} {projectCount !== 1 ? 'projects' : 'project'} available
+                        </p>
+                      );
                     }}
-                  >
-                    <option value="">Select client/project</option>
-                    <option value="client/project 1">client/project 1</option>
-                    <option value="client/project 2">client/project 2</option>
-                    <option value="client/project 3">client/project 3</option>
-                    <option value="client/project 4">client/project 4</option>
-                    <option value="client/project 5">client/project 5</option>
-                  </select>
+                  /> */}
                 </div>
 
                 <div class="space-y-2">

@@ -15,6 +15,7 @@
     "deploy": "echo 'Run \"npm run qwik add\" to install a server adapter'",
     "dev": "vite --mode ssr",
     "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
+    "docs:graphql": "graphql-markdown https://easy-bison-49.hasura.app/v1/graphql --header \"x-hasura-admin-secret=QeNCmNFN5d4PuAOhg6QLX5Hq0UfdTR48249BE6ivRPZmxrNAMWVP39yOvMYwvjr2\" > docs/graphql/schema.md",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "lint": "eslint \"src/**/*.ts*\"",
@@ -26,11 +27,13 @@
     "@builder.io/qwik": "^1.14.1",
     "@builder.io/qwik-city": "^1.14.1",
     "@eslint/js": "latest",
+    "@graphql-markdown/cli": "^0.3.0",
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "20.14.11",
     "eslint": "9.25.1",
     "eslint-plugin-qwik": "^1.14.1",
     "globals": "16.0.0",
+    "graphql-markdown": "^7.3.0",
     "prettier": "3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4.0.0",
@@ -41,6 +44,8 @@
     "vite-tsconfig-paths": "^4.2.1"
   },
   "dependencies": {
-    "daisyui": "^5.0.43"
+    "daisyui": "^5.0.43",
+    "graphql": "^16.11.0",
+    "graphql-request": "^7.2.0"
   }
 }

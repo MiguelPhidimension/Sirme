@@ -165,16 +165,16 @@ export const CalendarView = component$<CalendarViewProps>(({
   const handleDayClick = $((day: CalendarDay) => {
     selectedDay.value = day;
     
-    // If day has no entries, show time entry form directly
-    if (!day.hasEntries || day.totalHours === 0) {
-      onNewEntryForDate$ && onNewEntryForDate$(day.date);
-    } else {
-      // If day has entries, show day modal
+    // If day has entries, show day modal
+    if (day.hasEntries) {
       showDayModal.value = true;
+      // Don't call parent handler - we're handling this internally
+    } else {
+      // If day has no entries, show time entry form directly
+      onNewEntryForDate$ && onNewEntryForDate$(day.date);
+      // Call parent handler for empty days
+      onDayClick$ && onDayClick$(day);
     }
-    
-    // Also call parent handler if provided
-    onDayClick$ && onDayClick$(day);
   });
 
   return (
