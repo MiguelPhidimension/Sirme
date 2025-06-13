@@ -1,65 +1,197 @@
-# Qwik City App ⚡️
+# SIRME - Sistema de Registro de Horas de Empleados ⚡️
 
-- [Qwik Docs](https://qwik.dev/)
-- [Discord](https://qwik.dev/chat)
-- [Qwik GitHub](https://github.com/QwikDev/qwik)
-- [@QwikDev](https://twitter.com/QwikDev)
-- [Vite](https://vitejs.dev/)
+A modern, efficient employee time tracking system built with **Qwik**, **GraphQL**, and **Hasura**. SIRME enables organizations to manage employee work hours, project assignments, and generate comprehensive time reports with an intuitive, fast-loading interface.
+
+## 🚀 Key Features
+
+### Time Management
+- **Daily Time Entry**: Register work hours across multiple projects per day
+- **Project Tracking**: Associate hours with specific clients and projects
+- **MPS Classification**: Mark entries as MPS (Managed Professional Services) when applicable
+- **Flexible Notes**: Add detailed notes for each project entry
+
+### Dashboard & Analytics
+- **Real-time Dashboard**: View today's, weekly, and monthly hour summaries
+- **Progress Tracking**: Visual indicators for weekly hour targets
+- **Recent Activity**: Quick access to recent time entries
+- **Interactive Calendar**: Month/week view of all time entries
+
+### Reporting System
+- **Consolidated Reports**: Automated time report generation
+- **Export Functionality**: Export data for external analysis
+- **Multiple Views**: Support for different reporting periods
+- **User-specific Data**: Role-based data access and filtering
+
+### Modern Architecture
+- **⚡ Qwik Framework**: Ultra-fast loading with resumable hydration
+- **🔗 GraphQL API**: Efficient data fetching with Hasura backend
+- **🎨 Atomic Design**: Well-organized component structure
+- **📱 Responsive UI**: DaisyUI + Tailwind for modern, mobile-first design
+
+## 🏗️ Project Structure
+
+```
+src/
+├── components/           # Atomic Design component structure
+│   ├── atoms/           # Basic UI elements (buttons, inputs)
+│   ├── molecules/       # Component combinations
+│   ├── organisms/       # Complex UI sections (Dashboard, Forms)
+│   ├── templates/       # Page layouts
+│   ├── pages/           # Complete page components
+│   └── providers/       # Context providers (GraphQL, etc.)
+├── routes/              # Qwik City file-based routing
+│   ├── index.tsx        # Dashboard home page
+│   ├── entry/           # Time entry pages
+│   ├── calendar/        # Calendar view
+│   └── reports/         # Reporting section
+├── graphql/             # GraphQL queries and hooks
+│   └── hooks/           # Custom GraphQL hooks
+├── types/               # TypeScript type definitions
+├── utils/               # Utility functions
+└── store/               # State management
+```
+
+## 🗄️ Database Schema
+
+The system uses PostgreSQL with the following main entities:
+- **Users**: Employee information and role assignments
+- **Clients**: Client/company information
+- **Projects**: Project details and client associations
+- **Time Entries**: Daily time registration records
+- **Time Entry Projects**: Detailed hour breakdown per project
+- **Time Reports**: Consolidated reporting data
+
+## 🛠️ Tech Stack
+
+### Frontend
+- **Qwik** - Ultra-fast web framework with resumable hydration
+- **Qwik City** - Full-stack routing and SSR capabilities
+- **TypeScript** - Type safety and enhanced developer experience
+- **Tailwind CSS** - Utility-first CSS framework
+- **DaisyUI** - Beautiful component library for Tailwind
+
+### Backend & Data
+- **Hasura** - GraphQL API with real-time subscriptions
+- **PostgreSQL** - Robust relational database
+- **GraphQL Request** - Lightweight GraphQL client
+
+### Development Tools
+- **Vite** - Fast build tool and development server
+- **ESLint** - Code linting and quality assurance
+- **Prettier** - Code formatting
+- **GraphQL Markdown** - API documentation generation
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js (^18.17.0 || ^20.3.0 || >=21.0.0)
+- bun (latest version recommended)
+- Access to Hasura GraphQL endpoint
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone [repository-url]
+   cd sirme-phidimensions
+   ```
+
+2. **Install dependencies**
+   ```bash
+   bun install
+   ```
+
+3. **Configure environment variables**
+   ```bash
+   cp .env.local.example .env.local
+   ```
+   Update the following variables in `.env.local`:
+   ```env
+   VITE_HASURA_ADMIN_SECRET=your_hasura_admin_secret
+   VITE_GRAPHQL_ENDPOINT=your_hasura_graphql_endpoint
+   ```
+
+4. **Start development server**
+   ```bash
+   bun start
+   ```
+   The application will open at `http://localhost:5173`
+
+### Database Setup
+
+1. **Create PostgreSQL database**
+2. **Run the database schema**
+   ```bash
+   psql -d your_database -f bd-sirme.sql
+   ```
+3. **Configure Hasura** to connect to your database
+4. **Set up GraphQL permissions** for different user roles
+
+## 📊 Usage
+
+### Recording Time
+1. Navigate to the **Dashboard** or click **"New Entry"**
+2. Select the **date** for time entry
+3. Add **projects** and **hours** for each client
+4. Mark entries as **MPS** if applicable
+5. Add **notes** for detailed tracking
+6. **Save** the entry
+
+### Viewing Reports
+1. Go to **Reports** section
+2. Select **date range** and **filters**
+3. **Export** data as needed
+4. View **consolidated summaries**
+
+### Calendar View
+1. Access **Calendar** from the main navigation
+2. View **monthly/weekly** time entries
+3. Click on **specific dates** to see details
+4. **Quick edit** entries directly from calendar
+
+## 🧪 Development Commands
+
+```bash
+# Start development server
+bun start
+
+# Build for production
+bun run build
+
+# Run linting
+bun run lint
+
+# Format code
+bun run fmt
+
+# Generate GraphQL documentation
+bun run docs:graphql
+
+# Preview production build
+bun run preview
+```
+
+## 📁 Key Files
+
+- `bd-sirme.sql` - Complete database schema
+- `src/components/pages/HomePage.tsx` - Main dashboard
+- `src/graphql/hooks/` - GraphQL data fetching hooks
+- `tailwind.config.js` - UI styling configuration
+- `vite.config.ts` - Build and development configuration
+
+## 🤝 Contributing
+
+1. Follow the **atomic design** principles for components
+2. Write **clean, documented code** with helpful comments
+3. Use **TypeScript** for type safety
+4. Test features thoroughly before submission
+5. Keep files **small and focused** (<200 lines)
+6. Follow the **GraphQL + Qwik** best practices outlined in cursor rules
+
+## 📝 License
+
+This project is private and proprietary.
 
 ---
 
-## Project Structure
-
-This project is using Qwik with [QwikCity](https://qwik.dev/qwikcity/overview/). QwikCity is just an extra set of tools on top of Qwik to make it easier to build a full site, including directory-based routing, layouts, and more.
-
-Inside your project, you'll see the following directory structure:
-
-```
-├── public/
-│   └── ...
-└── src/
-    ├── components/
-    │   └── ...
-    └── routes/
-        └── ...
-```
-
-- `src/routes`: Provides the directory-based routing, which can include a hierarchy of `layout.tsx` layout files, and an `index.tsx` file as the page. Additionally, `index.ts` files are endpoints. Please see the [routing docs](https://qwik.dev/qwikcity/routing/overview/) for more info.
-
-- `src/components`: Recommended directory for components.
-
-- `public`: Any static assets, like images, can be placed in the public directory. Please see the [Vite public directory](https://vitejs.dev/guide/assets.html#the-public-directory) for more info.
-
-## Add Integrations and deployment
-
-Use the `npm run qwik add` command to add additional integrations. Some examples of integrations includes: Cloudflare, Netlify or Express Server, and the [Static Site Generator (SSG)](https://qwik.dev/qwikcity/guides/static-site-generation/).
-
-```shell
-npm run qwik add # or `yarn qwik add`
-```
-
-## Development
-
-Development mode uses [Vite's development server](https://vitejs.dev/). The `dev` command will server-side render (SSR) the output during development.
-
-```shell
-npm start # or `yarn start`
-```
-
-> Note: during dev mode, Vite may request a significant number of `.js` files. This does not represent a Qwik production build.
-
-## Preview
-
-The preview command will create a production build of the client modules, a production build of `src/entry.preview.tsx`, and run a local server. The preview server is only for convenience to preview a production build locally and should not be used as a production server.
-
-```shell
-npm run preview # or `yarn preview`
-```
-
-## Production
-
-The production build will generate client and server modules by running both client and server build commands. The build command will use Typescript to run a type check on the source code.
-
-```shell
-npm run build # or `yarn build`
-```
+**SIRME** - Making employee time tracking simple, fast, and efficient. ⚡️
