@@ -1,5 +1,6 @@
 /**
  * Vite configuration for React application
+ * Optimized for Vercel deployment with Bun runtime
  */
 import { defineConfig, type UserConfig } from "vite";
 import react from '@vitejs/plugin-react'
@@ -7,6 +8,9 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig(({ command, mode }): UserConfig => {
+  const isDev = mode === 'development';
+  const isProd = mode === 'production';
+
   return {
     plugins: [
       react(), // React plugin for JSX and Fast Refresh
@@ -43,26 +47,50 @@ export default defineConfig(({ command, mode }): UserConfig => {
       },
     },
 
-    // Build configuration
+    // Build configuration optimized for production
     build: {
       target: 'esnext',
       outDir: 'dist',
-      sourcemap: true,
+      sourcemap: isProd ? false : true, // Disable sourcemaps in production for smaller builds
+      minify: isProd ? 'esbuild' : false, // Use esbuild for faster minification
+      cssMinify: isProd,
       rollupOptions: {
         output: {
           manualChunks: {
             vendor: ['react', 'react-dom'],
             router: ['react-router-dom'],
             query: ['@tanstack/react-query'],
-            graphql: ['graphql', 'graphql-request']
-          }
+            graphql: ['graphql', 'graphql-request'],
+            ui: ['zustand', 'daisyui']
+          },
+          // Optimize chunk names for better caching
+          chunkFileNames: 'assets/js/[name]-[hash].js',
+          entryFileNames: 'assets/js/[name]-[hash].js',
+          assetFileNames: 'assets/[ext]/[name]-[hash].[ext]'
         }
-      }
+      },
+      // Increase chunk size warning limit
+      chunkSizeWarningLimit: 1000
     },
 
     // Environment variables
     define: {
-      __DEV__: mode === 'development',
+      __DEV__: isDev,
+      __PROD__: isProd,
     },
+
+    // Resolve configuration
+    resolve: {
+      alias: {
+        // Add any path aliases if needed
+      }
+    },
+
+    // Production optimizations
+    ...(isProd && {
+      esbuild: {
+        drop: ['console', 'debugger'], // Remove console logs in production
+      },
+    }),
   };
 });

@@ -239,3 +239,123 @@ Notice that you might need a [Vercel account](https://docs.Vercel.com/get-starte
 The project is ready to be deployed to Vercel. However, you will need to create a git repository and push the code to it.
 
 You can [deploy your site to Vercel](https://vercel.com/docs/concepts/deployments/overview) either via a Git provider integration or through the Vercel CLI.
+
+## Deployment to Vercel with Bun
+
+This project is configured for deployment to [Vercel](https://vercel.com) using Bun as the runtime. The configuration has been optimized for fast builds and optimal performance.
+
+### Prerequisites
+
+1. **Bun Runtime**: Install Bun if you haven't already:
+   ```shell
+   curl -fsSL https://bun.sh/install | bash
+   ```
+
+2. **Vercel Account**: Create a [Vercel account](https://vercel.com/signup) if you don't have one.
+
+3. **Vercel CLI** (optional for manual deployments):
+   ```shell
+   bun add -g vercel
+   ```
+
+### Environment Variables
+
+Before deploying, make sure to set up your environment variables in Vercel:
+
+1. Go to your Vercel project dashboard
+2. Navigate to Settings > Environment Variables
+3. Add the following variables:
+
+```bash
+# Required for GraphQL API access
+VITE_HASURA_ADMIN_SECRET=your_hasura_admin_secret
+VITE_GRAPHQL_ENDPOINT=https://your-hasura-instance.hasura.app/v1/graphql
+
+# Optional application settings
+VITE_APP_NAME=SIRME
+VITE_APP_VERSION=1.0.0
+NODE_ENV=production
+```
+
+### Automatic Deployment (Recommended)
+
+1. **Connect Git Repository**: 
+   - Push your code to GitHub, GitLab, or Bitbucket
+   - Connect your repository to Vercel via the dashboard
+   - Vercel will automatically detect the Bun configuration
+
+2. **Automatic Builds**: 
+   - Every push to your main branch will trigger a deployment
+   - Build command: `bun run build`
+   - Output directory: `dist`
+
+### Manual Deployment
+
+For manual deployments using our custom script:
+
+```shell
+# Build and test locally
+./scripts/deploy.sh
+
+# Deploy to production
+./scripts/deploy.sh --deploy
+```
+
+Or using Vercel CLI directly:
+
+```shell
+# Install dependencies and build
+bun install && bun run build
+
+# Deploy to production
+vercel --prod
+```
+
+### Build Configuration
+
+The project uses these optimized build settings:
+
+- **Runtime**: Bun with Node.js 18.x compatibility
+- **Framework**: Vite (automatically detected)
+- **Build Command**: `bun run build`
+- **Output Directory**: `dist`
+- **Install Command**: `bun install`
+
+### Performance Optimizations
+
+- **Code Splitting**: Automatic chunking for vendor, router, and GraphQL libraries
+- **Asset Optimization**: Optimized file naming for better caching
+- **Security Headers**: CSP, XSS protection, and frame options configured
+- **SPA Routing**: Proper rewrites configured for React Router
+
+### Troubleshooting
+
+**Build Issues:**
+```shell
+# Clean build
+rm -rf dist node_modules bun.lockb
+bun install
+bun run build
+```
+
+**Environment Issues:**
+- Verify all `VITE_*` environment variables are set in Vercel
+- Check that GraphQL endpoint is accessible
+- Ensure Hasura admin secret is correct
+
+**Performance Issues:**
+- Check bundle size with `bun run build` and review chunk warnings
+- Verify asset caching headers are working
+- Monitor build logs in Vercel dashboard
+
+### Local Development vs Production
+
+**Development:**
+```shell
+bun run dev  # Starts dev server on port 5178
+```
+
+**Production Preview:**
+```shell
+bun run build && bun run preview  # Builds and previews on port 4173
+```
