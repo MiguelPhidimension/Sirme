@@ -22,7 +22,9 @@
     "fmt.check": "prettier --check .",
     "type-check": "tsc --noEmit",
     "docs:graphql": "graphql-markdown https://easy-bison-49.hasura.app/v1/graphql --header \"x-hasura-admin-secret=QeNCmNFN5d4PuAOhg6QLX5Hq0UfdTR48249BE6ivRPZmxrNAMWVP39yOvMYwvjr2\" > docs/graphql/schema.md",
-    "vercel-build": "bun run build:prod"
+    "vercel-build": "bun run build:prod",
+    "deploy": "bun run build:prod && bunx vercel --prod",
+    "deploy:preview": "bun run build:prod && bunx vercel"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.80.7",
@@ -53,6 +55,7 @@
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.2.2",
+    "vercel": "^43.1.0",
     "vite": "^5.0.0",
     "vite-tsconfig-paths": "^4.2.1"
   }

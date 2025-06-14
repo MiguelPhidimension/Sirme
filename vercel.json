@@ -4,7 +4,6 @@
   "installCommand": "bun install",
   "outputDirectory": "dist",
   "framework": "vite",
-  "nodeVersion": "18.x",
   "headers": [
     {
       "source": "/(.*)?service-worker.js",
@@ -16,7 +15,7 @@
       ]
     },
     {
-      "source": "/(assets|build)/.*",
+      "source": "/assets/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
