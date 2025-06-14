@@ -4,4 +4,6 @@
 export { Button, type ButtonVariant, type ButtonSize } from './Button';
 export { Input, type InputVariant, type InputSize } from './Input';
 export { Select, type SelectVariant, type SelectSize } from './Select';
-export { Badge, type BadgeVariant, type BadgeSize } from './Badge'; 
+export { Badge, type BadgeVariant, type BadgeSize } from './Badge';
+export { Card } from './Card';
+export { CardHeader } from './CardHeader'; 

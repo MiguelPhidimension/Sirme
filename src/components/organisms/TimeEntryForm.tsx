@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Input, Select, Button } from '../atoms';
-import { ProjectEntryCard } from '../molecules';
+import { Input, Select, Button, Card } from '../atoms';
+import { ProjectEntryCard, GlassCard } from '../molecules';
 import { DataUtils, ValidationUtils, DateUtils } from '~/utils';
 import type { TimeEntryFormData, ProjectEntry, EmployeeRole, FormErrors } from '~/types';
 // Import GraphQL hooks for role dropdown
@@ -352,46 +352,45 @@ export const TimeEntryForm: React.FC<TimeEntryFormProps> = ({
 
         {/* Project Entries - Modern Card Design */}
         {!simplified && formData.projects.length > 0 && (
-          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/20 overflow-hidden">
-            {/* Header section - Only for non-simplified mode */}
-            <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-6">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-white">Project Entries</h2>
-                    <p className="text-white/80 text-sm">Add your role and project details below</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4 ml-auto">
-                  <div className="text-white/90 text-right">
-                    <div className="text-sm opacity-80">Total Hours</div>
-                    <div className="text-2xl font-bold">{DataUtils.formatHours(totalHours)}</div>
-                  </div>
-                  <button
-                    className="bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 disabled:opacity-50"
-                    onClick={() => {
-                      if (onAddProjectClick) {
-                        onAddProjectClick();
-                      } else {
-                        setIsAddingProject(true);
-                      }
-                    }}
-                    disabled={isAddingProject}
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    <span>Add Project</span>
-                  </button>
-                </div>
+          <GlassCard
+            title="Project Entries"
+            subtitle="Add your role and project details below"
+            icon={
+              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
               </div>
-            </div>
-
+            }
+            headerActions={
+              <div className="flex items-center space-x-4 ml-auto">
+                <div className="text-white/90 text-right">
+                  <div className="text-sm opacity-80">Total Hours</div>
+                  <div className="text-2xl font-bold">{DataUtils.formatHours(totalHours)}</div>
+                </div>
+                <button
+                  className="bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 disabled:opacity-50"
+                  onClick={() => {
+                    if (onAddProjectClick) {
+                      onAddProjectClick();
+                    } else {
+                      setIsAddingProject(true);
+                    }
+                  }}
+                  disabled={isAddingProject}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  <span>Add Project</span>
+                </button>
+              </div>
+            }
+            headerClassName="bg-gradient-to-r from-emerald-500 to-teal-600 p-6"
+            titleClassName="text-2xl font-bold text-white"
+            subtitleClassName="text-white/80 text-sm"
+            showHeaderBorder={false}
+          >
             <div className="p-6">
               {/* Error display for projects */}
               {errors.projects && (
@@ -421,7 +420,7 @@ export const TimeEntryForm: React.FC<TimeEntryFormProps> = ({
                 {formData.projects.map((project, index) => {
                   const projectWithId = { ...project, id: `project-${index}` };
                   return (
-                    <div key={`project-${index}`} className="bg-gradient-to-r from-white to-gray-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-gray-200 dark:border-slate-600 shadow-lg hover:shadow-xl transition-all duration-200">
+                    <Card key={`project-${index}`}>
                       <ProjectEntryCard
                         project={projectWithId}
                         role={formData.role}
@@ -432,7 +431,7 @@ export const TimeEntryForm: React.FC<TimeEntryFormProps> = ({
                         onDelete={() => handleDeleteProject(index)}
                         onCancel={() => setEditingProjectId(null)}
                       />
-                    </div>
+                    </Card>
                   );
                 })}
 
@@ -449,7 +448,7 @@ export const TimeEntryForm: React.FC<TimeEntryFormProps> = ({
                 )}
               </div>
             </div>
-          </div>
+          </GlassCard>
         )}
 
         {/* Error display for projects - Show directly in simplified mode */}
@@ -481,7 +480,7 @@ export const TimeEntryForm: React.FC<TimeEntryFormProps> = ({
             {formData.projects.map((project, index) => {
               const projectWithId = { ...project, id: `project-${index}` };
               return (
-                <div key={`project-${index}`} className="bg-gradient-to-r from-white to-gray-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-gray-200 dark:border-slate-600 shadow-lg hover:shadow-xl transition-all duration-200">
+                <Card key={`project-${index}`}>
                   <ProjectEntryCard
                     project={projectWithId}
                     role={formData.role}
@@ -492,7 +491,7 @@ export const TimeEntryForm: React.FC<TimeEntryFormProps> = ({
                     onDelete={() => handleDeleteProject(index)}
                     onCancel={() => setEditingProjectId(null)}
                   />
-                </div>
+                </Card>
               );
             })}
           </div>
@@ -500,16 +499,15 @@ export const TimeEntryForm: React.FC<TimeEntryFormProps> = ({
 
         {/* New Project Form - Show directly when simplified and no projects */}
         {isAddingProject && (
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border-2 border-blue-200 dark:border-slate-500 overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-4">
-              <h3 className="text-xl font-bold text-white flex items-center space-x-2">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                <span>Add New Project</span>
-              </h3>
-            </div>
-            
+          <GlassCard
+            title="Add New Project"
+            icon={
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            }
+            showHeaderBorder={true}
+          >
             <div className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
@@ -594,47 +592,49 @@ export const TimeEntryForm: React.FC<TimeEntryFormProps> = ({
                 </button>
               </div>
             </div>
-          </div>
+          </GlassCard>
         )}
 
         {/* Modern Form Actions */}
-        <div className={`flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 ${simplified ? 'bg-transparent' : 'bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/20'} p-6`}>
-          <button
-            className="px-8 py-3 rounded-xl border-2 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-600 transition-all duration-200 disabled:opacity-50"
-            onClick={onCancel}
-            disabled={isLoading}
-          >
-            Cancel
-          </button>
-
-          <div className="flex items-center space-x-6">
-            {!simplified && (
-              <div className="text-center">
-                <div className="text-sm text-gray-500 dark:text-gray-400">Total Hours</div>
-                <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  {DataUtils.formatHours(totalHours)}
-                </div>
-              </div>
-            )}
-
+        <Card className={`${simplified ? 'bg-transparent border-none shadow-none' : ''}`}>
+          <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 p-6">
             <button
-              className="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold text-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 flex items-center space-x-2"
-              onClick={handleSubmit}
-              disabled={formData.projects.length === 0 || isLoading}
+              className="px-8 py-3 rounded-xl border-2 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-600 transition-all duration-200 disabled:opacity-50"
+              onClick={onCancel}
+              disabled={isLoading}
             >
-              {isLoading && (
-                <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-              )}
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </svg>
-              <span>{mode === 'daily' ? 'Save Daily Entry' : 'Save Weekly Entry'}</span>
+              Cancel
             </button>
+
+            <div className="flex items-center space-x-6">
+              {!simplified && (
+                <div className="text-center">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Total Hours</div>
+                  <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    {DataUtils.formatHours(totalHours)}
+                  </div>
+                </div>
+              )}
+
+              <button
+                className="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold text-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 flex items-center space-x-2"
+                onClick={handleSubmit}
+                disabled={formData.projects.length === 0 || isLoading}
+              >
+                {isLoading && (
+                  <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                )}
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>{mode === 'daily' ? 'Save Daily Entry' : 'Save Weekly Entry'}</span>
+              </button>
+            </div>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

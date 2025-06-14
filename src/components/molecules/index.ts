@@ -7,4 +7,5 @@ export { StatCard } from './StatCard';
 export { DashboardStats } from './DashboardStats';
 export { WeeklyProgress } from './WeeklyProgress';
 export { RecentEntries } from './RecentEntries';
-export { CalendarView } from './CalendarView'; 
+export { CalendarView } from './CalendarView';
+export { GlassCard } from './GlassCard'; 

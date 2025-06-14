@@ -93,9 +93,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const getProgressStatus = (progress: number) => {
-    if (progress >= 100) return 'Excellent work! 🎉';
-    if (progress >= 80) return 'Great progress! 💪';
     if (progress >= 60) return 'Good momentum! 👍';
+    if (progress >= 80) return 'Great progress! 💪';
     return 'Keep going! 🚀';
   };
 
