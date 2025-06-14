@@ -19,6 +19,7 @@ export type EmployeeRole =
 export interface ProjectEntry {
   id: string;
   clientName: string;
+  projectName: string; // Name of the project
   hours: number;
   isMPS: boolean; // MuleSoft Professional Services flag
   notes?: string;

@@ -1,21 +1,15 @@
-import { component$, Slot } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
+import React from "react";
+import { Outlet } from "react-router-dom";
 import { MainLayout } from "~/components/templates";
 
 /**
  * Route layout that uses MainLayout template
- * Routes should be simple and just render the appropriate template/page components
+ * In React Router, this serves as a layout wrapper for nested routes
  */
-export const useServerTimeLoader = routeLoader$(() => {
-  return {
-    date: new Date().toISOString(),
-  };
-});
-
-export default component$(() => {
+export default function Layout() {
   return (
     <MainLayout>
-      <Slot />
+      <Outlet />
     </MainLayout>
   );
-}); 
+} 

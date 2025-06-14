@@ -1,4 +1,4 @@
-import { component$, Slot, type QwikIntrinsicElements } from '@builder.io/qwik';
+import React, { ButtonHTMLAttributes } from 'react';
 
 /**
  * Button variant types for different UI contexts
@@ -22,7 +22,7 @@ export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg';
 /**
  * Props interface for the Button component
  */
-interface ButtonProps extends Omit<QwikIntrinsicElements['button'], 'size'> {
+interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'size'> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   outline?: boolean;
@@ -31,6 +31,7 @@ interface ButtonProps extends Omit<QwikIntrinsicElements['button'], 'size'> {
   square?: boolean;
   glass?: boolean;
   loading?: boolean;
+  children?: React.ReactNode;
 }
 
 /**
@@ -38,11 +39,11 @@ interface ButtonProps extends Omit<QwikIntrinsicElements['button'], 'size'> {
  * Uses daisyUI button classes for consistent styling
  * 
  * @example
- * <Button variant="primary" size="md" onClick$={() => console.log('clicked')}>
+ * <Button variant="primary" size="md" onClick={() => console.log('clicked')}>
  *   Click me
  * </Button>
  */
-export const Button = component$<ButtonProps>(({
+export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   size = 'md',
   outline = false,
@@ -51,8 +52,9 @@ export const Button = component$<ButtonProps>(({
   square = false,
   glass = false,
   loading = false,
-  class: className = '',
+  className = '',
   disabled,
+  children,
   ...props
 }) => {
   // Build CSS classes based on props
@@ -82,10 +84,10 @@ export const Button = component$<ButtonProps>(({
   return (
     <button 
       {...props}
-      class={allClasses}
+      className={allClasses}
       disabled={disabled || loading}
     >
-      <Slot />
+      {children}
     </button>
   );
-}); 
+}; 

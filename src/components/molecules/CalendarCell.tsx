@@ -1,4 +1,4 @@
-import { component$, $ } from '@builder.io/qwik';
+import React from 'react';
 import { Badge } from '../atoms';
 import { DataUtils, DateUtils } from '~/utils';
 import type { CalendarDay } from '~/types';
@@ -9,7 +9,7 @@ import type { CalendarDay } from '~/types';
 interface CalendarCellProps {
   day: CalendarDay;
   isCurrentMonth?: boolean;
-  onClick$?: (date: string) => void;
+  onClick?: (date: string) => void;
 }
 
 /**
@@ -21,13 +21,13 @@ interface CalendarCellProps {
  * <CalendarCell 
  *   day={calendarDay}
  *   isCurrentMonth={true}
- *   onClick$={handleDayClick}
+ *   onClick={handleDayClick}
  * />
  */
-export const CalendarCell = component$<CalendarCellProps>(({
+export const CalendarCell: React.FC<CalendarCellProps> = ({
   day,
   isCurrentMonth = true,
-  onClick$
+  onClick
 }) => {
   // Extract day number from date
   const dayNumber = new Date(day.date).getDate();
@@ -35,11 +35,11 @@ export const CalendarCell = component$<CalendarCellProps>(({
   const isCurrentWeek = DateUtils.isCurrentWeek(day.date);
 
   // Handle cell click
-  const handleClick = $(() => {
-    if (onClick$) {
-      onClick$(day.date);
+  const handleClick = () => {
+    if (onClick) {
+      onClick(day.date);
     }
-  });
+  };
 
   // Determine cell styling based on state
   const getCellClasses = () => {
@@ -83,32 +83,32 @@ export const CalendarCell = component$<CalendarCellProps>(({
 
   return (
     <div 
-      class={getCellClasses()}
-      onClick$={handleClick}
+      className={getCellClasses()}
+      onClick={handleClick}
     >
       {/* Day number */}
-      <div class="flex justify-between items-start mb-1">
-        <span class={`text-sm font-medium ${isToday ? 'text-primary font-bold' : ''}`}>
+      <div className="flex justify-between items-start mb-1">
+        <span className={`text-sm font-medium ${isToday ? 'text-primary font-bold' : ''}`}>
           {dayNumber}
         </span>
         
         {/* Today indicator */}
         {isToday && (
-          <div class="w-2 h-2 bg-primary rounded-full"></div>
+          <div className="w-2 h-2 bg-primary rounded-full"></div>
         )}
       </div>
 
       {/* Hours display */}
       {day.totalHours > 0 && (
-        <div class="flex-1 flex flex-col justify-center items-center">
-          <div class={`text-lg font-bold ${getHoursColor(day.totalHours)}`}>
+        <div className="flex-1 flex flex-col justify-center items-center">
+          <div className={`text-lg font-bold ${getHoursColor(day.totalHours)}`}>
             {DataUtils.formatHours(day.totalHours)}
           </div>
           
           {/* Project count indicator */}
           {day.entries && day.entries.length > 0 && (
-            <div class="text-xs text-base-content/60 mt-1">
-              {day.entries.reduce((total, entry) => total + entry.projects.length, 0)} projects
+            <div className="text-xs text-base-content/60 mt-1">
+              {day.entries.reduce((total: number, entry: any) => total + entry.projects.length, 0)} projects
             </div>
           )}
         </div>
@@ -116,16 +116,16 @@ export const CalendarCell = component$<CalendarCellProps>(({
 
       {/* Empty state */}
       {day.totalHours === 0 && isCurrentMonth && (
-        <div class="flex-1 flex items-center justify-center">
-          <div class="w-1 h-1 bg-base-content/20 rounded-full"></div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-1 h-1 bg-base-content/20 rounded-full"></div>
         </div>
       )}
 
       {/* Bottom indicators */}
-      <div class="absolute bottom-1 left-1 right-1 flex justify-center gap-1">
+      <div className="absolute bottom-1 left-1 right-1 flex justify-center gap-1">
         {/* MPS indicator */}
-        {day.entries?.some(entry => 
-          entry.projects.some(project => project.isMPS)
+        {day.entries?.some((entry: any) => 
+          entry.projects.some((project: any) => project.isMPS)
         ) && (
           <Badge variant="success" size="xs">
             MPS
@@ -141,4 +141,4 @@ export const CalendarCell = component$<CalendarCellProps>(({
       </div>
     </div>
   );
-}); 
+}; 

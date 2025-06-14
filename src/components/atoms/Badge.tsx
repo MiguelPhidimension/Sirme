@@ -1,4 +1,4 @@
-import { component$, Slot } from '@builder.io/qwik';
+import React from 'react';
 
 /**
  * Badge variant types for different UI contexts
@@ -26,7 +26,8 @@ interface BadgeProps {
   variant?: BadgeVariant;
   size?: BadgeSize;
   outline?: boolean;
-  class?: string;
+  className?: string;
+  children: React.ReactNode;
 }
 
 /**
@@ -38,11 +39,12 @@ interface BadgeProps {
  *   MuleSoft Developer
  * </Badge>
  */
-export const Badge = component$<BadgeProps>(({
+export const Badge: React.FC<BadgeProps> = ({
   variant = 'neutral',
   size = 'md',
   outline = false,
-  class: className = ''
+  className = '',
+  children
 }) => {
   // Build CSS classes based on props
   const baseClasses = 'badge';
@@ -59,8 +61,8 @@ export const Badge = component$<BadgeProps>(({
   ].filter(Boolean).join(' ');
 
   return (
-    <div class={allClasses}>
-      <Slot />
+    <div className={allClasses}>
+      {children}
     </div>
   );
-}); 
+}; 

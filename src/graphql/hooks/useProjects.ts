@@ -1,21 +1,17 @@
 /**
- * Projects and Clients GraphQL Hooks for Qwik
+ * Projects and Clients GraphQL Hooks for React
  * 
- * Custom hooks for project and client data operations using graphql-request with Qwik.
- * Integrates with Qwik's reactivity system using useResource$ for SSR compatibility.
+ * Custom hooks for project and client data operations using graphql-request with React Query.
+ * Provides efficient caching, background updates, and error handling.
  * 
  * Features:
- * - Reactive data fetching with useResource$
+ * - React Query integration for caching and synchronization
  * - Error handling and loading states
  * - Simple and lightweight following GraphQL rules
  * - Matches actual database schema exactly
  */
 
-import { 
-  Signal, 
-  useResource$,
-  useSignal
-} from '@builder.io/qwik';
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useGraphQLClient, makeGraphQLRequest } from '../../components/providers/GraphQLProvider';
 
 // ============================================================================
@@ -128,7 +124,7 @@ const GET_PROJECTS_QUERY = `
 
 /**
  * Query to get projects with their client information
- * Useful for displaying "Client - Project" format
+ * Since client relationship field doesn't exist, we'll fetch clients separately
  */
 const GET_PROJECTS_WITH_CLIENTS_QUERY = `
   query GetProjectsWithClients {
@@ -137,9 +133,10 @@ const GET_PROJECTS_WITH_CLIENTS_QUERY = `
       name
       description
       client_id
-      client {
-        name
-      }
+    }
+    clients {
+      client_id
+      name
     }
     projects_aggregate {
       aggregate {
@@ -150,170 +147,176 @@ const GET_PROJECTS_WITH_CLIENTS_QUERY = `
 `;
 
 // ============================================================================
-// QUERY HOOKS - Following GraphQL Rules Pattern
+// QUERY HOOKS - Following React Query Pattern
 // ============================================================================
 
 /**
  * Hook to get all clients
- * Returns reactive clients data using useResource$ for SSR compatibility
+ * Returns React Query result with clients data, loading states, and error handling
  * 
- * @returns Resource containing clients array and total count
+ * @returns UseQueryResult containing clients array and total count
  */
-export const useClients = () => {
+export const useClients = (): UseQueryResult<{ clients: ClientData[]; total: number }> => {
   const { client } = useGraphQLClient();
   
-  console.log('🔧 useClients hook called, client:', client ? 'available' : 'not available');
-  
-  return useResource$<{ clients: ClientData[]; total: number }>(async ({ track }) => {
-    // Track the GraphQL client to make resource reactive to client changes
-    const currentClient = track(() => client);
-    
-    console.log('🚀 useClients resource executing, client:', currentClient ? 'available' : 'not available');
-    
-    // Handle client unavailability gracefully with loading state
-    if (!currentClient) {
-      console.log('⏳ Waiting for GraphQL client to be initialized...');
-      return { clients: [], total: 0 };
-    }
-    
-    try {
-      console.log('📝 Making GraphQL request to fetch all clients');
+  return useQuery({
+    queryKey: ['clients'],
+    queryFn: async () => {
+      console.log('🚀 useClients query executing, client:', client ? 'available' : 'not available');
       
-      // Make GraphQL request with proper typing
-      const data = await makeGraphQLRequest<ClientsResponse>(
-        currentClient, 
-        GET_CLIENTS_QUERY
-      );
+      // Handle client unavailability
+      if (!client) {
+        console.log('⏳ GraphQL client not available');
+        throw new Error('GraphQL client not initialized');
+      }
       
-      console.log('✅ GraphQL request successful, clients count:', data.clients?.length || 0);
-      
-      return {
-        clients: data.clients || [],
-        total: data.clients_aggregate?.aggregate?.count || 0
-      };
-    } catch (error) {
-      console.error('❌ Error fetching clients:', error);
-      throw error;
-    }
+      try {
+        console.log('📝 Making GraphQL request to fetch all clients');
+        
+        // Make GraphQL request with proper typing
+        const data = await makeGraphQLRequest<ClientsResponse>(
+          client, 
+          GET_CLIENTS_QUERY
+        );
+        
+        console.log('✅ GraphQL request successful, clients count:', data.clients?.length || 0);
+        
+        return {
+          clients: data.clients || [],
+          total: data.clients_aggregate?.aggregate?.count || 0
+        };
+      } catch (error) {
+        console.error('❌ Error fetching clients:', error);
+        throw error;
+      }
+    },
+    enabled: !!client, // Only run query when client is available
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 };
 
 /**
  * Hook to get all projects
- * Returns reactive projects data using useResource$ for SSR compatibility
+ * Returns React Query result with projects data, loading states, and error handling
  * 
- * @returns Resource containing projects array and total count
+ * @returns UseQueryResult containing projects array and total count
  */
-export const useProjects = () => {
+export const useProjects = (): UseQueryResult<{ projects: ProjectData[]; total: number }> => {
   const { client } = useGraphQLClient();
   
-  console.log('🔧 useProjects hook called, client:', client ? 'available' : 'not available');
-  
-  return useResource$<{ projects: ProjectData[]; total: number }>(async ({ track }) => {
-    // Track the GraphQL client to make resource reactive to client changes
-    const currentClient = track(() => client);
-    
-    console.log('🚀 useProjects resource executing, client:', currentClient ? 'available' : 'not available');
-    
-    // Handle client unavailability gracefully with loading state
-    if (!currentClient) {
-      console.log('⏳ Waiting for GraphQL client to be initialized...');
-      return { projects: [], total: 0 };
-    }
-    
-    try {
-      console.log('📝 Making GraphQL request to fetch all projects');
+  return useQuery({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      console.log('🚀 useProjects query executing, client:', client ? 'available' : 'not available');
       
-      // Make GraphQL request with proper typing
-      const data = await makeGraphQLRequest<ProjectsResponse>(
-        currentClient, 
-        GET_PROJECTS_QUERY
-      );
+      // Handle client unavailability
+      if (!client) {
+        console.log('⏳ GraphQL client not available');
+        throw new Error('GraphQL client not initialized');
+      }
       
-      console.log('✅ GraphQL request successful, projects count:', data.projects?.length || 0);
-      
-      return {
-        projects: data.projects || [],
-        total: data.projects_aggregate?.aggregate?.count || 0
-      };
-    } catch (error) {
-      console.error('❌ Error fetching projects:', error);
-      throw error;
-    }
+      try {
+        console.log('📝 Making GraphQL request to fetch all projects');
+        
+        // Make GraphQL request with proper typing
+        const data = await makeGraphQLRequest<ProjectsResponse>(
+          client, 
+          GET_PROJECTS_QUERY
+        );
+        
+        console.log('✅ GraphQL request successful, projects count:', data.projects?.length || 0);
+        
+        return {
+          projects: data.projects || [],
+          total: data.projects_aggregate?.aggregate?.count || 0
+        };
+      } catch (error) {
+        console.error('❌ Error fetching projects:', error);
+        throw error;
+      }
+    },
+    enabled: !!client, // Only run query when client is available
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 };
 
 /**
- * Hook to get combined clients and projects for dropdown
- * Returns a unified list suitable for client/project selection
+ * Hook to get combined client and project options for dropdown/select components
+ * Returns React Query result with formatted options for display
  * 
- * @returns Resource containing combined client/project options
+ * @returns UseQueryResult containing formatted client/project options
  */
-export const useClientProjectOptions = () => {
+export const useClientProjectOptions = (): UseQueryResult<{ options: ClientProjectOption[]; total: number }> => {
   const { client } = useGraphQLClient();
   
-  console.log('🔧 useClientProjectOptions hook called, client:', client ? 'available' : 'not available');
-  
-  return useResource$<{ options: ClientProjectOption[]; total: number }>(async ({ track }) => {
-    // Track the GraphQL client to make resource reactive to client changes
-    const currentClient = track(() => client);
-    
-    console.log('🚀 useClientProjectOptions resource executing, client:', currentClient ? 'available' : 'not available');
-    
-    // Handle client unavailability gracefully with loading state
-    if (!currentClient) {
-      console.log('⏳ Waiting for GraphQL client to be initialized...');
-      return { options: [], total: 0 };
-    }
-    
-    try {
-      console.log('📝 Making GraphQL request to fetch clients and projects');
+  return useQuery({
+    queryKey: ['client-project-options'],
+    queryFn: async () => {
+      console.log('🚀 useClientProjectOptions query executing, client:', client ? 'available' : 'not available');
       
-      // Fetch both clients and projects in parallel for better performance
-      const [clientsData, projectsData] = await Promise.all([
-        makeGraphQLRequest<ClientsResponse>(currentClient, GET_CLIENTS_QUERY),
-        makeGraphQLRequest<ProjectsResponse>(currentClient, GET_PROJECTS_QUERY)
-      ]);
-      
-      console.log('✅ GraphQL requests successful, clients:', clientsData.clients?.length || 0, 'projects:', projectsData.projects?.length || 0);
-      
-      // Combine clients and projects into a unified options array
-      const options: ClientProjectOption[] = [];
-      
-      // Add clients as options
-      if (clientsData.clients) {
-        clientsData.clients.forEach(client => {
-          options.push({
-            id: client.client_id,
-            name: client.name,
-            type: 'client'
-          });
-        });
+      // Handle client unavailability
+      if (!client) {
+        console.log('⏳ GraphQL client not available');
+        throw new Error('GraphQL client not initialized');
       }
       
-      // Add projects as options
-      if (projectsData.projects) {
-        projectsData.projects.forEach(project => {
-          options.push({
-            id: project.project_id,
-            name: project.name,
-            type: 'project'
+      try {
+        console.log('📝 Making GraphQL request to fetch projects with clients');
+        
+        // Make GraphQL request with proper typing
+        const data = await makeGraphQLRequest<{
+          projects: ProjectData[];
+          clients: ClientData[];
+          projects_aggregate: { aggregate: { count: number }};
+        }>(
+          client, 
+          GET_PROJECTS_WITH_CLIENTS_QUERY
+        );
+        
+        console.log('✅ GraphQL request successful, projects count:', data.projects?.length || 0);
+        console.log('✅ GraphQL request successful, clients count:', data.clients?.length || 0);
+        
+        // Create a map of clients for quick lookup
+        const clientsMap = new Map<string, string>();
+        if (data.clients) {
+          data.clients.forEach(clientData => {
+            clientsMap.set(clientData.client_id, clientData.name);
           });
-        });
+        }
+        
+        // Format data for dropdown/select components
+        const options: ClientProjectOption[] = [];
+        
+        // Add projects with client information
+        if (data.projects) {
+          data.projects.forEach(project => {
+            const clientName = project.client_id ? clientsMap.get(project.client_id) : undefined;
+            options.push({
+              id: project.project_id,
+              name: clientName 
+                ? `${clientName} - ${project.name}`
+                : project.name,
+              type: 'project',
+              client_name: clientName
+            });
+          });
+        }
+        
+        console.log('✅ Formatted options count:', options.length);
+        
+        return {
+          options,
+          total: data.projects_aggregate?.aggregate?.count || 0
+        };
+      } catch (error) {
+        console.error('❌ Error fetching client/project options:', error);
+        throw error;
       }
-      
-      // Sort options alphabetically by name
-      options.sort((a, b) => a.name.localeCompare(b.name));
-      
-      const totalCount = (clientsData.clients?.length || 0) + (projectsData.projects?.length || 0);
-      
-      return {
-        options,
-        total: totalCount
-      };
-    } catch (error) {
-      console.error('❌ Error fetching client/project options:', error);
-      throw error;
-    }
+    },
+    enabled: !!client, // Only run query when client is available
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 }; 

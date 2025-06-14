@@ -1,4 +1,4 @@
-import { component$, Slot, type QwikIntrinsicElements } from '@builder.io/qwik';
+import React from 'react';
 
 /**
  * Select variant types for different UI contexts
@@ -13,13 +13,14 @@ export type SelectSize = 'xs' | 'sm' | 'md' | 'lg';
 /**
  * Props interface for the Select component
  */
-interface SelectProps extends Omit<QwikIntrinsicElements['select'], 'size'> {
+interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
   variant?: SelectVariant;
   size?: SelectSize;
   error?: string;
   label?: string;
   helper?: string;
   placeholder?: string;
+  children: React.ReactNode;
 }
 
 /**
@@ -27,20 +28,21 @@ interface SelectProps extends Omit<QwikIntrinsicElements['select'], 'size'> {
  * Uses daisyUI select classes with validation support
  * 
  * @example
- * <Select label="Role" error={errors.role} bind:value={formData.role}>
+ * <Select label="Role" error={errors.role} value={formData.role} onChange={handleChange}>
  *   <option value="">Select a role</option>
  *   <option value="Developer">Developer</option>
  * </Select>
  */
-export const Select = component$<SelectProps>(({
+export const Select: React.FC<SelectProps> = ({
   variant = 'bordered',
   size = 'md',
   error,
   label,
   helper,
   placeholder,
-  class: className = '',
+  className = '',
   id,
+  children,
   ...props
 }) => {
   // Generate unique ID if not provided
@@ -61,36 +63,36 @@ export const Select = component$<SelectProps>(({
   ].filter(Boolean).join(' ');
 
   return (
-    <div class="form-control w-full">
+    <div className="form-control w-full">
       {label && (
-        <label class="label" for={selectId}>
-          <span class="label-text">{label}</span>
+        <label className="label" htmlFor={selectId}>
+          <span className="label-text">{label}</span>
         </label>
       )}
       
       <select 
         {...props}
         id={selectId}
-        class={allClasses}
+        className={allClasses}
       >
         {placeholder && (
           <option value="" disabled>
             {placeholder}
           </option>
         )}
-        <Slot />
+        {children}
       </select>
       
       {(error || helper) && (
-        <label class="label">
+        <label className="label">
           {error && (
-            <span class="label-text-alt text-error">{error}</span>
+            <span className="label-text-alt text-error">{error}</span>
           )}
           {helper && !error && (
-            <span class="label-text-alt text-base-content/60">{helper}</span>
+            <span className="label-text-alt text-base-content/60">{helper}</span>
           )}
         </label>
       )}
     </div>
   );
-}); 
+}; 

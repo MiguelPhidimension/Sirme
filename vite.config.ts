@@ -28,7 +28,7 @@ export default defineConfig(({ command, mode }): UserConfig => {
 
     // Development server configuration
     server: {
-      port: 5173,
+      port: 5178,
       open: true,
       headers: {
         "Cache-Control": "public, max-age=0",

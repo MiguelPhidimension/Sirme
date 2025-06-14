@@ -1,18 +1,64 @@
-import { component$ } from "@builder.io/qwik";
-import { useDocumentHead, useLocation } from "@builder.io/qwik-city";
+import React from "react";
 
 /**
  * The RouterHead component is placed inside of the document `<head>` element.
+ * In React, this would typically be handled by React Helmet or similar library,
+ * but for now we'll create a basic version that can be extended.
  */
-export const RouterHead = component$(() => {
-  const head = useDocumentHead();
-  const loc = useLocation();
 
+interface HeadMeta {
+  key?: string;
+  name?: string;
+  content?: string;
+  property?: string;
+  [key: string]: any;
+}
+
+interface HeadLink {
+  key?: string;
+  rel?: string;
+  href?: string;
+  [key: string]: any;
+}
+
+interface HeadStyle {
+  key?: string;
+  props?: any;
+  style?: string;
+}
+
+interface HeadScript {
+  key?: string;
+  props?: any;
+  script?: string;
+}
+
+interface DocumentHead {
+  title?: string;
+  meta: HeadMeta[];
+  links: HeadLink[];
+  styles: HeadStyle[];
+  scripts: HeadScript[];
+}
+
+interface RouterHeadProps {
+  head?: DocumentHead;
+  location?: {
+    url: {
+      href: string;
+    };
+  };
+}
+
+export const RouterHead: React.FC<RouterHeadProps> = ({ 
+  head = { title: '', meta: [], links: [], styles: [], scripts: [] },
+  location = { url: { href: '' } }
+}) => {
   return (
     <>
       <title>{head.title}</title>
 
-      <link rel="canonical" href={loc.url.href} />
+      <link rel="canonical" href={location.url.href} />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
@@ -45,4 +91,4 @@ export const RouterHead = component$(() => {
       ))}
     </>
   );
-});
+};

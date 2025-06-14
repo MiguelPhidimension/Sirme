@@ -51,7 +51,11 @@ export class DateUtils {
    * Format date for display
    */
   static formatDisplayDate(date: string): string {
-    return new Date(date).toLocaleDateString('en-US', {
+    // Parse date string manually to avoid timezone issues
+    const [year, month, day] = date.split('-').map(Number);
+    const dateObj = new Date(year, month - 1, day); // month is 0-indexed
+    
+    return dateObj.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
       day: 'numeric',

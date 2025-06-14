@@ -1,25 +1,13 @@
-import { component$ } from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
+import React from 'react';
 import { HomePage } from "~/components/pages";
 
 /**
  * Main route component that renders the HomePage
  * Routes should be simple and just render the appropriate page component
  */
-export default component$(() => {
+export default function IndexPage() {
   return <HomePage />;
-});
+}
 
-export const head: DocumentHead = {
-  title: "Dashboard - TimeTracker Pro",
-  meta: [
-    {
-      name: "description",
-      content: "Modern time tracking dashboard for managing work hours and projects with enhanced UI/UX",
-    },
-    {
-      name: "viewport",
-      content: "width=device-width, initial-scale=1.0",
-    },
-  ],
-};
+// React Router doesn't use head exports like Qwik
+// Document head management will be handled by React Helmet or similar

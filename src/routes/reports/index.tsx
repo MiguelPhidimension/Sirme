@@ -1,5 +1,4 @@
-import { component$, useSignal, useStore, $ } from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
+import React, { useState } from 'react';
 import { StatCard, ProjectEntryCard } from "~/components/molecules";
 import { DataUtils } from "~/utils";
 import type { EmployeeRole } from "~/types";
@@ -8,15 +7,15 @@ import type { EmployeeRole } from "~/types";
  * Reports page component
  * Displays time tracking analytics and export functionality
  */
-export default component$(() => {
+const ReportsPage: React.FC = () => {
   // State management
-  const isLoading = useSignal(false);
-  const selectedPeriod = useSignal<'week' | 'month' | 'quarter' | 'year'>('month');
-  const selectedEmployee = useSignal('all');
-  const selectedProject = useSignal('all');
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
+  const [selectedEmployee, setSelectedEmployee] = useState('all');
+  const [selectedProject, setSelectedProject] = useState('all');
 
   // Sample reports data (would come from API in real app)
-  const reportData = useStore({
+  const [reportData] = useState({
     summary: {
       totalHours: 184.5,
       billableHours: 156.0,
@@ -63,6 +62,7 @@ export default component$(() => {
           {
             id: 'proj-r-1',
             clientName: 'Acme Corp',
+            projectName: 'E-commerce Platform',
             hours: 6.5,
             isMPS: true,
             notes: 'Frontend component development'
@@ -84,14 +84,14 @@ export default component$(() => {
   ];
 
   // Handler functions
-  const handlePeriodChange = $((period: 'week' | 'month' | 'quarter' | 'year') => {
-    selectedPeriod.value = period;
+  const handlePeriodChange = (period: 'week' | 'month' | 'quarter' | 'year') => {
+    setSelectedPeriod(period);
     console.log('Period changed to:', period);
     // TODO: Fetch data for selected period
-  });
+  };
 
-  const handleExportPDF = $(async () => {
-    isLoading.value = true;
+  const handleExportPDF = async () => {
+    setIsLoading(true);
     try {
       console.log('Exporting PDF report...');
       // Simulate export delay
@@ -101,12 +101,12 @@ export default component$(() => {
     } catch (error) {
       console.error('PDF export failed:', error);
     } finally {
-      isLoading.value = false;
+      setIsLoading(false);
     }
-  });
+  };
 
-  const handleExportCSV = $(async () => {
-    isLoading.value = true;
+  const handleExportCSV = async () => {
+    setIsLoading(true);
     try {
       console.log('Exporting CSV report...');
       // Simulate export delay
@@ -116,49 +116,49 @@ export default component$(() => {
     } catch (error) {
       console.error('CSV export failed:', error);
     } finally {
-      isLoading.value = false;
+      setIsLoading(false);
     }
-  });
+  };
 
-  const handlePrintReport = $(() => {
+  const handlePrintReport = () => {
     window.print();
-  });
+  };
 
   return (
-    <div class="min-h-screen bg-base-100">
+    <div className="min-h-screen bg-base-100">
       {/* Page header */}
-      <div class="navbar bg-base-200 shadow-sm no-print">
-        <div class="navbar-start">
+      <div className="navbar bg-base-200 shadow-sm no-print">
+        <div className="navbar-start">
           <button 
-            class="btn btn-ghost"
-            onClick$={() => window.location.href = '/'}
+            className="btn btn-ghost"
+            onClick={() => window.location.href = '/'}
           >
             ← Back to Dashboard
           </button>
         </div>
-        <div class="navbar-center">
-          <h1 class="text-xl font-bold">Time Tracking Reports</h1>
+        <div className="navbar-center">
+          <h1 className="text-xl font-bold">Time Tracking Reports</h1>
         </div>
-        <div class="navbar-end gap-2">
+        <div className="navbar-end gap-2">
           <button 
-            class="btn btn-outline btn-sm"
-            onClick$={handlePrintReport}
+            className="btn btn-outline btn-sm"
+            onClick={handlePrintReport}
           >
             🖨️ Print
           </button>
-          <div class="dropdown dropdown-end">
-            <label tabIndex={0} class="btn btn-primary btn-sm">
+          <div className="dropdown dropdown-end">
+            <label tabIndex={0} className="btn btn-primary btn-sm">
               📊 Export
             </label>
-            <ul tabIndex={0} class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+            <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
               <li>
-                <button onClick$={handleExportPDF} disabled={isLoading.value}>
-                  {isLoading.value ? 'Exporting...' : '📄 Export PDF'}
+                <button onClick={handleExportPDF} disabled={isLoading}>
+                  {isLoading ? 'Exporting...' : '📄 Export PDF'}
                 </button>
               </li>
               <li>
-                <button onClick$={handleExportCSV} disabled={isLoading.value}>
-                  {isLoading.value ? 'Exporting...' : '📊 Export CSV'}
+                <button onClick={handleExportCSV} disabled={isLoading}>
+                  {isLoading ? 'Exporting...' : '📊 Export CSV'}
                 </button>
               </li>
             </ul>
@@ -167,21 +167,21 @@ export default component$(() => {
       </div>
 
       {/* Main content */}
-      <div class="container mx-auto p-4">
+      <div className="container mx-auto p-4">
         {/* Filters */}
-        <div class="card bg-base-200 shadow-sm mb-6 no-print">
-          <div class="card-body">
-            <h2 class="card-title text-lg">Report Filters</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="card bg-base-200 shadow-sm mb-6 no-print">
+          <div className="card-body">
+            <h2 className="card-title text-lg">Report Filters</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Period selector */}
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text font-medium">Time Period</span>
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium">Time Period</span>
                 </label>
                 <select 
-                  class="select select-bordered"
-                  value={selectedPeriod.value}
-                  onChange$={(e) => handlePeriodChange(e.target.value as any)}
+                  className="select select-bordered"
+                  value={selectedPeriod}
+                  onChange={(e) => handlePeriodChange(e.target.value as any)}
                 >
                   {periodOptions.map(option => (
                     <option key={option.value} value={option.value}>
@@ -192,14 +192,14 @@ export default component$(() => {
               </div>
 
               {/* Employee selector */}
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text font-medium">Employee</span>
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium">Employee</span>
                 </label>
                 <select 
-                  class="select select-bordered"
-                  value={selectedEmployee.value}
-                  onChange$={(e) => selectedEmployee.value = e.target.value}
+                  className="select select-bordered"
+                  value={selectedEmployee}
+                  onChange={(e) => setSelectedEmployee(e.target.value)}
                 >
                   <option value="all">All Employees</option>
                   <option value="emp-001">John Doe</option>
@@ -208,14 +208,14 @@ export default component$(() => {
               </div>
 
               {/* Project selector */}
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text font-medium">Project</span>
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium">Project</span>
                 </label>
                 <select 
-                  class="select select-bordered"
-                  value={selectedProject.value}
-                  onChange$={(e) => selectedProject.value = e.target.value}
+                  className="select select-bordered"
+                  value={selectedProject}
+                  onChange={(e) => setSelectedProject(e.target.value)}
                 >
                   <option value="all">All Projects</option>
                   <option value="PROJ-001">Website Development</option>
@@ -228,7 +228,7 @@ export default component$(() => {
         </div>
 
         {/* Summary Statistics */}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatCard
             title="Total Hours"
             value={`${reportData.summary.totalHours}h`}
@@ -260,18 +260,18 @@ export default component$(() => {
         </div>
 
         {/* Project Breakdown */}
-        <div class="card bg-base-200 shadow-lg mb-8">
-          <div class="card-body">
-            <h2 class="card-title text-xl mb-4">Project Breakdown</h2>
-            <div class="overflow-x-auto">
-              <table class="table table-zebra">
+        <div className="card bg-base-200 shadow-lg mb-8">
+          <div className="card-body">
+            <h2 className="card-title text-xl mb-4">Project Breakdown</h2>
+            <div className="overflow-x-auto">
+              <table className="table table-zebra">
                 <thead>
                   <tr>
                     <th>Project</th>
                     <th>Hours</th>
                     <th>Percentage</th>
                     <th>Status</th>
-                    <th class="no-print">Actions</th>
+                    <th className="no-print">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -279,28 +279,28 @@ export default component$(() => {
                     <tr key={project.projectCode}>
                       <td>
                         <div>
-                          <div class="font-bold">{project.projectName}</div>
-                          <div class="text-sm opacity-50">{project.projectCode}</div>
+                          <div className="font-bold">{project.projectName}</div>
+                          <div className="text-sm opacity-50">{project.projectCode}</div>
                         </div>
                       </td>
-                      <td class="font-mono">{project.totalHours}h</td>
+                      <td className="font-mono">{project.totalHours}h</td>
                       <td>
-                        <div class="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                           <progress 
-                            class="progress progress-primary w-20" 
+                            className="progress progress-primary w-20" 
                             value={project.percentage} 
                             max="100"
                           ></progress>
-                          <span class="text-sm">{project.percentage}%</span>
+                          <span className="text-sm">{project.percentage}%</span>
                         </div>
                       </td>
                       <td>
-                        <div class={`badge ${project.status === 'active' ? 'badge-success' : 'badge-neutral'}`}>
+                        <div className={`badge ${project.status === 'active' ? 'badge-success' : 'badge-neutral'}`}>
                           {project.status}
                         </div>
                       </td>
-                      <td class="no-print">
-                        <button class="btn btn-ghost btn-xs">Details</button>
+                      <td className="no-print">
+                        <button className="btn btn-ghost btn-xs">Details</button>
                       </td>
                     </tr>
                   ))}
@@ -311,20 +311,28 @@ export default component$(() => {
         </div>
 
         {/* Recent Entries */}
-        <div class="card bg-base-200 shadow-lg">
-          <div class="card-body">
-            <h2 class="card-title text-xl mb-4">Recent Time Entries</h2>
-            <div class="space-y-4">
+        <div className="card bg-base-200 shadow-lg">
+          <div className="card-body">
+            <h2 className="card-title text-xl mb-4">Recent Time Entries</h2>
+            <div className="space-y-4">
               {reportData.timeEntries.map((entry) => (
                 <ProjectEntryCard
                   key={entry.id}
-                  entry={entry}
-                  onEdit$={() => window.location.href = `/entry?edit=${entry.id}`}
-                  onView$={() => console.log('View entry:', entry.id)}
+                  project={{
+                    id: 'proj-1',
+                    clientName: 'Acme Corp',
+                    projectName: 'E-commerce Platform',
+                    hours: 8.0,
+                    isMPS: false,
+                    notes: 'Full-stack development work'
+                  }}
+                  role={entry.role}
+                  date={entry.date}
+                  onEdit={() => window.location.href = `/entry?edit=${entry.id}`}
                 />
               ))}
               {reportData.timeEntries.length === 0 && (
-                <div class="text-center py-8 text-base-content/50">
+                <div className="text-center py-8 text-base-content/50">
                   No time entries found for the selected period.
                 </div>
               )}
@@ -334,14 +342,6 @@ export default component$(() => {
       </div>
     </div>
   );
-});
+};
 
-export const head: DocumentHead = {
-  title: "Reports - Time Tracking",
-  meta: [
-    {
-      name: "description",
-      content: "Time tracking reports and analytics with export functionality",
-    },
-  ],
-}; 
+export default ReportsPage; 

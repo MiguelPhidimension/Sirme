@@ -1,4 +1,4 @@
-import { component$, type QwikIntrinsicElements } from '@builder.io/qwik';
+import React from 'react';
 
 /**
  * Input variant types for different UI contexts
@@ -13,7 +13,7 @@ export type InputSize = 'xs' | 'sm' | 'md' | 'lg';
 /**
  * Props interface for the Input component
  */
-interface InputProps extends Omit<QwikIntrinsicElements['input'], 'size'> {
+interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   variant?: InputVariant;
   size?: InputSize;
   error?: string;
@@ -30,16 +30,17 @@ interface InputProps extends Omit<QwikIntrinsicElements['input'], 'size'> {
  *   label="Employee Name" 
  *   placeholder="Enter your name"
  *   error={errors.employeeName}
- *   bind:value={formData.employeeName}
+ *   value={formData.employeeName}
+ *   onChange={handleChange}
  * />
  */
-export const Input = component$<InputProps>(({
+export const Input: React.FC<InputProps> = ({
   variant = 'bordered',
   size = 'md',
   error,
   label,
   helper,
-  class: className = '',
+  className = '',
   id,
   ...props
 }) => {
@@ -61,29 +62,29 @@ export const Input = component$<InputProps>(({
   ].filter(Boolean).join(' ');
 
   return (
-    <div class="form-control w-full">
+    <div className="form-control w-full">
       {label && (
-        <label class="label" for={inputId}>
-          <span class="label-text">{label}</span>
+        <label className="label" htmlFor={inputId}>
+          <span className="label-text">{label}</span>
         </label>
       )}
       
       <input 
         {...props}
         id={inputId}
-        class={allClasses}
+        className={allClasses}
       />
       
       {(error || helper) && (
-        <label class="label">
+        <label className="label">
           {error && (
-            <span class="label-text-alt text-error">{error}</span>
+            <span className="label-text-alt text-error">{error}</span>
           )}
           {helper && !error && (
-            <span class="label-text-alt text-base-content/60">{helper}</span>
+            <span className="label-text-alt text-base-content/60">{helper}</span>
           )}
         </label>
       )}
     </div>
   );
-}); 
+}; 

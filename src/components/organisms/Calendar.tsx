@@ -1,4 +1,4 @@
-import { component$, useSignal, useStore, $, useVisibleTask$ } from '@builder.io/qwik';
+import React, { useState, useEffect, useCallback } from 'react';
 import { CalendarCell } from '../molecules';
 import { Button, Badge } from '../atoms';
 import { DateUtils, DataUtils } from '~/utils';
@@ -10,9 +10,9 @@ import type { CalendarDay, DailyTimeEntry } from '~/types';
 interface CalendarProps {
   entries?: DailyTimeEntry[];
   selectedDate?: string;
-  onDateSelect$?: (date: string) => void;
-  onNewEntry$?: (date: string) => void;
-  onEditEntry$?: (entryId: string) => void;
+  onDateSelect?: (date: string) => void;
+  onNewEntry?: (date: string) => void;
+  onEditEntry?: (entryId: string) => void;
   isLoading?: boolean;
 }
 
@@ -24,25 +24,25 @@ interface CalendarProps {
  * @example
  * <Calendar 
  *   entries={timeEntries}
- *   onDateSelect$={handleDateSelect}
- *   onNewEntry$={handleNewEntry}
+ *   onDateSelect={handleDateSelect}
+ *   onNewEntry={handleNewEntry}
  * />
  */
-export const Calendar = component$<CalendarProps>(({
+export const Calendar: React.FC<CalendarProps> = ({
   entries = [],
   selectedDate,
-  onDateSelect$,
-  onNewEntry$,
-  onEditEntry$,
+  onDateSelect,
+  onNewEntry,
+  onEditEntry,
   isLoading = false
 }) => {
   // Calendar state
-  const currentDate = useSignal(new Date());
-  const selectedDay = useSignal<CalendarDay | null>(null);
-  const showDayDetails = useSignal(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
+  const [showDayDetails, setShowDayDetails] = useState(false);
 
   // Calendar data
-  const calendarData = useStore<{
+  const [calendarData, setCalendarData] = useState<{
     days: CalendarDay[];
     monthTotal: number;
     averageDaily: number;
@@ -53,9 +53,9 @@ export const Calendar = component$<CalendarProps>(({
   });
 
   // Build calendar data for the current month
-  const buildCalendarData = $(() => {
-    const year = currentDate.value.getFullYear();
-    const month = currentDate.value.getMonth();
+  const buildCalendarData = useCallback(() => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
     
     // Get first day of month and calculate grid start
     const firstDay = new Date(year, month, 1);
@@ -94,47 +94,47 @@ export const Calendar = component$<CalendarProps>(({
       currentDay.setDate(currentDay.getDate() + 1);
     }
     
-    calendarData.days = days;
-    calendarData.monthTotal = monthTotal;
-    calendarData.averageDaily = daysWithEntries > 0 ? monthTotal / daysWithEntries : 0;
-  });
+    setCalendarData({
+      days,
+      monthTotal,
+      averageDaily: daysWithEntries > 0 ? monthTotal / daysWithEntries : 0
+    });
+  }, [currentDate, entries]);
 
   // Initialize calendar data
-  useVisibleTask$(({ track }) => {
-    track(() => currentDate.value);
-    track(() => entries);
+  useEffect(() => {
     buildCalendarData();
-  });
+  }, [buildCalendarData]);
 
   // Handle month navigation
-  const navigateMonth = $((direction: 'prev' | 'next') => {
-    const newDate = new Date(currentDate.value);
+  const navigateMonth = useCallback((direction: 'prev' | 'next') => {
+    const newDate = new Date(currentDate);
     if (direction === 'prev') {
       newDate.setMonth(newDate.getMonth() - 1);
     } else {
       newDate.setMonth(newDate.getMonth() + 1);
     }
-    currentDate.value = newDate;
-  });
+    setCurrentDate(newDate);
+  }, [currentDate]);
 
   // Handle day click
-  const handleDayClick = $((date: string) => {
-    const day = calendarData.days.find(d => d.date === date);
+  const handleDayClick = useCallback((date: string) => {
+    const day = calendarData.days.find((d: CalendarDay) => d.date === date);
     if (day) {
-      selectedDay.value = day;
-      showDayDetails.value = true;
-      onDateSelect$ && onDateSelect$(date);
+      setSelectedDay(day);
+      setShowDayDetails(true);
+      onDateSelect && onDateSelect(date);
     }
-  });
+  }, [calendarData.days, onDateSelect]);
 
   // Handle go to today
-  const goToToday = $(() => {
-    currentDate.value = new Date();
-  });
+  const goToToday = useCallback(() => {
+    setCurrentDate(new Date());
+  }, []);
 
   // Get month/year display
   const getMonthYear = () => {
-    return currentDate.value.toLocaleDateString('en-US', {
+    return currentDate.toLocaleDateString('en-US', {
       month: 'long',
       year: 'numeric'
     });
@@ -145,35 +145,35 @@ export const Calendar = component$<CalendarProps>(({
 
   if (isLoading) {
     return (
-      <div class="flex justify-center items-center min-h-[400px]">
-        <div class="loading loading-spinner loading-lg text-primary"></div>
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="loading loading-spinner loading-lg text-primary"></div>
       </div>
     );
   }
 
   return (
-    <div class="space-y-6">
+    <div className="space-y-6">
       {/* Calendar Header */}
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 class="text-3xl font-bold text-base-content">
+          <h1 className="text-3xl font-bold text-base-content">
             📅 Time Calendar
           </h1>
-          <p class="text-base-content/60 mt-1">
+          <p className="text-base-content/60 mt-1">
             View your time entries across different months
           </p>
         </div>
 
-        <div class="flex gap-2">
+        <div className="flex gap-2">
           <Button
             variant="ghost"
-            onClick$={goToToday}
+            onClick={goToToday}
           >
             Today
           </Button>
           <Button
             variant="primary"
-            onClick$={() => onNewEntry$ && onNewEntry$(DateUtils.getCurrentDate())}
+            onClick={() => onNewEntry && onNewEntry(DateUtils.getCurrentDate())}
           >
             New Entry
           </Button>
@@ -181,87 +181,87 @@ export const Calendar = component$<CalendarProps>(({
       </div>
 
       {/* Month Summary */}
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="stats shadow bg-base-100">
-          <div class="stat">
-            <div class="stat-title">Month Total</div>
-            <div class="stat-value text-primary">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="stats shadow bg-base-100">
+          <div className="stat">
+            <div className="stat-title">Month Total</div>
+            <div className="stat-value text-primary">
               {DataUtils.formatHours(calendarData.monthTotal)}
             </div>
-            <div class="stat-desc">All logged hours this month</div>
+            <div className="stat-desc">All logged hours this month</div>
           </div>
         </div>
 
-        <div class="stats shadow bg-base-100">
-          <div class="stat">
-            <div class="stat-title">Average Daily</div>
-            <div class="stat-value text-success">
+        <div className="stats shadow bg-base-100">
+          <div className="stat">
+            <div className="stat-title">Average Daily</div>
+            <div className="stat-value text-success">
               {DataUtils.formatHours(calendarData.averageDaily)}
             </div>
-            <div class="stat-desc">Average hours per working day</div>
+            <div className="stat-desc">Average hours per working day</div>
           </div>
         </div>
 
-        <div class="stats shadow bg-base-100">
-          <div class="stat">
-            <div class="stat-title">Working Days</div>
-            <div class="stat-value text-info">
-              {calendarData.days.filter(d => d.hasEntries && new Date(d.date).getMonth() === currentDate.value.getMonth()).length}
+        <div className="stats shadow bg-base-100">
+          <div className="stat">
+            <div className="stat-title">Working Days</div>
+            <div className="stat-value text-info">
+              {calendarData.days.filter((d: CalendarDay) => d.hasEntries && new Date(d.date).getMonth() === currentDate.getMonth()).length}
             </div>
-            <div class="stat-desc">Days with logged hours</div>
+            <div className="stat-desc">Days with logged hours</div>
           </div>
         </div>
       </div>
 
       {/* Calendar Navigation */}
-      <div class="flex justify-between items-center">
+      <div className="flex justify-between items-center">
         <Button
           variant="ghost"
-          onClick$={() => navigateMonth('prev')}
+          onClick={() => navigateMonth('prev')}
         >
-          <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           Previous
         </Button>
 
-        <h2 class="text-2xl font-bold text-base-content">
+        <h2 className="text-2xl font-bold text-base-content">
           {getMonthYear()}
         </h2>
 
         <Button
           variant="ghost"
-          onClick$={() => navigateMonth('next')}
+          onClick={() => navigateMonth('next')}
         >
           Next
-          <svg class="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </Button>
       </div>
 
       {/* Calendar Grid */}
-      <div class="card bg-base-100 shadow-sm border border-base-200">
-        <div class="card-body p-0">
+      <div className="card bg-base-100 shadow-sm border border-base-200">
+        <div className="card-body p-0">
           {/* Week day headers */}
-          <div class="grid grid-cols-7 border-b border-base-200">
+          <div className="grid grid-cols-7 border-b border-base-200">
             {weekDays.map((day) => (
-              <div key={day} class="p-4 text-center font-semibold text-base-content/60 bg-base-200">
+              <div key={day} className="p-4 text-center font-semibold text-base-content/60 bg-base-200">
                 {day}
               </div>
             ))}
           </div>
 
           {/* Calendar grid */}
-          <div class="grid grid-cols-7">
-            {calendarData.days.map((day) => {
-              const isCurrentMonth = new Date(day.date).getMonth() === currentDate.value.getMonth();
+          <div className="grid grid-cols-7">
+            {calendarData.days.map((day: CalendarDay) => {
+              const isCurrentMonth = new Date(day.date).getMonth() === currentDate.getMonth();
               return (
                 <CalendarCell
                   key={day.date}
                   day={day}
                   isCurrentMonth={isCurrentMonth}
-                  onClick$={handleDayClick}
+                  onClick={handleDayClick}
                 />
               );
             })}
@@ -270,17 +270,17 @@ export const Calendar = component$<CalendarProps>(({
       </div>
 
       {/* Day Details Modal */}
-      {showDayDetails.value && selectedDay.value && (
-        <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div class="card bg-base-100 w-full max-w-2xl max-h-[80vh] overflow-auto">
-            <div class="card-body">
-              <div class="flex justify-between items-start mb-4">
+      {showDayDetails && selectedDay && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="card bg-base-100 w-full max-w-2xl max-h-[80vh] overflow-auto">
+            <div className="card-body">
+              <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 class="text-2xl font-bold text-base-content">
-                    {DateUtils.formatDisplayDate(selectedDay.value.date)}
+                  <h3 className="text-2xl font-bold text-base-content">
+                    {DateUtils.formatDisplayDate(selectedDay.date)}
                   </h3>
-                  <p class="text-base-content/60">
-                    Total: {DataUtils.formatHours(selectedDay.value.totalHours)}
+                  <p className="text-base-content/60">
+                    Total: {DataUtils.formatHours(selectedDay.totalHours)}
                   </p>
                 </div>
 
@@ -288,27 +288,27 @@ export const Calendar = component$<CalendarProps>(({
                   variant="ghost"
                   size="sm"
                   square
-                  onClick$={() => showDayDetails.value = false}
+                  onClick={() => setShowDayDetails(false)}
                 >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </Button>
               </div>
 
-              {selectedDay.value.entries && selectedDay.value.entries.length > 0 ? (
-                <div class="space-y-4">
-                  {selectedDay.value.entries.map((entry) => (
-                    <div key={entry.id} class="border border-base-200 rounded-lg p-4">
-                      <div class="flex justify-between items-start mb-3">
+              {selectedDay.entries && selectedDay.entries.length > 0 ? (
+                <div className="space-y-4">
+                  {selectedDay.entries.map((entry: any) => (
+                    <div key={entry.id} className="border border-base-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-3">
                         <div>
-                          <div class="flex items-center gap-2 mb-1">
-                            <span class="font-semibold">{entry.employeeName}</span>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold">{entry.employeeName}</span>
                             <Badge variant="primary" size="sm">
                               {entry.role}
                             </Badge>
                           </div>
-                          <div class="text-sm text-base-content/60">
+                          <div className="text-sm text-base-content/60">
                             {entry.projects.length} project{entry.projects.length !== 1 ? 's' : ''} • 
                             Total: {DataUtils.formatHours(entry.totalHours)}
                           </div>
@@ -317,19 +317,19 @@ export const Calendar = component$<CalendarProps>(({
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick$={() => onEditEntry$ && onEditEntry$(entry.id)}
+                          onClick={() => onEditEntry && onEditEntry(entry.id)}
                         >
                           Edit
                         </Button>
                       </div>
 
-                      <div class="space-y-2">
-                        {entry.projects.map((project, index) => (
-                          <div key={index} class="bg-base-200 p-3 rounded">
-                            <div class="flex justify-between items-start">
+                      <div className="space-y-2">
+                        {entry.projects.map((project: any, index: number) => (
+                          <div key={index} className="bg-base-200 p-3 rounded">
+                            <div className="flex justify-between items-start">
                               <div>
-                                <div class="font-medium">{project.clientName}</div>
-                                <div class="text-sm text-base-content/60 flex items-center gap-2">
+                                <div className="font-medium">{project.clientName}</div>
+                                <div className="text-sm text-base-content/60 flex items-center gap-2">
                                   <span>{DataUtils.formatHours(project.hours)}</span>
                                   {project.isMPS && (
                                     <Badge variant="success" size="xs">
@@ -340,7 +340,7 @@ export const Calendar = component$<CalendarProps>(({
                               </div>
                             </div>
                             {project.notes && (
-                              <p class="text-sm text-base-content/70 mt-2">
+                              <p className="text-sm text-base-content/70 mt-2">
                                 {project.notes}
                               </p>
                             )}
@@ -351,16 +351,16 @@ export const Calendar = component$<CalendarProps>(({
                   ))}
                 </div>
               ) : (
-                <div class="text-center py-8 text-base-content/50">
-                  <div class="text-4xl mb-2">📝</div>
+                <div className="text-center py-8 text-base-content/50">
+                  <div className="text-4xl mb-2">📝</div>
                   <p>No time entries for this day</p>
                   <Button
                     variant="primary"
                     size="sm"
-                    class="mt-4"
-                    onClick$={() => {
-                      onNewEntry$ && onNewEntry$(selectedDay.value!.date);
-                      showDayDetails.value = false;
+                    className="mt-4"
+                    onClick={() => {
+                      onNewEntry && onNewEntry(selectedDay!.date);
+                      setShowDayDetails(false);
                     }}
                   >
                     Add Entry
@@ -373,4 +373,4 @@ export const Calendar = component$<CalendarProps>(({
       )}
     </div>
   );
-}); 
+}; 
