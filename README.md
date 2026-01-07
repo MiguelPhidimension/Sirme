@@ -10,7 +10,7 @@ A modern, efficient employee time tracking system built with **Qwik**, **GraphQL
 - **MPS Classification**: Mark entries as MPS (Managed Professional Services) when applicable
 - **Flexible Notes**: Add detailed notes for each project entry
 
-### Dashboard & Analytics
+### Dashboard & Analytics    
 - **Real-time Dashboard**: View today's, weekly, and monthly hour summaries
 - **Progress Tracking**: Visual indicators for weekly hour targets
 - **Recent Activity**: Quick access to recent time entries
