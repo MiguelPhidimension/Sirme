@@ -2,7 +2,7 @@
 
 A modern, efficient employee time tracking system built with **Qwik**, **GraphQL**, and **Hasura**. SIRME enables organizations to manage employee work hours, project assignments, and generate comprehensive time reports with an intuitive, fast-loading interface.
 
-## 🚀 Key Features
+## 🚀 Key Features    
 
 ### Time Management
 - **Daily Time Entry**: Register work hours across multiple projects per day
