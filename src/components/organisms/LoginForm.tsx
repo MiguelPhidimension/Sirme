@@ -16,6 +16,7 @@ export const LoginForm = component$<LoginFormProps>(
   ({ onSubmit, isLoading, error }) => {
     const email = useSignal("");
     const password = useSignal("");
+    const showPassword = useSignal(false);
     const validationErrors = useSignal<{ email?: string; password?: string }>(
       {},
     );
@@ -56,20 +57,20 @@ export const LoginForm = component$<LoginFormProps>(
         {/* Glassmorphism card effect */}
         <div class="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-xl transition-all duration-300 group-hover:blur-2xl"></div>
 
-        <div class="relative rounded-3xl border border-white/20 bg-white/70 p-8 shadow-2xl backdrop-blur-xl dark:border-slate-700/20 dark:bg-slate-800/70">
+        <div class="relative rounded-2xl border border-white/20 bg-white/70 p-6 shadow-2xl backdrop-blur-xl sm:rounded-3xl sm:p-8 dark:border-slate-700/20 dark:bg-slate-800/70">
           {/* Header */}
-          <div class="mb-8 text-center">
-            <h2 class="mb-2 bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-3xl font-bold text-transparent dark:from-white dark:to-slate-300">
+          <div class="mb-6 text-center sm:mb-8">
+            <h2 class="mb-2 bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-2xl font-bold text-transparent sm:text-3xl dark:from-white dark:to-slate-300">
               Bienvenido de vuelta
             </h2>
-            <p class="text-slate-600 dark:text-slate-400">
+            <p class="text-sm text-slate-600 sm:text-base dark:text-slate-400">
               Ingresa tus credenciales para continuar
             </p>
           </div>
 
           {/* Error Alert */}
           {error && (
-            <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 sm:mb-6 sm:p-4 dark:border-red-800 dark:bg-red-900/20">
               <div class="flex items-center space-x-2">
                 <svg
                   class="h-5 w-5 text-red-500"
@@ -127,7 +128,7 @@ export const LoginForm = component$<LoginFormProps>(
                   onInput$={(e) =>
                     (email.value = (e.target as HTMLInputElement).value)
                   }
-                  class={`w-full border-2 bg-white px-4 py-3 pl-12 dark:bg-slate-700 ${
+                  class={`w-full border-2 bg-white px-4 py-3 pl-12 text-slate-900 placeholder:text-slate-400 dark:bg-slate-700 dark:text-white dark:placeholder:text-slate-500 ${
                     validationErrors.value.email
                       ? "border-red-500 focus:border-red-500"
                       : "border-slate-200 focus:border-blue-500 dark:border-slate-600"
@@ -175,19 +176,65 @@ export const LoginForm = component$<LoginFormProps>(
                 </div>
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword.value ? "text" : "password"}
                   placeholder="••••••••"
                   value={password.value}
                   onInput$={(e) =>
                     (password.value = (e.target as HTMLInputElement).value)
                   }
-                  class={`w-full border-2 bg-white px-4 py-3 pl-12 dark:bg-slate-700 ${
+                  class={`w-full border-2 bg-white px-4 py-3 pr-12 pl-12 text-slate-900 placeholder:text-slate-400 dark:bg-slate-700 dark:text-white dark:placeholder:text-slate-500 ${
                     validationErrors.value.password
                       ? "border-red-500 focus:border-red-500"
                       : "border-slate-200 focus:border-blue-500 dark:border-slate-600"
                   } rounded-xl transition-all duration-200 focus:ring-4 focus:ring-blue-500/20`}
                   required
                 />
+                <button
+                  type="button"
+                  onClick$={() => (showPassword.value = !showPassword.value)}
+                  class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300"
+                  aria-label={
+                    showPassword.value
+                      ? "Ocultar contraseña"
+                      : "Mostrar contraseña"
+                  }
+                >
+                  {showPassword.value ? (
+                    <svg
+                      class="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      class="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                  )}
+                </button>
               </div>
               {validationErrors.value.password && (
                 <p class="mt-2 flex items-center space-x-1 text-sm text-red-600 dark:text-red-400">

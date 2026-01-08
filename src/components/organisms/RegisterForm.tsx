@@ -21,9 +21,52 @@ export const RegisterForm = component$<RegisterFormProps>(
     const password = useSignal("");
     const confirmPassword = useSignal("");
     const roleId = useSignal("");
+    const showPassword = useSignal(false);
+    const showConfirmPassword = useSignal(false);
     const validationErrors = useSignal<
       Partial<Record<keyof RegisterFormData, string>>
     >({});
+
+    // Password strength calculator
+    const getPasswordStrength = (pass: string) => {
+      if (!pass) return { score: 0, label: "", color: "", textColor: "" };
+
+      let score = 0;
+
+      // Length criteria
+      if (pass.length >= 8) score += 1;
+      if (pass.length >= 12) score += 1;
+
+      // Complexity criteria
+      if (/[a-z]/.test(pass)) score += 1; // Lowercase
+      if (/[A-Z]/.test(pass)) score += 1; // Uppercase
+      if (/[0-9]/.test(pass)) score += 1; // Numbers
+      if (/[^a-zA-Z0-9]/.test(pass)) score += 1; // Special characters
+
+      // Determine strength level
+      if (score <= 2) {
+        return {
+          score: 1,
+          label: "Débil",
+          color: "bg-red-500",
+          textColor: "text-red-600 dark:text-red-400",
+        };
+      } else if (score <= 4) {
+        return {
+          score: 2,
+          label: "Media",
+          color: "bg-yellow-500",
+          textColor: "text-yellow-600 dark:text-yellow-400",
+        };
+      } else {
+        return {
+          score: 3,
+          label: "Fuerte",
+          color: "bg-green-500",
+          textColor: "text-green-600 dark:text-green-400",
+        };
+      }
+    };
 
     const validateForm = $(() => {
       const errors: Partial<Record<keyof RegisterFormData, string>> = {};
@@ -91,20 +134,20 @@ export const RegisterForm = component$<RegisterFormProps>(
         {/* Glassmorphism card effect */}
         <div class="absolute inset-0 rounded-3xl bg-gradient-to-r from-purple-500/20 to-blue-500/20 blur-xl transition-all duration-300 group-hover:blur-2xl"></div>
 
-        <div class="relative rounded-3xl border border-white/20 bg-white/70 p-8 shadow-2xl backdrop-blur-xl dark:border-slate-700/20 dark:bg-slate-800/70">
+        <div class="relative rounded-2xl border border-white/20 bg-white/70 p-4 shadow-2xl backdrop-blur-xl sm:rounded-3xl sm:p-8 dark:border-slate-700/20 dark:bg-slate-800/70">
           {/* Header */}
-          <div class="mb-8 text-center">
-            <h2 class="mb-2 bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-3xl font-bold text-transparent dark:from-white dark:to-slate-300">
+          <div class="mb-6 text-center sm:mb-8">
+            <h2 class="mb-2 bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-2xl font-bold text-transparent sm:text-3xl dark:from-white dark:to-slate-300">
               Crear Nueva Cuenta
             </h2>
-            <p class="text-slate-600 dark:text-slate-400">
+            <p class="text-sm text-slate-600 sm:text-base dark:text-slate-400">
               Únete a nuestro equipo completando el formulario
             </p>
           </div>
 
           {/* Error Alert */}
           {error && (
-            <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 sm:mb-6 sm:p-4 dark:border-red-800 dark:bg-red-900/20">
               <div class="flex items-center space-x-2">
                 <svg
                   class="h-5 w-5 flex-shrink-0 text-red-500"
@@ -164,7 +207,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                     onInput$={(e) =>
                       (firstName.value = (e.target as HTMLInputElement).value)
                     }
-                    class={`w-full border-2 bg-white px-4 py-3 pl-12 dark:bg-slate-700 ${
+                    class={`w-full border-2 bg-white px-4 py-3 pl-12 text-slate-900 placeholder:text-slate-400 dark:bg-slate-700 dark:text-white dark:placeholder:text-slate-500 ${
                       validationErrors.value.first_name
                         ? "border-red-500 focus:border-red-500"
                         : "border-slate-200 focus:border-blue-500 dark:border-slate-600"
@@ -222,7 +265,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                     onInput$={(e) =>
                       (lastName.value = (e.target as HTMLInputElement).value)
                     }
-                    class={`w-full border-2 bg-white px-4 py-3 pl-12 dark:bg-slate-700 ${
+                    class={`w-full border-2 bg-white px-4 py-3 pl-12 text-slate-900 placeholder:text-slate-400 dark:bg-slate-700 dark:text-white dark:placeholder:text-slate-500 ${
                       validationErrors.value.last_name
                         ? "border-red-500 focus:border-red-500"
                         : "border-slate-200 focus:border-blue-500 dark:border-slate-600"
@@ -281,7 +324,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                   onInput$={(e) =>
                     (email.value = (e.target as HTMLInputElement).value)
                   }
-                  class={`w-full border-2 bg-white px-4 py-3 pl-12 dark:bg-slate-700 ${
+                  class={`w-full border-2 bg-white px-4 py-3 pl-12 text-slate-900 placeholder:text-slate-400 dark:bg-slate-700 dark:text-white dark:placeholder:text-slate-500 ${
                     validationErrors.value.email
                       ? "border-red-500 focus:border-red-500"
                       : "border-slate-200 focus:border-blue-500 dark:border-slate-600"
@@ -333,14 +376,16 @@ export const RegisterForm = component$<RegisterFormProps>(
                   onChange$={(e) =>
                     (roleId.value = (e.target as HTMLSelectElement).value)
                   }
-                  class={`w-full border-2 bg-white px-4 py-3 pl-12 dark:bg-slate-700 ${
+                  class={`w-full border-2 bg-white px-4 py-3 pl-12 text-slate-900 dark:bg-slate-700 dark:text-white ${
                     validationErrors.value.role_id
                       ? "border-red-500 focus:border-red-500"
                       : "border-slate-200 focus:border-blue-500 dark:border-slate-600"
                   } cursor-pointer appearance-none rounded-xl transition-all duration-200 focus:ring-4 focus:ring-blue-500/20`}
                   required
                 >
-                  <option value="">Selecciona tu rol</option>
+                  <option value="" class="text-slate-400">
+                    Selecciona tu rol
+                  </option>
                   {roles.map((role) => (
                     <option key={role.role_id} value={role.role_id}>
                       {role.role_name}
@@ -405,20 +450,175 @@ export const RegisterForm = component$<RegisterFormProps>(
                   </div>
                   <Input
                     id="password"
-                    type="password"
+                    type={showPassword.value ? "text" : "password"}
                     placeholder="••••••••"
                     value={password.value}
                     onInput$={(e) =>
                       (password.value = (e.target as HTMLInputElement).value)
                     }
-                    class={`w-full border-2 bg-white px-4 py-3 pl-12 dark:bg-slate-700 ${
+                    class={`w-full border-2 bg-white px-4 py-3 pr-12 pl-12 text-slate-900 placeholder:text-slate-400 dark:bg-slate-700 dark:text-white dark:placeholder:text-slate-500 ${
                       validationErrors.value.password
                         ? "border-red-500 focus:border-red-500"
                         : "border-slate-200 focus:border-blue-500 dark:border-slate-600"
                     } rounded-xl transition-all duration-200 focus:ring-4 focus:ring-blue-500/20`}
                     required
                   />
+                  <button
+                    type="button"
+                    onClick$={() => (showPassword.value = !showPassword.value)}
+                    class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300"
+                    aria-label={
+                      showPassword.value
+                        ? "Ocultar contraseña"
+                        : "Mostrar contraseña"
+                    }
+                  >
+                    {showPassword.value ? (
+                      <svg
+                        class="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        class="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    )}
+                  </button>
                 </div>
+
+                {/* Password Strength Indicator */}
+                <div class="mt-2 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-medium text-slate-600 dark:text-slate-400">
+                      Fortaleza de contraseña:
+                    </span>
+                    <span
+                      class={`text-xs font-semibold ${
+                        password.value
+                          ? getPasswordStrength(password.value).textColor
+                          : "text-slate-400 dark:text-slate-500"
+                      }`}
+                    >
+                      {password.value
+                        ? getPasswordStrength(password.value).label
+                        : "Sin evaluar"}
+                    </span>
+                  </div>
+                  <div class="flex space-x-1">
+                    <div
+                      class={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
+                        password.value &&
+                        getPasswordStrength(password.value).score >= 1
+                          ? getPasswordStrength(password.value).color
+                          : "bg-slate-200 dark:bg-slate-700"
+                      }`}
+                    ></div>
+                    <div
+                      class={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
+                        password.value &&
+                        getPasswordStrength(password.value).score >= 2
+                          ? getPasswordStrength(password.value).color
+                          : "bg-slate-200 dark:bg-slate-700"
+                      }`}
+                    ></div>
+                    <div
+                      class={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
+                        password.value &&
+                        getPasswordStrength(password.value).score >= 3
+                          ? getPasswordStrength(password.value).color
+                          : "bg-slate-200 dark:bg-slate-700"
+                      }`}
+                    ></div>
+                  </div>
+                  <div class="space-y-1 text-xs text-slate-500 dark:text-slate-400">
+                    <p class="flex items-center space-x-1">
+                      <span
+                        class={
+                          password.value && password.value.length >= 8
+                            ? "text-green-500"
+                            : ""
+                        }
+                      >
+                        {password.value && password.value.length >= 8
+                          ? "✓"
+                          : "○"}
+                      </span>
+                      <span>Mínimo 8 caracteres</span>
+                    </p>
+                    <p class="flex items-center space-x-1">
+                      <span
+                        class={
+                          password.value &&
+                          /[A-Z]/.test(password.value) &&
+                          /[a-z]/.test(password.value)
+                            ? "text-green-500"
+                            : ""
+                        }
+                      >
+                        {password.value &&
+                        /[A-Z]/.test(password.value) &&
+                        /[a-z]/.test(password.value)
+                          ? "✓"
+                          : "○"}
+                      </span>
+                      <span>Mayúsculas y minúsculas</span>
+                    </p>
+                    <p class="flex items-center space-x-1">
+                      <span
+                        class={
+                          password.value && /[0-9]/.test(password.value)
+                            ? "text-green-500"
+                            : ""
+                        }
+                      >
+                        {password.value && /[0-9]/.test(password.value)
+                          ? "✓"
+                          : "○"}
+                      </span>
+                      <span>Números</span>
+                    </p>
+                    <p class="flex items-center space-x-1">
+                      <span
+                        class={
+                          password.value && /[^a-zA-Z0-9]/.test(password.value)
+                            ? "text-green-500"
+                            : ""
+                        }
+                      >
+                        {password.value && /[^a-zA-Z0-9]/.test(password.value)
+                          ? "✓"
+                          : "○"}
+                      </span>
+                      <span>Caracteres especiales (@, #, $, etc.)</span>
+                    </p>
+                  </div>
+                </div>
+
                 {validationErrors.value.password && (
                   <p class="mt-2 flex items-center space-x-1 text-sm text-red-600 dark:text-red-400">
                     <svg
@@ -463,7 +663,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                   </div>
                   <Input
                     id="confirmPassword"
-                    type="password"
+                    type={showConfirmPassword.value ? "text" : "password"}
                     placeholder="••••••••"
                     value={confirmPassword.value}
                     onInput$={(e) =>
@@ -471,14 +671,104 @@ export const RegisterForm = component$<RegisterFormProps>(
                         e.target as HTMLInputElement
                       ).value)
                     }
-                    class={`w-full border-2 bg-white px-4 py-3 pl-12 dark:bg-slate-700 ${
+                    class={`w-full border-2 bg-white px-4 py-3 pr-12 pl-12 text-slate-900 placeholder:text-slate-400 dark:bg-slate-700 dark:text-white dark:placeholder:text-slate-500 ${
                       validationErrors.value.confirm_password
                         ? "border-red-500 focus:border-red-500"
                         : "border-slate-200 focus:border-blue-500 dark:border-slate-600"
                     } rounded-xl transition-all duration-200 focus:ring-4 focus:ring-blue-500/20`}
                     required
                   />
+                  <button
+                    type="button"
+                    onClick$={() =>
+                      (showConfirmPassword.value = !showConfirmPassword.value)
+                    }
+                    class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300"
+                    aria-label={
+                      showConfirmPassword.value
+                        ? "Ocultar contraseña"
+                        : "Mostrar contraseña"
+                    }
+                  >
+                    {showConfirmPassword.value ? (
+                      <svg
+                        class="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        class="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    )}
+                  </button>
                 </div>
+
+                {/* Password Match Indicator */}
+                {confirmPassword.value && (
+                  <div class="mt-2">
+                    {password.value === confirmPassword.value ? (
+                      <p class="flex items-center space-x-1 text-sm text-green-600 dark:text-green-400">
+                        <svg
+                          class="h-4 w-4"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                        <span class="font-medium">
+                          Las contraseñas coinciden
+                        </span>
+                      </p>
+                    ) : (
+                      <p class="flex items-center space-x-1 text-sm text-red-600 dark:text-red-400">
+                        <svg
+                          class="h-4 w-4"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                        <span class="font-medium">
+                          Las contraseñas no coinciden
+                        </span>
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {validationErrors.value.confirm_password && (
                   <p class="mt-2 flex items-center space-x-1 text-sm text-red-600 dark:text-red-400">
                     <svg
