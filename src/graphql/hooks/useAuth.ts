@@ -52,11 +52,6 @@ const CREATE_USER_MUTATION = `
       last_name
       email
       created_at
-      role {
-        role_id
-        role_name
-        description
-      }
     }
   }
 `;
@@ -167,6 +162,21 @@ export const loginUser = $(
 export const registerUser = $(
   async (formData: RegisterFormData): Promise<AuthResponse> => {
     try {
+      // Validate required fields
+      if (
+        !formData.first_name ||
+        !formData.last_name ||
+        !formData.email ||
+        !formData.password ||
+        !formData.role_id
+      ) {
+        return {
+          success: false,
+          message: "Campos requeridos faltantes",
+          errors: ["Por favor completa todos los campos requeridos"],
+        };
+      }
+
       // Check if email already exists
       const existingUser = await graphqlClient.request<{
         users: Array<{ user_id: string }>;
@@ -189,6 +199,15 @@ export const registerUser = $(
         };
       }
 
+      // Validate password strength
+      if (formData.password.length < 6) {
+        return {
+          success: false,
+          message: "Contraseña muy débil",
+          errors: ["La contraseña debe tener al menos 6 caracteres"],
+        };
+      }
+
       // Hash password
       const hashedPassword = await hashPassword(formData.password);
 
@@ -196,15 +215,23 @@ export const registerUser = $(
       const response = await graphqlClient.request<{ insert_users_one: User }>(
         CREATE_USER_MUTATION,
         {
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          email: formData.email,
+          first_name: formData.first_name.trim(),
+          last_name: formData.last_name.trim(),
+          email: formData.email.trim().toLowerCase(),
           password: hashedPassword,
           role_id: formData.role_id,
         },
       );
 
       const user = response.insert_users_one;
+
+      if (!user) {
+        return {
+          success: false,
+          message: "Error al crear usuario",
+          errors: ["No se pudo crear el usuario. Intente nuevamente."],
+        };
+      }
 
       // Generate token
       const token = btoa(
@@ -221,12 +248,25 @@ export const registerUser = $(
         token,
         message: "Registro exitoso",
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error("Register error:", error);
+
+      // Handle specific GraphQL errors
+      if (error?.response?.errors) {
+        const errorMessages = error.response.errors.map((e: any) => e.message);
+        return {
+          success: false,
+          message: "Error en el servidor",
+          errors: errorMessages,
+        };
+      }
+
       return {
         success: false,
         message: "Error en el servidor",
-        errors: ["No se pudo completar el registro. Intente nuevamente."],
+        errors: [
+          "No se pudo completar el registro. Verifique su conexión e intente nuevamente.",
+        ],
       };
     }
   },

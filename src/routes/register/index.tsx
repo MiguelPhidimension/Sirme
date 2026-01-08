@@ -60,14 +60,33 @@ export default component$(() => {
         // Save session
         await saveUserSession(response.user, response.token);
 
+        // Show success message briefly before redirecting
+        console.log("✅ Usuario registrado exitosamente:", response.user.email);
+
         // Redirect to calendar
         await nav("/calendar");
       } else {
+        // Handle error response
         error.value = response.message || "Error al crear la cuenta";
+
+        // Log detailed errors for debugging
+        if (response.errors && response.errors.length > 0) {
+          console.error("Errores de registro:", response.errors);
+          error.value = response.errors.join(". ");
+        }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Register error:", err);
-      error.value = "Error inesperado. Intente nuevamente.";
+
+      // Provide more specific error messages
+      if (err.message?.includes("network") || err.message?.includes("fetch")) {
+        error.value =
+          "Error de conexión. Verifica tu internet e intenta nuevamente.";
+      } else if (err.message?.includes("GraphQL")) {
+        error.value = "Error en la base de datos. Contacta al administrador.";
+      } else {
+        error.value = err.message || "Error inesperado. Intente nuevamente.";
+      }
     } finally {
       isLoading.value = false;
     }
