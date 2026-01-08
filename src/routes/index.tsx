@@ -36,14 +36,33 @@ export default component$(() => {
         // Save session
         await saveUserSession(response.user, response.token);
 
+        // Log success
+        console.log("✅ Login exitoso:", response.user.email);
+
         // Redirect to calendar
         await nav("/calendar");
       } else {
+        // Handle error response
         error.value = response.message || "Error al iniciar sesión";
+
+        // Show detailed errors
+        if (response.errors && response.errors.length > 0) {
+          console.error("Errores de login:", response.errors);
+          error.value = response.errors.join(". ");
+        }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Login error:", err);
-      error.value = "Error inesperado. Intente nuevamente.";
+
+      // Provide more specific error messages
+      if (err.message?.includes("network") || err.message?.includes("fetch")) {
+        error.value =
+          "Error de conexión. Verifica tu internet e intenta nuevamente.";
+      } else if (err.message?.includes("GraphQL")) {
+        error.value = "Error en la base de datos. Contacta al administrador.";
+      } else {
+        error.value = err.message || "Error inesperado. Intente nuevamente.";
+      }
     } finally {
       isLoading.value = false;
     }

@@ -22,11 +22,6 @@ const GET_USER_BY_EMAIL_QUERY = `
       password
       created_at
       updated_at
-      role {
-        role_id
-        role_name
-        description
-      }
     }
   }
 `;
@@ -97,10 +92,19 @@ export const verifyPassword = $(
 export const loginUser = $(
   async (formData: LoginFormData): Promise<AuthResponse> => {
     try {
+      // Validate input
+      if (!formData.email || !formData.password) {
+        return {
+          success: false,
+          message: "Campos requeridos",
+          errors: ["Email y contraseña son requeridos"],
+        };
+      }
+
       // Query user by email
       const response = await graphqlClient.request<{
         users: Array<User & { password: string }>;
-      }>(GET_USER_BY_EMAIL_QUERY, { email: formData.email });
+      }>(GET_USER_BY_EMAIL_QUERY, { email: formData.email.trim().toLowerCase() });
 
       if (!response.users || response.users.length === 0) {
         return {
@@ -145,12 +149,23 @@ export const loginUser = $(
         token,
         message: "Login exitoso",
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
+      
+      // Handle specific GraphQL errors
+      if (error?.response?.errors) {
+        const errorMessages = error.response.errors.map((e: any) => e.message);
+        return {
+          success: false,
+          message: "Error en el servidor",
+          errors: errorMessages,
+        };
+      }
+      
       return {
         success: false,
         message: "Error en el servidor",
-        errors: ["No se pudo completar el login. Intente nuevamente."],
+        errors: ["No se pudo completar el login. Verifique su conexión e intente nuevamente."],
       };
     }
   },
