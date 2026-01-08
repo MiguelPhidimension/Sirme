@@ -1,10 +1,10 @@
-import { component$, Slot } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
+import { component$, Slot, useVisibleTask$ } from "@builder.io/qwik";
+import { routeLoader$, useLocation, useNavigate } from "@builder.io/qwik-city";
 import { MainLayout } from "~/components/templates";
 
 /**
  * Route layout that uses MainLayout template
- * Routes should be simple and just render the appropriate template/page components
+ * Protects all routes - requires authentication
  */
 export const useServerTimeLoader = routeLoader$(() => {
   return {
@@ -13,9 +13,42 @@ export const useServerTimeLoader = routeLoader$(() => {
 });
 
 export default component$(() => {
+  const loc = useLocation();
+  const nav = useNavigate();
+
+  // Check authentication on client side
+  useVisibleTask$(() => {
+    // Skip auth check for public routes
+    const currentPath = loc.url.pathname;
+    const isPublicRoute =
+      currentPath === "/" || currentPath.startsWith("/register");
+
+    if (isPublicRoute) {
+      return;
+    }
+
+    // Check if user is authenticated
+    const token = sessionStorage.getItem("auth_token");
+    const user = sessionStorage.getItem("auth_user");
+
+    if (!token || !user) {
+      // Not authenticated, redirect to login
+      nav("/");
+    }
+  });
+
+  // Render without MainLayout for public routes
+  const currentPath = loc.url.pathname;
+  const isPublicRoute =
+    currentPath === "/" || currentPath.startsWith("/register");
+
+  if (isPublicRoute) {
+    return <Slot />;
+  }
+
   return (
     <MainLayout>
       <Slot />
     </MainLayout>
   );
-}); 
+});

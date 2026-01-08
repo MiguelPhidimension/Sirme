@@ -60,8 +60,8 @@ export default component$(() => {
         // Save session
         await saveUserSession(response.user, response.token);
 
-        // Redirect to dashboard
-        await nav("/");
+        // Redirect to calendar
+        await nav("/calendar");
       } else {
         error.value = response.message || "Error al crear la cuenta";
       }

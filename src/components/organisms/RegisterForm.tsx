@@ -536,7 +536,7 @@ export const RegisterForm = component$<RegisterFormProps>(
             <p class="text-slate-600 dark:text-slate-400">
               ¿Ya tienes una cuenta?{" "}
               <a
-                href="/login"
+                href="/"
                 class="font-semibold text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 Inicia sesión aquí

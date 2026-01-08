@@ -1,4 +1,10 @@
-import { component$, Slot, useSignal, $ } from "@builder.io/qwik";
+import {
+  component$,
+  Slot,
+  useSignal,
+  $,
+  useVisibleTask$,
+} from "@builder.io/qwik";
 
 /**
  * MainLayout Template Component
@@ -13,8 +19,26 @@ import { component$, Slot, useSignal, $ } from "@builder.io/qwik";
  * </MainLayout>
  */
 export const MainLayout = component$(() => {
-  // State for mobile menu
+  // State for mobile menu and auth
   const isMobileMenuOpen = useSignal(false);
+  const isAuthenticated = useSignal(false);
+  const userData = useSignal<any>(null);
+
+  // Check authentication status
+  useVisibleTask$(() => {
+    const token = sessionStorage.getItem("auth_token");
+    const user = sessionStorage.getItem("auth_user");
+
+    isAuthenticated.value = !!(token && user);
+
+    if (user) {
+      try {
+        userData.value = JSON.parse(user);
+      } catch {
+        userData.value = null;
+      }
+    }
+  });
 
   // Navigation items with modern icons
   const navItems = [
@@ -102,186 +126,171 @@ export const MainLayout = component$(() => {
               </a>
             </div>
 
-            {/* Desktop Navigation */}
-            <div class="hidden items-center space-x-1 md:flex">
-              {navItems.map((item) => (
-                <a
-                  key={item.path}
-                  href={item.path}
-                  class={`group relative flex items-center space-x-2 rounded-xl px-4 py-2 font-medium transition-all duration-200 ${
-                    currentPath === item.path
-                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
-                      : "text-gray-600 hover:bg-white/50 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-slate-800/50 dark:hover:text-blue-400"
-                  }`}
-                  title={item.description}
-                >
-                  <span
-                    class={`transition-colors duration-200 ${
+            {/* Desktop Navigation - Solo si está autenticado */}
+            {isAuthenticated.value && (
+              <div class="hidden items-center space-x-1 md:flex">
+                {navItems.map((item) => (
+                  <a
+                    key={item.path}
+                    href={item.path}
+                    class={`group relative flex items-center space-x-2 rounded-xl px-4 py-2 font-medium transition-all duration-200 ${
                       currentPath === item.path
-                        ? "text-white"
-                        : "text-gray-500 group-hover:text-blue-500"
+                        ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
+                        : "text-gray-600 hover:bg-white/50 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-slate-800/50 dark:hover:text-blue-400"
                     }`}
+                    title={item.description}
                   >
-                    {item.icon}
-                  </span>
-                  <span class="text-sm font-semibold">{item.label}</span>
+                    <span
+                      class={`transition-colors duration-200 ${
+                        currentPath === item.path
+                          ? "text-white"
+                          : "text-gray-500 group-hover:text-blue-500"
+                      }`}
+                    >
+                      {item.icon}
+                    </span>
+                    <span class="text-sm font-semibold">{item.label}</span>
 
-                  {/* Active indicator */}
-                  {currentPath === item.path && (
-                    <div class="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 transform rounded-full bg-white shadow-md"></div>
-                  )}
-                </a>
-              ))}
-            </div>
+                    {/* Active indicator */}
+                    {currentPath === item.path && (
+                      <div class="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 transform rounded-full bg-white shadow-md"></div>
+                    )}
+                  </a>
+                ))}
+              </div>
+            )}
 
             {/* Right side controls */}
             <div class="flex items-center space-x-4">
-              {/* User Profile with Dropdown */}
-              <div class="group relative">
-                <div class="flex cursor-pointer items-center space-x-3">
-                  <div class="hidden text-right lg:block">
-                    <p class="text-sm font-semibold text-gray-900 dark:text-white">
-                      {typeof window !== "undefined" &&
-                      sessionStorage.getItem("auth_user")
-                        ? JSON.parse(
-                            sessionStorage.getItem("auth_user") || "{}",
-                          ).first_name +
-                          " " +
-                          JSON.parse(
-                            sessionStorage.getItem("auth_user") || "{}",
-                          ).last_name
-                        : "Usuario"}
-                    </p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">
-                      {typeof window !== "undefined" &&
-                      sessionStorage.getItem("auth_user")
-                        ? JSON.parse(
-                            sessionStorage.getItem("auth_user") || "{}",
-                          ).role?.role_name || "Empleado"
-                        : "Empleado"}
-                    </p>
+              {/* User Profile with Dropdown - Solo si está autenticado */}
+              {isAuthenticated.value && userData.value && (
+                <div class="group relative">
+                  <div class="flex cursor-pointer items-center space-x-3">
+                    <div class="hidden text-right lg:block">
+                      <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                        {userData.value.first_name} {userData.value.last_name}
+                      </p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">
+                        {userData.value.role?.role_name || "Empleado"}
+                      </p>
+                    </div>
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 shadow-lg transition-all duration-200 hover:shadow-xl">
+                      <span class="text-sm font-bold text-white">
+                        {userData.value.first_name?.[0] || "U"}
+                        {userData.value.last_name?.[0] || ""}
+                      </span>
+                    </div>
                   </div>
-                  <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 shadow-lg transition-all duration-200 hover:shadow-xl">
-                    <span class="text-sm font-bold text-white">
-                      {typeof window !== "undefined" &&
-                      sessionStorage.getItem("auth_user")
-                        ? (JSON.parse(
-                            sessionStorage.getItem("auth_user") || "{}",
-                          ).first_name?.[0] || "U") +
-                          (JSON.parse(
-                            sessionStorage.getItem("auth_user") || "{}",
-                          ).last_name?.[0] || "")
-                        : "U"}
-                    </span>
-                  </div>
-                </div>
 
-                {/* Dropdown Menu */}
-                <div class="invisible absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-xl border border-gray-200 bg-white opacity-0 shadow-xl transition-all duration-200 group-hover:visible group-hover:opacity-100 dark:border-slate-700 dark:bg-slate-800">
-                  <a
-                    href="/profile"
-                    class="block px-4 py-3 text-sm text-gray-700 transition-colors duration-200 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-slate-700"
-                  >
-                    <div class="flex items-center space-x-2">
-                      <svg
-                        class="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                        />
-                      </svg>
-                      <span>Mi Perfil</span>
-                    </div>
-                  </a>
-                  <a
-                    href="/settings"
-                    class="block px-4 py-3 text-sm text-gray-700 transition-colors duration-200 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-slate-700"
-                  >
-                    <div class="flex items-center space-x-2">
-                      <svg
-                        class="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                        />
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                      <span>Configuración</span>
-                    </div>
-                  </a>
-                  <div class="border-t border-gray-200 dark:border-slate-700"></div>
-                  <a
-                    href="/login"
-                    onClick$={() => {
-                      if (typeof window !== "undefined") {
-                        sessionStorage.removeItem("auth_token");
-                        sessionStorage.removeItem("auth_user");
-                      }
-                    }}
-                    class="block px-4 py-3 text-sm text-red-600 transition-colors duration-200 hover:bg-red-50 dark:hover:bg-red-900/20"
-                  >
-                    <div class="flex items-center space-x-2">
-                      <svg
-                        class="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                        />
-                      </svg>
-                      <span>Cerrar Sesión</span>
-                    </div>
-                  </a>
+                  {/* Dropdown Menu */}
+                  <div class="invisible absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-xl border border-gray-200 bg-white opacity-0 shadow-xl transition-all duration-200 group-hover:visible group-hover:opacity-100 dark:border-slate-700 dark:bg-slate-800">
+                    <a
+                      href="/profile"
+                      class="block px-4 py-3 text-sm text-gray-700 transition-colors duration-200 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-slate-700"
+                    >
+                      <div class="flex items-center space-x-2">
+                        <svg
+                          class="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                          />
+                        </svg>
+                        <span>Mi Perfil</span>
+                      </div>
+                    </a>
+                    <a
+                      href="/settings"
+                      class="block px-4 py-3 text-sm text-gray-700 transition-colors duration-200 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-slate-700"
+                    >
+                      <div class="flex items-center space-x-2">
+                        <svg
+                          class="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                          />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                        </svg>
+                        <span>Configuración</span>
+                      </div>
+                    </a>
+                    <div class="border-t border-gray-200 dark:border-slate-700"></div>
+                    <a
+                      href="/"
+                      onClick$={() => {
+                        if (typeof window !== "undefined") {
+                          sessionStorage.removeItem("auth_token");
+                          sessionStorage.removeItem("auth_user");
+                        }
+                      }}
+                      class="block px-4 py-3 text-sm text-red-600 transition-colors duration-200 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                      <div class="flex items-center space-x-2">
+                        <svg
+                          class="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                          />
+                        </svg>
+                        <span>Cerrar Sesión</span>
+                      </div>
+                    </a>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Mobile Menu Button */}
-              <button
-                class="rounded-xl p-2 text-gray-600 transition-all duration-200 hover:bg-white/50 hover:text-blue-600 md:hidden dark:text-gray-300 dark:hover:bg-slate-800/50 dark:hover:text-blue-400"
-                onClick$={toggleMobileMenu}
-              >
-                <svg
-                  class="h-6 w-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              {isAuthenticated.value && (
+                <button
+                  class="rounded-xl p-2 text-gray-600 transition-all duration-200 hover:bg-white/50 hover:text-blue-600 md:hidden dark:text-gray-300 dark:hover:bg-slate-800/50 dark:hover:text-blue-400"
+                  onClick$={toggleMobileMenu}
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
         </div>
 
         {/* Mobile Navigation Menu */}
-        {isMobileMenuOpen.value && (
+        {isMobileMenuOpen.value && isAuthenticated.value && (
           <div class="border-t border-white/20 bg-white/95 backdrop-blur-xl md:hidden dark:border-slate-700/20 dark:bg-slate-900/95">
             <div class="space-y-3 px-4 py-6">
               {navItems.map((item) => (
@@ -317,42 +326,21 @@ export const MainLayout = component$(() => {
                   <div class="flex items-center space-x-3">
                     <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 shadow-lg">
                       <span class="text-sm font-bold text-white">
-                        {typeof window !== "undefined" &&
-                        sessionStorage.getItem("auth_user")
-                          ? (JSON.parse(
-                              sessionStorage.getItem("auth_user") || "{}",
-                            ).first_name?.[0] || "U") +
-                            (JSON.parse(
-                              sessionStorage.getItem("auth_user") || "{}",
-                            ).last_name?.[0] || "")
-                          : "U"}
+                        {userData.value?.first_name?.[0] || "U"}
+                        {userData.value?.last_name?.[0] || ""}
                       </span>
                     </div>
                     <div>
                       <p class="text-sm font-semibold text-gray-900 dark:text-white">
-                        {typeof window !== "undefined" &&
-                        sessionStorage.getItem("auth_user")
-                          ? JSON.parse(
-                              sessionStorage.getItem("auth_user") || "{}",
-                            ).first_name +
-                            " " +
-                            JSON.parse(
-                              sessionStorage.getItem("auth_user") || "{}",
-                            ).last_name
-                          : "Usuario"}
+                        {userData.value?.first_name} {userData.value?.last_name}
                       </p>
                       <p class="text-xs text-gray-500 dark:text-gray-400">
-                        {typeof window !== "undefined" &&
-                        sessionStorage.getItem("auth_user")
-                          ? JSON.parse(
-                              sessionStorage.getItem("auth_user") || "{}",
-                            ).role?.role_name || "Empleado"
-                          : "Empleado"}
+                        {userData.value?.role?.role_name || "Empleado"}
                       </p>
                     </div>
                   </div>
                   <a
-                    href="/login"
+                    href="/"
                     onClick$={() => {
                       if (typeof window !== "undefined") {
                         sessionStorage.removeItem("auth_token");
