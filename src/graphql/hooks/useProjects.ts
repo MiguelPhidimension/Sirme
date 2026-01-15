@@ -12,9 +12,7 @@
  */
 
 import { 
-  Signal, 
-  useResource$,
-  useSignal
+  useResource$
 } from '@builder.io/qwik';
 import { useGraphQLClient, makeGraphQLRequest } from '../../components/providers/GraphQLProvider';
 
@@ -130,24 +128,24 @@ const GET_PROJECTS_QUERY = `
  * Query to get projects with their client information
  * Useful for displaying "Client - Project" format
  */
-const GET_PROJECTS_WITH_CLIENTS_QUERY = `
-  query GetProjectsWithClients {
-    projects {
-      project_id
-      name
-      description
-      client_id
-      client {
-        name
-      }
-    }
-    projects_aggregate {
-      aggregate {
-        count
-      }
-    }
-  }
-`;
+// const GET_PROJECTS_WITH_CLIENTS_QUERY = `
+//   query GetProjectsWithClients {
+//     projects {
+//       project_id
+//       name
+//       description
+//       client_id
+//       client {
+//         name
+//       }
+//     }
+//     projects_aggregate {
+//       aggregate {
+//         count
+//       }
+//     }
+//   }
+// `;
 
 // ============================================================================
 // QUERY HOOKS - Following GraphQL Rules Pattern

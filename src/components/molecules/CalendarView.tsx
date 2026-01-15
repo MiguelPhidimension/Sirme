@@ -4,6 +4,7 @@ import {
   useStore,
   useVisibleTask$,
   $,
+  QRL,
 } from "@builder.io/qwik";
 import { Badge } from "../atoms";
 import { DataUtils, DateUtils } from "~/utils";
@@ -24,8 +25,8 @@ interface CalendarDay {
  */
 interface CalendarViewProps {
   entries: DailyTimeEntry[];
-  onDayClick$?: (day: CalendarDay) => void;
-  onNewEntryForDate$?: (date: string) => void;
+  onDayClick$?: QRL<(day: CalendarDay) => void>;
+  onNewEntryForDate$?: QRL<(date: string) => void>;
 }
 
 /**
@@ -164,9 +165,9 @@ export const CalendarView = component$<CalendarViewProps>(
       currentDate.value = newDate;
     });
 
-    const goToToday = $(() => {
-      currentDate.value = new Date();
-    });
+    // const goToToday = $(() => {
+    //   currentDate.value = new Date();
+    // });
 
     // Day interaction handlers
     const handleDayClick = $((day: CalendarDay) => {
@@ -178,9 +179,13 @@ export const CalendarView = component$<CalendarViewProps>(
         // Don't call parent handler - we're handling this internally
       } else {
         // If day has no entries, show time entry form directly
-        onNewEntryForDate$ && onNewEntryForDate$(day.date);
+        if (onNewEntryForDate$) {
+          onNewEntryForDate$(day.date);
+        }
         // Call parent handler for empty days
-        onDayClick$ && onDayClick$(day);
+        if (onDayClick$) {
+          onDayClick$(day);
+        }
       }
     });
 
@@ -255,7 +260,7 @@ export const CalendarView = component$<CalendarViewProps>(
 
           {/* Calendar grid */}
           <div class="grid grid-cols-7">
-            {calendarData.days.map((day, index) => {
+            {calendarData.days.map((day) => {
               const dayNumber = new Date(day.date).getDate();
               const isCurrentMonthDay = isCurrentMonth(day.date);
               const isTodayDay = isToday(day.date);
@@ -476,8 +481,9 @@ export const CalendarView = component$<CalendarViewProps>(
                       <button
                         class="transform rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-4 text-white shadow-lg transition-all duration-200 hover:-translate-y-1 hover:from-blue-600 hover:to-purple-700 hover:shadow-xl"
                         onClick$={() => {
-                          onNewEntryForDate$ &&
+                          if (onNewEntryForDate$) {
                             onNewEntryForDate$(selectedDay.value!.date);
+                          }
                           showDayModal.value = false;
                         }}
                       >

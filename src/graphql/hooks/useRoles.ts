@@ -13,8 +13,7 @@
 
 import { 
   Signal, 
-  useResource$,
-  useSignal
+  useResource$
 } from '@builder.io/qwik';
 import { useGraphQLClient, makeGraphQLRequest } from '../../components/providers/GraphQLProvider';
 

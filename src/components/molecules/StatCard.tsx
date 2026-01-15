@@ -1,4 +1,4 @@
-import { component$, Slot } from "@builder.io/qwik";
+import { component$ } from "@builder.io/qwik";
 import { DataUtils } from "~/utils";
 
 /**
@@ -131,57 +131,94 @@ export const StatCard = component$<StatCardProps>(
       return iconMap[iconType as keyof typeof iconMap] || null;
     };
 
+    // Get color classes based on color prop
+    const getColorClasses = () => {
+      const colorMap = {
+        primary: "from-blue-500 to-indigo-600 text-blue-600 dark:text-blue-400",
+        secondary:
+          "from-purple-500 to-pink-600 text-purple-600 dark:text-purple-400",
+        accent: "from-teal-500 to-cyan-600 text-teal-600 dark:text-teal-400",
+        info: "from-sky-500 to-blue-600 text-sky-600 dark:text-sky-400",
+        success:
+          "from-emerald-500 to-green-600 text-emerald-600 dark:text-emerald-400",
+        warning:
+          "from-amber-500 to-orange-600 text-amber-600 dark:text-amber-400",
+        error: "from-red-500 to-rose-600 text-red-600 dark:text-red-400",
+      };
+      return colorMap[color];
+    };
+
+    const colorClasses = getColorClasses();
+    const [gradientClass, textColorClass] = colorClasses.split(" text-");
+
     return (
-      <div class="stats bg-base-100 border-base-200 border shadow">
-        <div class="stat">
-          <div class="stat-figure text-secondary">
-            {icon && <div class={`text-${color}`}>{getIcon(icon)}</div>}
+      <div class="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/90 p-6 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl dark:border-slate-700/20 dark:bg-slate-800/90">
+        {/* Gradient background on hover */}
+        <div
+          class={`absolute inset-0 bg-gradient-to-br ${gradientClass} opacity-0 transition-opacity duration-300 group-hover:opacity-5`}
+        ></div>
+
+        <div class="relative">
+          <div class="mb-4 flex items-start justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                {title}
+              </p>
+              <h3 class={`mt-2 text-3xl font-bold text-${textColorClass}`}>
+                {formatValue(value)}
+              </h3>
+            </div>
+
+            {icon && (
+              <div
+                class={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${gradientClass} shadow-lg`}
+              >
+                <div class="text-white">{getIcon(icon)}</div>
+              </div>
+            )}
           </div>
 
-          <div class="stat-title text-base-content/60">{title}</div>
-
-          <div class={`stat-value text-${color}`}>{formatValue(value)}</div>
-
           {subtitle && (
-            <div class="stat-desc text-base-content/50">{subtitle}</div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
           )}
 
           {trend && (
-            <div
-              class={`stat-desc ${trend.isPositive ? "text-success" : "text-error"}`}
-            >
-              <div class="flex items-center gap-1">
-                {trend.isPositive ? (
-                  <svg
-                    class="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M7 17l9.2-9.2M17 17V7H7"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    class="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M17 7l-9.2 9.2M7 7v10h10"
-                    />
-                  </svg>
-                )}
-                <span>{Math.abs(trend.value).toFixed(1)}%</span>
-              </div>
+            <div class="mt-2 flex items-center gap-1">
+              {trend.isPositive ? (
+                <svg
+                  class="h-4 w-4 text-emerald-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  class="h-4 w-4 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"
+                  />
+                </svg>
+              )}
+              <span
+                class={`text-sm font-medium ${trend.isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}
+              >
+                {trend.isPositive ? "+" : "-"}
+                {Math.abs(trend.value).toFixed(1)}%
+              </span>
             </div>
           )}
         </div>

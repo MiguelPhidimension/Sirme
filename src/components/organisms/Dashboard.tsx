@@ -1,9 +1,8 @@
 import {
   component$,
   useSignal,
-  useStore,
-  useVisibleTask$,
   $,
+  QRL,
 } from "@builder.io/qwik";
 import {
   DashboardStats,
@@ -11,24 +10,15 @@ import {
   RecentEntries,
   CalendarView,
 } from "../molecules";
-import { Button, Badge } from "../atoms";
+import { Button } from "../atoms";
 import { TimeEntryForm } from "../organisms";
-import { DataUtils, DateUtils } from "~/utils";
 import type {
   DashboardSummary,
   DailyTimeEntry,
   TimeEntryFormData,
 } from "~/types";
 
-/**
- * Calendar day interface for calendar functionality
- */
-interface CalendarDay {
-  date: string;
-  totalHours: number;
-  hasEntries: boolean;
-  entries?: DailyTimeEntry[];
-}
+
 
 /**
  * Props interface for Dashboard component
@@ -36,9 +26,9 @@ interface CalendarDay {
 interface DashboardProps {
   summary?: DashboardSummary;
   recentEntries?: DailyTimeEntry[];
-  onNewEntry$?: () => void;
-  onViewCalendar$?: () => void;
-  onEditEntry$?: (entryId: string) => void;
+  onNewEntry$?: QRL<() => void>;
+  onViewCalendar$?: QRL<() => void>;
+  onEditEntry$?: QRL<(entryId: string) => void>;
   isLoading?: boolean;
 }
 
@@ -70,7 +60,7 @@ export const Dashboard = component$<DashboardProps>(
     summary,
     recentEntries = [],
     onNewEntry$,
-    onViewCalendar$,
+    // onViewCalendar$,
     onEditEntry$,
     isLoading = false,
   }) => {
@@ -158,7 +148,7 @@ export const Dashboard = component$<DashboardProps>(
       );
     }
 
-    const progressStatus = getProgressStatus(displaySummary.weeklyProgress);
+    // const progressStatus = getProgressStatus(displaySummary.weeklyProgress);
 
     return (
       <div class="space-y-8">

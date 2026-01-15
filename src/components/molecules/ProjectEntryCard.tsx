@@ -1,5 +1,4 @@
-import { component$, useSignal, $ } from "@builder.io/qwik";
-import { Input, Select, Button, Badge } from "../atoms";
+import { component$, useSignal, $, QRL } from "@builder.io/qwik";
 import { DataUtils } from "~/utils";
 import type { ProjectEntry, EmployeeRole } from "~/types";
 
@@ -11,10 +10,10 @@ interface ProjectEntryCardProps {
   role?: EmployeeRole;
   date?: string;
   isEditing?: boolean;
-  onSave$?: (project: ProjectEntry) => void;
-  onDelete$?: (projectId: string) => void;
-  onEdit$?: (projectId: string) => void;
-  onCancel$?: () => void;
+  onSave$?: QRL<(project: ProjectEntry) => void>;
+  onDelete$?: QRL<(projectId: string) => void>;
+  onEdit$?: QRL<(projectId: string) => void>;
+  onCancel$?: QRL<() => void>;
 }
 
 /**

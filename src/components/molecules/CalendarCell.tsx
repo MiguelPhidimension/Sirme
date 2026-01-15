@@ -1,15 +1,15 @@
-import { component$, $ } from "@builder.io/qwik";
+import { component$, $, QRL } from "@builder.io/qwik";
 import { Badge } from "../atoms";
 import { DataUtils, DateUtils } from "~/utils";
-import type { CalendarDay } from "~/types";
+import type { CalendarDayTypes } from "~/types";
 
 /**
  * Props interface for CalendarCell component
  */
 interface CalendarCellProps {
-  day: CalendarDay;
+  day: CalendarDayTypes;
   isCurrentMonth?: boolean;
-  onClick$?: (date: string) => void;
+  onClick$?: QRL<(date: string) => void>;
 }
 
 /**
@@ -43,7 +43,7 @@ export const CalendarCell = component$<CalendarCellProps>(
       const baseClasses =
         "relative aspect-square p-2 border border-base-300 cursor-pointer transition-all hover:bg-base-200 flex flex-col";
 
-      let classes = [baseClasses];
+      const classes = [baseClasses];
 
       // Current month styling
       if (!isCurrentMonth) {
@@ -96,9 +96,7 @@ export const CalendarCell = component$<CalendarCellProps>(
         {/* Hours display */}
         {day.totalHours > 0 && (
           <div class="flex flex-1 flex-col items-center justify-center">
-            <div
-              class={`text-lg font-bold ${getHoursColor(day.totalHours)}`}
-            >
+            <div class={`text-lg font-bold ${getHoursColor(day.totalHours)}`}>
               {DataUtils.formatHours(day.totalHours)}
             </div>
 

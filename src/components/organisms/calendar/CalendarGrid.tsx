@@ -1,0 +1,118 @@
+import { component$, type QRL } from "@builder.io/qwik";
+import { CalendarDay } from "~/components/molecules/calendar/CalendarDay";
+import type { CalendarDayTypes } from "~/types";
+
+interface CalendarGridProps {
+  days: CalendarDayTypes[];
+  monthYearDisplay: string;
+  currentMonth: number;
+  onPrevMonth$: QRL<() => void>;
+  onNextMonth$: QRL<() => void>;
+  onDayClick$: QRL<(day: CalendarDayTypes) => void>;
+}
+
+const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+export const CalendarGrid = component$<CalendarGridProps>(
+  ({
+    days,
+    monthYearDisplay,
+    currentMonth,
+    onPrevMonth$,
+    onNextMonth$,
+    onDayClick$,
+  }) => {
+    const getCurrentDate = () => {
+      return new Date().toISOString().split("T")[0];
+    };
+
+    const isToday = (date: string) => {
+      return date === getCurrentDate();
+    };
+
+    const isCurrentMonth = (date: string) => {
+      return new Date(date).getMonth() === currentMonth;
+    };
+
+    return (
+      <div class="group relative">
+        <div class="absolute inset-0 rounded-3xl bg-gradient-to-r from-indigo-500/20 to-purple-500/20 blur-xl transition-all duration-300 group-hover:blur-2xl"></div>
+        <div class="relative overflow-hidden rounded-3xl border border-white/20 bg-white/10 backdrop-blur-sm dark:border-slate-700/20 dark:bg-slate-800/30">
+          {/* Calendar header with navigation */}
+          <div class="border-b border-white/20 bg-white/20 px-8 py-6 backdrop-blur-sm dark:border-slate-600/20 dark:bg-slate-700/30">
+            <div class="flex items-center justify-between">
+              <button
+                class="group flex items-center space-x-2 rounded-xl border border-white/20 bg-white/20 px-6 py-3 text-slate-700 backdrop-blur-sm transition-all duration-200 hover:bg-white/30 hover:text-blue-600 dark:border-slate-500/20 dark:bg-slate-600/30 dark:text-slate-300 dark:hover:bg-slate-600/40 dark:hover:text-blue-400"
+                onClick$={onPrevMonth$}
+              >
+                <svg
+                  class="h-5 w-5 transition-transform group-hover:scale-110"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+                <span class="font-medium">Previous</span>
+              </button>
+
+              <h2 class="text-3xl font-bold text-slate-800 dark:text-slate-200">
+                {monthYearDisplay}
+              </h2>
+
+              <button
+                class="group flex items-center space-x-2 rounded-xl border border-white/20 bg-white/20 px-6 py-3 text-slate-700 backdrop-blur-sm transition-all duration-200 hover:bg-white/30 hover:text-blue-600 dark:border-slate-500/20 dark:bg-slate-600/30 dark:text-slate-300 dark:hover:bg-slate-600/40 dark:hover:text-blue-400"
+                onClick$={onNextMonth$}
+              >
+                <span class="font-medium">Next</span>
+                <svg
+                  class="h-5 w-5 transition-transform group-hover:scale-110"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Week day headers */}
+          <div class="grid grid-cols-7 bg-white/10 backdrop-blur-sm dark:bg-slate-700/20">
+            {weekDays.map((day) => (
+              <div
+                key={day}
+                class="border-r border-white/10 p-4 text-center text-sm font-semibold text-slate-600 last:border-r-0 dark:border-slate-600/20 dark:text-slate-400"
+              >
+                {day}
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar grid */}
+          <div class="grid grid-cols-7">
+            {days.map((day) => (
+              <CalendarDay
+                key={day.date}
+                day={day}
+                isCurrentMonth={isCurrentMonth(day.date)}
+                isToday={isToday(day.date)}
+                onClick$={onDayClick$}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  },
+);

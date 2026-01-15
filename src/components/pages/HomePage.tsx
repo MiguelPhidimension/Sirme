@@ -1,6 +1,5 @@
 import { component$, useSignal, useStore, $ } from "@builder.io/qwik";
 import { Dashboard } from "../organisms";
-import { DataUtils } from "~/utils";
 import type { EmployeeRole } from "~/types";
 
 /**
@@ -16,7 +15,6 @@ import type { EmployeeRole } from "~/types";
 export const HomePage = component$(() => {
   // State for managing dashboard data
   const isLoading = useSignal(false);
-  const refreshKey = useSignal(0);
 
   // Recent time entries for display - sample data for demonstration
   const recentEntries = useStore([
@@ -95,17 +93,17 @@ export const HomePage = component$(() => {
     window.location.href = "/calendar";
   });
 
-  const handleExportData = $(() => {
-    // Export time tracking data functionality
-    console.log("Export data requested");
-    // TODO: Implement export functionality in future iteration
-  });
+  // const handleExportData = $(() => {
+  //   // Export time tracking data functionality
+  //   console.log("Export data requested");
+  //   // TODO: Implement export functionality in future iteration
+  // });
 
-  const handlePeriodChange = $((period: "today" | "week" | "month") => {
-    // Handle time period selection for data filtering
-    console.log("Period changed to:", period);
-    // TODO: Update data based on selected period in future iteration
-  });
+  // const handlePeriodChange = $((period: "today" | "week" | "month") => {
+  //   // Handle time period selection for data filtering
+  //   console.log("Period changed to:", period);
+  //   // TODO: Update data based on selected period in future iteration
+  // });
 
   return (
     <div class="container mx-auto px-6 py-8">

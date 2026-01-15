@@ -4,6 +4,7 @@ import {
   useStore,
   $,
   useVisibleTask$,
+  QRL,
 } from "@builder.io/qwik";
 import { ProjectEntryCard } from "../molecules";
 import { DataUtils, ValidationUtils, DateUtils } from "~/utils";
@@ -11,7 +12,7 @@ import type {
   TimeEntryFormData,
   ProjectEntry,
   EmployeeRole,
-  FormErrors,
+  FormErrors
 } from "~/types";
 // Import GraphQL hooks and Resource component for role dropdown
 import { useRoles } from "~/graphql/hooks/useRoles";
@@ -27,12 +28,12 @@ import {
 interface TimeEntryFormProps {
   mode?: "daily" | "weekly";
   initialData?: Partial<TimeEntryFormData>;
-  onSubmit$?: (data: TimeEntryFormData) => void;
-  onCancel$?: () => void;
+  onSubmit$?: QRL<(data: TimeEntryFormData) => void>;
+  onCancel$?: QRL<() => void>;
   isLoading?: boolean;
   simplified?: boolean;
-  onTotalHoursChange$?: (totalHours: number) => void;
-  onAddProjectClick$?: () => void;
+  onTotalHoursChange$?: QRL<(totalHours: number) => void>;
+  onAddProjectClick$?: QRL<() => void>;
   showAddProjectInHeader?: boolean;
   showAddProjectSignal?: { value: boolean };
 }
@@ -60,7 +61,6 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
     simplified = false,
     onTotalHoursChange$,
     onAddProjectClick$,
-    showAddProjectInHeader = false,
     showAddProjectSignal,
   }) => {
     // GraphQL hook to fetch roles from database
@@ -266,7 +266,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
                           stroke-linecap="round"
                           stroke-linejoin="round"
                           stroke-width="2"
-                          d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                          d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0V6a2 2 0 012 2v6M8 8v10l4-2 4 2V8"
                         />
                       </svg>
                     </div>
@@ -409,7 +409,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2H5a2 2 0 00-2 2v2M7 7h10"
                           />
                         </svg>
                       </div>
@@ -535,7 +535,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
                           stroke-linecap="round"
                           stroke-linejoin="round"
                           stroke-width="2"
-                          d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6M8 8v10l4-2 4 2V8"
+                          d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0V6a2 2 0 012 2v6M8 8v10l4-2 4 2V8"
                         />
                       </svg>
                       <span>Employee Role</span>

@@ -4,11 +4,12 @@ import {
   useStore,
   $,
   useVisibleTask$,
+  QRL,
 } from "@builder.io/qwik";
 import { CalendarCell } from "../molecules";
 import { Button, Badge } from "../atoms";
 import { DateUtils, DataUtils } from "~/utils";
-import type { CalendarDay, DailyTimeEntry } from "~/types";
+import type { CalendarDayTypes, DailyTimeEntry } from "~/types";
 
 /**
  * Props interface for Calendar component
@@ -16,9 +17,9 @@ import type { CalendarDay, DailyTimeEntry } from "~/types";
 interface CalendarProps {
   entries?: DailyTimeEntry[];
   selectedDate?: string;
-  onDateSelect$?: (date: string) => void;
-  onNewEntry$?: (date: string) => void;
-  onEditEntry$?: (entryId: string) => void;
+  onDateSelect$?: QRL<(date: string) => void>;
+  onNewEntry$?: QRL<(date: string) => void>;
+  onEditEntry$?: QRL<(entryId: string) => void>;
   isLoading?: boolean;
 }
 
@@ -37,7 +38,6 @@ interface CalendarProps {
 export const Calendar = component$<CalendarProps>(
   ({
     entries = [],
-    selectedDate,
     onDateSelect$,
     onNewEntry$,
     onEditEntry$,
@@ -45,12 +45,12 @@ export const Calendar = component$<CalendarProps>(
   }) => {
     // Calendar state
     const currentDate = useSignal(new Date());
-    const selectedDay = useSignal<CalendarDay | null>(null);
+    const selectedDay = useSignal<CalendarDayTypes | null>(null);
     const showDayDetails = useSignal(false);
 
     // Calendar data
     const calendarData = useStore<{
-      days: CalendarDay[];
+      days: CalendarDayTypes[];
       monthTotal: number;
       averageDaily: number;
     }>({
@@ -75,7 +75,7 @@ export const Calendar = component$<CalendarProps>(
       endOfWeek.setDate(lastDay.getDate() + (6 - lastDay.getDay())); // End on Saturday
 
       // Build calendar days array
-      const days: CalendarDay[] = [];
+      const days: CalendarDayTypes[] = [];
       const currentDay = new Date(startOfWeek);
 
       let monthTotal = 0;
@@ -134,7 +134,9 @@ export const Calendar = component$<CalendarProps>(
       if (day) {
         selectedDay.value = day;
         showDayDetails.value = true;
-        onDateSelect$ && onDateSelect$(date);
+        if (onDateSelect$) {
+          onDateSelect$(date);
+        }
       }
     });
 
@@ -417,7 +419,9 @@ export const Calendar = component$<CalendarProps>(
                       size="sm"
                       class="mt-4"
                       onClick$={() => {
-                        onNewEntry$ && onNewEntry$(selectedDay.value!.date);
+                        if (onNewEntry$) {
+                          onNewEntry$(selectedDay.value!.date);
+                        }
                         showDayDetails.value = false;
                       }}
                     >

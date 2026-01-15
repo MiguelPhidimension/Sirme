@@ -79,7 +79,7 @@ export interface WeeklyBulkFormData {
 /**
  * Calendar day view data
  */
-export interface CalendarDay {
+export interface CalendarDayTypes {
   date: string;
   totalHours: number;
   hasEntries: boolean;

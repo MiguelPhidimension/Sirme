@@ -1,5 +1,5 @@
 import { createContextId } from "@builder.io/qwik";
-import type { User, AuthSession } from "~/types";
+import type { User } from "~/types";
 
 /**
  * Auth Context

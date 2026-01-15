@@ -1,4 +1,4 @@
-import { component$, useSignal } from "@builder.io/qwik";
+import { component$, QRL, useSignal } from "@builder.io/qwik";
 import { Badge } from "../atoms";
 import { DataUtils, DateUtils } from "~/utils";
 import type { DailyTimeEntry } from "~/types";
@@ -8,8 +8,8 @@ import type { DailyTimeEntry } from "~/types";
  */
 interface RecentEntriesProps {
   entries: DailyTimeEntry[];
-  onEditEntry$?: (entryId: string) => void;
-  onNewEntry$?: () => void;
+  onEditEntry$?: QRL<(entryId: string) => void>;
+  onNewEntry$?: QRL<() => void>;
 }
 
 /**
