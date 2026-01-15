@@ -99,7 +99,7 @@ export default component$(() => {
               SIRME
             </h1>
             <p class="text-xs text-slate-600 dark:text-slate-400">
-              Sistema de Registro de Horas
+              Time Recording System
             </p>
           </div>
         </div>
@@ -118,7 +118,7 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "Dashboard - TimeTracker Pro",
+  title: "Dashboard - SIRME Pro",
   meta: [
     {
       name: "description",

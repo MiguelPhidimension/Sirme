@@ -116,7 +116,7 @@ export const LoginForm = component$<LoginFormProps>(
                       stroke-linecap="round"
                       stroke-linejoin="round"
                       stroke-width="2"
-                      d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                     />
                   </svg>
                 </div>
@@ -138,11 +138,17 @@ export const LoginForm = component$<LoginFormProps>(
               </div>
               {validationErrors.value.email && (
                 <p class="mt-2 flex items-center space-x-1 text-sm text-red-600 dark:text-red-400">
-                  <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                  <svg
+                    class="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
-                      fill-rule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                      clip-rule="evenodd"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
                   <span>{validationErrors.value.email}</span>
@@ -236,11 +242,17 @@ export const LoginForm = component$<LoginFormProps>(
               </div>
               {validationErrors.value.password && (
                 <p class="mt-2 flex items-center space-x-1 text-sm text-red-600 dark:text-red-400">
-                  <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                  <svg
+                    class="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
-                      fill-rule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                      clip-rule="evenodd"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
                   <span>{validationErrors.value.password}</span>
@@ -292,7 +304,7 @@ export const LoginForm = component$<LoginFormProps>(
                       stroke-linecap="round"
                       stroke-linejoin="round"
                       stroke-width="2"
-                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                      d="M14 5l7 7m0 0l-7 7m7-7H3"
                     />
                   </svg>
                 </div>

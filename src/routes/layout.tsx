@@ -18,12 +18,8 @@ export default component$(() => {
 
   // Check authentication on client side
   useVisibleTask$(() => {
-    // Skip auth check for public routes
-    const currentPath = loc.url.pathname;
-    const isPublicRoute =
-      currentPath === "/" || currentPath.startsWith("/register");
-
-    if (isPublicRoute) {
+    // Skip auth check for public routes (login and register)
+    if (loc.url.pathname === "/" || loc.url.pathname.startsWith("/register")) {
       return;
     }
 
@@ -37,15 +33,7 @@ export default component$(() => {
     }
   });
 
-  // Render without MainLayout for public routes
-  const currentPath = loc.url.pathname;
-  const isPublicRoute =
-    currentPath === "/" || currentPath.startsWith("/register");
-
-  if (isPublicRoute) {
-    return <Slot />;
-  }
-
+  // Always render with MainLayout - it handles showing/hiding sidebar
   return (
     <MainLayout>
       <Slot />
