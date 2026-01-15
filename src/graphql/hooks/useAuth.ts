@@ -6,6 +6,7 @@ import type {
   AuthResponse,
 } from "~/types";
 import { graphqlClient } from "../client";
+import { generateHasuraToken } from "~/utils/jwt";
 
 /**
  * GraphQL Queries and Mutations for Authentication
@@ -104,7 +105,9 @@ export const loginUser = $(
       // Query user by email
       const response = await graphqlClient.request<{
         users: Array<User & { password: string }>;
-      }>(GET_USER_BY_EMAIL_QUERY, { email: formData.email.trim().toLowerCase() });
+      }>(GET_USER_BY_EMAIL_QUERY, {
+        email: formData.email.trim().toLowerCase(),
+      });
 
       if (!response.users || response.users.length === 0) {
         return {
@@ -134,14 +137,8 @@ export const loginUser = $(
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...userWithoutPassword } = user;
 
-      // Generate token (in production, use JWT)
-      const token = btoa(
-        JSON.stringify({
-          user_id: user.user_id,
-          email: user.email,
-          timestamp: Date.now(),
-        }),
-      );
+      // Generate JWT token with Hasura claims
+      const token = await generateHasuraToken(userWithoutPassword, "user");
 
       return {
         success: true,
@@ -151,7 +148,7 @@ export const loginUser = $(
       };
     } catch (error: any) {
       console.error("Login error:", error);
-      
+
       // Handle specific GraphQL errors
       if (error?.response?.errors) {
         const errorMessages = error.response.errors.map((e: any) => e.message);
@@ -161,11 +158,13 @@ export const loginUser = $(
           errors: errorMessages,
         };
       }
-      
+
       return {
         success: false,
         message: "Error en el servidor",
-        errors: ["No se pudo completar el login. Verifique su conexión e intente nuevamente."],
+        errors: [
+          "No se pudo completar el login. Verifique su conexión e intente nuevamente.",
+        ],
       };
     }
   },
@@ -248,14 +247,8 @@ export const registerUser = $(
         };
       }
 
-      // Generate token
-      const token = btoa(
-        JSON.stringify({
-          user_id: user.user_id,
-          email: user.email,
-          timestamp: Date.now(),
-        }),
-      );
+      // Generate JWT token with Hasura claims
+      const token = await generateHasuraToken(user, "user");
 
       return {
         success: true,

@@ -47,21 +47,21 @@ export const RegisterForm = component$<RegisterFormProps>(
       if (score <= 2) {
         return {
           score: 1,
-          label: "Débil",
+          label: "Weak",
           color: "bg-red-500",
           textColor: "text-red-600 dark:text-red-400",
         };
       } else if (score <= 4) {
         return {
           score: 2,
-          label: "Media",
+          label: "Medium",
           color: "bg-yellow-500",
           textColor: "text-yellow-600 dark:text-yellow-400",
         };
       } else {
         return {
           score: 3,
-          label: "Fuerte",
+          label: "Strong",
           color: "bg-green-500",
           textColor: "text-green-600 dark:text-green-400",
         };
@@ -73,42 +73,42 @@ export const RegisterForm = component$<RegisterFormProps>(
 
       // First name validation
       if (!firstName.value) {
-        errors.first_name = "El nombre es requerido";
+        errors.first_name = "First name is required";
       } else if (firstName.value.length < 2) {
-        errors.first_name = "El nombre debe tener al menos 2 caracteres";
+        errors.first_name = "First name must be at least 2 characters";
       }
 
       // Last name validation
       if (!lastName.value) {
-        errors.last_name = "El apellido es requerido";
+        errors.last_name = "Last name is required";
       } else if (lastName.value.length < 2) {
-        errors.last_name = "El apellido debe tener al menos 2 caracteres";
+        errors.last_name = "Last name must be at least 2 characters";
       }
 
       // Email validation
       if (!email.value) {
-        errors.email = "El email es requerido";
+        errors.email = "Email is required";
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-        errors.email = "Email inválido";
+        errors.email = "Invalid email";
       }
 
       // Password validation
       if (!password.value) {
-        errors.password = "La contraseña es requerida";
+        errors.password = "Password is required";
       } else if (password.value.length < 6) {
-        errors.password = "La contraseña debe tener al menos 6 caracteres";
+        errors.password = "Password must be at least 6 characters";
       }
 
       // Confirm password validation
       if (!confirmPassword.value) {
-        errors.confirm_password = "Confirma tu contraseña";
+        errors.confirm_password = "Confirm your password";
       } else if (password.value !== confirmPassword.value) {
-        errors.confirm_password = "Las contraseñas no coinciden";
+        errors.confirm_password = "Passwords do not match";
       }
 
       // Role validation
       if (!roleId.value) {
-        errors.role_id = "Selecciona un rol";
+        errors.role_id = "Select a role";
       }
 
       validationErrors.value = errors;
@@ -138,10 +138,10 @@ export const RegisterForm = component$<RegisterFormProps>(
           {/* Header */}
           <div class="mb-6 text-center sm:mb-8">
             <h2 class="mb-2 bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-2xl font-bold text-transparent sm:text-3xl dark:from-white dark:to-slate-300">
-              Crear Nueva Cuenta
+              Create New Account
             </h2>
             <p class="text-sm text-slate-600 sm:text-base dark:text-slate-400">
-              Únete a nuestro equipo completando el formulario
+              Join our team by completing the form
             </p>
           </div>
 
@@ -181,7 +181,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                   for="firstName"
                   class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300"
                 >
-                  Nombre
+                  First Name
                 </label>
                 <div class="relative">
                   <div class="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-4">
@@ -202,7 +202,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                   <Input
                     id="firstName"
                     type="text"
-                    placeholder="Juan"
+                    placeholder="John"
                     value={firstName.value}
                     onInput$={(e) =>
                       (firstName.value = (e.target as HTMLInputElement).value)
@@ -239,7 +239,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                   for="lastName"
                   class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300"
                 >
-                  Apellido
+                  Last Name
                 </label>
                 <div class="relative">
                   <div class="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-4">
@@ -260,7 +260,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                   <Input
                     id="lastName"
                     type="text"
-                    placeholder="Pérez"
+                    placeholder="Doe"
                     value={lastName.value}
                     onInput$={(e) =>
                       (lastName.value = (e.target as HTMLInputElement).value)
@@ -298,7 +298,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                 for="email"
                 class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300"
               >
-                Email Corporativo
+                Corporate Email
               </label>
               <div class="relative">
                 <div class="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-4">
@@ -319,7 +319,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                 <Input
                   id="email"
                   type="email"
-                  placeholder="tu@empresa.com"
+                  placeholder="your@company.com"
                   value={email.value}
                   onInput$={(e) =>
                     (email.value = (e.target as HTMLInputElement).value)
@@ -352,7 +352,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                 for="role"
                 class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300"
               >
-                Rol Profesional
+                Professional Role
               </label>
               <div class="relative">
                 <div class="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-4">
@@ -384,7 +384,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                   required
                 >
                   <option value="" class="text-slate-400">
-                    Selecciona tu rol
+                    Select your role
                   </option>
                   {roles.map((role) => (
                     <option key={role.role_id} value={role.role_id}>
@@ -430,7 +430,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                   for="password"
                   class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300"
                 >
-                  Contraseña
+                  Password
                 </label>
                 <div class="relative">
                   <div class="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-4">
@@ -468,9 +468,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                     onClick$={() => (showPassword.value = !showPassword.value)}
                     class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300"
                     aria-label={
-                      showPassword.value
-                        ? "Ocultar contraseña"
-                        : "Mostrar contraseña"
+                      showPassword.value ? "Hide password" : "Show password"
                     }
                   >
                     {showPassword.value ? (
@@ -515,7 +513,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                 <div class="mt-2 space-y-2">
                   <div class="flex items-center justify-between">
                     <span class="text-xs font-medium text-slate-600 dark:text-slate-400">
-                      Fortaleza de contraseña:
+                      Password strength:
                     </span>
                     <span
                       class={`text-xs font-semibold ${
@@ -526,7 +524,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                     >
                       {password.value
                         ? getPasswordStrength(password.value).label
-                        : "Sin evaluar"}
+                        : "Not evaluated"}
                     </span>
                   </div>
                   <div class="flex space-x-1">
@@ -568,7 +566,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                           ? "✓"
                           : "○"}
                       </span>
-                      <span>Mínimo 8 caracteres</span>
+                      <span>Minimum 8 characters</span>
                     </p>
                     <p class="flex items-center space-x-1">
                       <span
@@ -586,7 +584,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                           ? "✓"
                           : "○"}
                       </span>
-                      <span>Mayúsculas y minúsculas</span>
+                      <span>Uppercase and lowercase</span>
                     </p>
                     <p class="flex items-center space-x-1">
                       <span
@@ -600,7 +598,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                           ? "✓"
                           : "○"}
                       </span>
-                      <span>Números</span>
+                      <span>Numbers</span>
                     </p>
                     <p class="flex items-center space-x-1">
                       <span
@@ -614,7 +612,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                           ? "✓"
                           : "○"}
                       </span>
-                      <span>Caracteres especiales (@, #, $, etc.)</span>
+                      <span>Special characters (@, #, $, etc.)</span>
                     </p>
                   </div>
                 </div>
@@ -643,7 +641,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                   for="confirmPassword"
                   class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300"
                 >
-                  Confirmar
+                  Confirm
                 </label>
                 <div class="relative">
                   <div class="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-4">
@@ -686,8 +684,8 @@ export const RegisterForm = component$<RegisterFormProps>(
                     class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300"
                     aria-label={
                       showConfirmPassword.value
-                        ? "Ocultar contraseña"
-                        : "Mostrar contraseña"
+                        ? "Hide password"
+                        : "Show password"
                     }
                   >
                     {showConfirmPassword.value ? (
@@ -744,9 +742,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                             clip-rule="evenodd"
                           />
                         </svg>
-                        <span class="font-medium">
-                          Las contraseñas coinciden
-                        </span>
+                        <span class="font-medium">Passwords match</span>
                       </p>
                     ) : (
                       <p class="flex items-center space-x-1 text-sm text-red-600 dark:text-red-400">
@@ -761,9 +757,7 @@ export const RegisterForm = component$<RegisterFormProps>(
                             clip-rule="evenodd"
                           />
                         </svg>
-                        <span class="font-medium">
-                          Las contraseñas no coinciden
-                        </span>
+                        <span class="font-medium">Passwords do not match</span>
                       </p>
                     )}
                   </div>
@@ -798,11 +792,11 @@ export const RegisterForm = component$<RegisterFormProps>(
               {isLoading ? (
                 <div class="flex items-center justify-center space-x-2">
                   <div class="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
-                  <span>Creando cuenta...</span>
+                  <span>Creating account...</span>
                 </div>
               ) : (
                 <div class="flex items-center justify-center space-x-2">
-                  <span>Crear Cuenta</span>
+                  <span>Create Account</span>
                   <svg
                     class="h-5 w-5"
                     fill="none"
@@ -824,12 +818,12 @@ export const RegisterForm = component$<RegisterFormProps>(
           {/* Login Link */}
           <div class="mt-8 text-center">
             <p class="text-slate-600 dark:text-slate-400">
-              ¿Ya tienes una cuenta?{" "}
+              Already have an account?{" "}
               <a
                 href="/"
                 class="font-semibold text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
               >
-                Inicia sesión aquí
+                Log in here
               </a>
             </p>
           </div>

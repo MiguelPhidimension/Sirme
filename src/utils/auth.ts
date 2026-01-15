@@ -3,16 +3,35 @@
  * Handles client-side authentication checks
  */
 
+import { isTokenExpired, verifyHasuraToken } from "./jwt";
+
 /**
  * Check if user is authenticated
+ * Validates both token existence and expiration
  */
-export const isAuthenticated = (): boolean => {
+export const isAuthenticated = async (): Promise<boolean> => {
   if (typeof window === "undefined") return false;
 
   const token = sessionStorage.getItem("auth_token");
   const user = sessionStorage.getItem("auth_user");
 
-  return !!(token && user);
+  if (!token || !user) return false;
+
+  // Check if token is expired
+  if (isTokenExpired(token)) {
+    // Clear expired session
+    clearAuth();
+    return false;
+  }
+
+  // Verify token signature
+  const verified = await verifyHasuraToken(token);
+  if (!verified) {
+    clearAuth();
+    return false;
+  }
+
+  return true;
 };
 
 /**

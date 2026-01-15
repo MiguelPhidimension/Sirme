@@ -7,6 +7,7 @@ import type {
 
 // Export auth utilities
 export * from "./auth";
+export * from "./jwt";
 
 /**
  * Date utility functions

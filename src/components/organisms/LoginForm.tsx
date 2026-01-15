@@ -26,16 +26,16 @@ export const LoginForm = component$<LoginFormProps>(
 
       // Email validation
       if (!email.value) {
-        errors.email = "El email es requerido";
+        errors.email = "Email is required";
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-        errors.email = "Email inválido";
+        errors.email = "Invalid email";
       }
 
       // Password validation
       if (!password.value) {
-        errors.password = "La contraseña es requerida";
+        errors.password = "Password is required";
       } else if (password.value.length < 6) {
-        errors.password = "La contraseña debe tener al menos 6 caracteres";
+        errors.password = "Password must be at least 6 characters";
       }
 
       validationErrors.value = errors;
@@ -61,10 +61,10 @@ export const LoginForm = component$<LoginFormProps>(
           {/* Header */}
           <div class="mb-6 text-center sm:mb-8">
             <h2 class="mb-2 bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-2xl font-bold text-transparent sm:text-3xl dark:from-white dark:to-slate-300">
-              Bienvenido de vuelta
+              Welcome Back
             </h2>
             <p class="text-sm text-slate-600 sm:text-base dark:text-slate-400">
-              Ingresa tus credenciales para continuar
+              Enter your credentials to continue
             </p>
           </div>
 
@@ -123,7 +123,7 @@ export const LoginForm = component$<LoginFormProps>(
                 <Input
                   id="email"
                   type="email"
-                  placeholder="tu@email.com"
+                  placeholder="your@email.com"
                   value={email.value}
                   onInput$={(e) =>
                     (email.value = (e.target as HTMLInputElement).value)
@@ -156,7 +156,7 @@ export const LoginForm = component$<LoginFormProps>(
                 for="password"
                 class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300"
               >
-                Contraseña
+                Password
               </label>
               <div class="relative">
                 <div class="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-4">
@@ -194,9 +194,7 @@ export const LoginForm = component$<LoginFormProps>(
                   onClick$={() => (showPassword.value = !showPassword.value)}
                   class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300"
                   aria-label={
-                    showPassword.value
-                      ? "Ocultar contraseña"
-                      : "Mostrar contraseña"
+                    showPassword.value ? "Hide password" : "Show password"
                   }
                 >
                   {showPassword.value ? (
@@ -258,14 +256,14 @@ export const LoginForm = component$<LoginFormProps>(
                   class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
                 />
                 <span class="text-slate-600 transition-colors group-hover:text-slate-800 dark:text-slate-400 dark:group-hover:text-slate-300">
-                  Recordarme
+                  Remember me
                 </span>
               </label>
               <a
                 href="/forgot-password"
                 class="font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
               >
-                ¿Olvidaste tu contraseña?
+                Forgot your password?
               </a>
             </div>
 
@@ -279,11 +277,11 @@ export const LoginForm = component$<LoginFormProps>(
               {isLoading ? (
                 <div class="flex items-center justify-center space-x-2">
                   <div class="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
-                  <span>Iniciando sesión...</span>
+                  <span>Logging in...</span>
                 </div>
               ) : (
                 <div class="flex items-center justify-center space-x-2">
-                  <span>Iniciar Sesión</span>
+                  <span>Log In</span>
                   <svg
                     class="h-5 w-5"
                     fill="none"
@@ -305,12 +303,12 @@ export const LoginForm = component$<LoginFormProps>(
           {/* Register Link */}
           <div class="mt-8 text-center">
             <p class="text-slate-600 dark:text-slate-400">
-              ¿No tienes una cuenta?{" "}
+              Don't have an account?{" "}
               <a
                 href="/register"
                 class="font-semibold text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
               >
-                Regístrate aquí
+                Register here
               </a>
             </p>
           </div>
