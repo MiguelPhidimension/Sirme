@@ -38,7 +38,9 @@ const getBackgroundColorClass = (
 
 export const CalendarDay = component$<CalendarDayProps>(
   ({ day, isCurrentMonth, isToday, onClick$ }) => {
-    const dayNumber = new Date(day.date).getDate();
+    // Safely extract day number from YYYY-MM-DD string to avoid timezone shifts
+    // caused by new Date("YYYY-MM-DD") being interpreted as UTC
+    const dayNumber = parseInt(day.date.split("-")[2], 10);
 
     return (
       <div
