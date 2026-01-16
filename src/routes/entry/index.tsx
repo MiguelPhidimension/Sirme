@@ -6,7 +6,7 @@ import {
   useContext,
   useVisibleTask$,
 } from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
+import { type DocumentHead, useLocation } from "@builder.io/qwik-city";
 import {
   DateSelector,
   EmployeeInfo,
@@ -28,12 +28,15 @@ interface ProjectData {
  * Time entry page component - Refactored with modular components
  */
 export default component$(() => {
+  const loc = useLocation();
   // Get authentication context
   const authContext = useContext(AuthContext);
 
   // State management
   const isLoading = useSignal(false);
-  const selectedDate = useSignal(new Date().toISOString().split("T")[0]);
+  const selectedDate = useSignal(
+    loc.url.searchParams.get("date") || new Date().toISOString().split("T")[0],
+  );
   const errorMessage = useSignal("");
   const successMessage = useSignal("");
 

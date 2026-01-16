@@ -5,6 +5,7 @@ import {
   useOnDocument,
   $,
 } from "@builder.io/qwik";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { LuUser, LuSettings, LuLogOut } from "@qwikest/icons/lucide";
 
 interface SidebarUserProfileProps {

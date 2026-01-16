@@ -6,10 +6,10 @@ import {
   useVisibleTask$,
 } from "@builder.io/qwik";
 import type { DocumentHead } from "@builder.io/qwik-city";
-import { DateUtils } from "~/utils";
 import type { EmployeeRole, DailyTimeEntry, CalendarDayTypes } from "~/types";
 import { CalendarHeader, CalendarStats } from "~/components/molecules";
 import { CalendarGrid, DayDetailsModal } from "~/components/organisms";
+import { useGetTimeEntries } from "~/graphql/hooks/useTimeEntries";
 
 /**
  * Modern Dark Theme Calendar Component
@@ -26,6 +26,14 @@ export default component$(() => {
   const currentDate = useSignal(new Date());
   const selectedDay = useSignal<CalendarDayTypes | null>(null);
   const showDayModal = useSignal(false);
+  const userId = useSignal<string>("");
+  const isLoadingEntries = useSignal(false);
+
+  // Get the hook for fetching time entries
+  const getTimeEntries = useGetTimeEntries();
+
+  // State for seed data creation
+  const showSeedButton = useSignal(true); // Always show by default
 
   // Calendar data store
   const calendarData = useStore<{
@@ -40,74 +48,8 @@ export default component$(() => {
     workingDays: 0,
   });
 
-  // Sample time entries data (would come from API in real app)
-  const entries = useStore<DailyTimeEntry[]>([
-    {
-      id: "1",
-      employeeName: "John Doe",
-      date: new Date().toISOString().split("T")[0],
-      role: "MuleSoft Developer" as EmployeeRole,
-      projects: [
-        {
-          id: "proj-1-1",
-          clientName: "Acme Corp",
-          hours: 4.5,
-          isMPS: true,
-          notes: "Frontend development and testing",
-        },
-        {
-          id: "proj-1-2",
-          clientName: "TechStart Inc",
-          hours: 2.0,
-          isMPS: false,
-          notes: "Project planning session",
-        },
-      ],
-      totalHours: 6.5,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      employeeName: "John Doe",
-      date: new Date(Date.now() - 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split("T")[0],
-      role: "MuleSoft Developer" as EmployeeRole,
-      projects: [
-        {
-          id: "proj-2-1",
-          clientName: "Acme Corp",
-          hours: 8.0,
-          isMPS: true,
-          notes: "Backend API development",
-        },
-      ],
-      totalHours: 8.0,
-      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "3",
-      employeeName: "John Doe",
-      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split("T")[0],
-      role: "Data Engineer" as EmployeeRole,
-      projects: [
-        {
-          id: "proj-3-1",
-          clientName: "BigData Solutions",
-          hours: 6.5,
-          isMPS: false,
-          notes: "Schema design and optimization",
-        },
-      ],
-      totalHours: 6.5,
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-  ]);
+  // Time entries store - will be populated from GraphQL
+  const entries = useStore<DailyTimeEntry[]>([]);
 
   // Build calendar grid data for current month
   const buildCalendarData = $(() => {
@@ -165,7 +107,128 @@ export default component$(() => {
   useVisibleTask$(({ track }) => {
     track(() => currentDate.value);
     track(() => entries);
-    buildCalendarData();
+
+    // Get user ID from localStorage - try multiple keys
+    if (typeof window !== "undefined") {
+      // Try multiple possible keys
+      const userStr =
+        localStorage.getItem("auth_user") ||
+        localStorage.getItem("user") ||
+        sessionStorage.getItem("auth_user") ||
+        sessionStorage.getItem("user");
+
+      if (userStr) {
+        try {
+          const userData = JSON.parse(userStr);
+          // Try multiple possible keys for user_id
+          userId.value =
+            userData.user_id ||
+            userData.id ||
+            userData.userId ||
+            userData["user-id"];
+
+          console.log("👤 User data from storage:", userData);
+          console.log("✅ User ID extracted:", userId.value);
+        } catch (e) {
+          console.error("❌ Failed to parse user data:", e);
+        }
+      } else {
+        console.warn("⚠️ No user data in localStorage or sessionStorage");
+      }
+    }
+
+    // Fetch time entries for the current month
+    (async () => {
+      if (!userId.value) {
+        console.warn("⚠️ No user ID available, skipping entry fetch");
+        return;
+      }
+
+      try {
+        isLoadingEntries.value = true;
+
+        const year = currentDate.value.getFullYear();
+        const month = currentDate.value.getMonth();
+
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+
+        const startDate = firstDay.toISOString().split("T")[0];
+        const endDate = lastDay.toISOString().split("T")[0];
+
+        console.log(
+          `📅 Fetching entries from ${startDate} to ${endDate} for user: ${userId.value}`,
+        );
+
+        const timeEntriesData = await getTimeEntries({
+          user_id: userId.value,
+          start_date: startDate,
+          end_date: endDate,
+        });
+
+        console.log(`📊 Response from GraphQL:`, timeEntriesData);
+        console.log(`📊 Response type:`, typeof timeEntriesData);
+        console.log(`📊 Is array:`, Array.isArray(timeEntriesData));
+        console.log(`📊 Length:`, timeEntriesData?.length);
+
+        // Transform GraphQL data to DailyTimeEntry format
+        if (
+          timeEntriesData &&
+          Array.isArray(timeEntriesData) &&
+          timeEntriesData.length > 0
+        ) {
+          console.log(
+            `✅ Processing ${timeEntriesData.length} entries for user ${userId.value}`,
+          );
+
+          entries.length = 0;
+
+          timeEntriesData.forEach((entry: any, index: number) => {
+            const projects = entry.time_entry_projects || [];
+            const totalHours = projects.reduce(
+              (sum: number, p: any) => sum + (p.hours_reported || 0),
+              0,
+            );
+
+            console.log(
+              `📌 [${index + 1}/${timeEntriesData.length}] Date: ${entry.entry_date}, Hours: ${totalHours}, Projects: ${projects.length}`,
+            );
+
+            entries.push({
+              id: entry.time_entry_id,
+              employeeName: "",
+              date: entry.entry_date,
+              role: "Other" as EmployeeRole,
+              projects: projects.map((p: any) => ({
+                id: p.tep_id,
+                clientName: p.project?.client?.name || "Unknown",
+                hours: p.hours_reported,
+                isMPS: p.is_mps,
+                notes: p.notes || "",
+              })),
+              totalHours,
+              createdAt: entry.created_at,
+              updatedAt: entry.updated_at,
+            });
+          });
+
+          console.log(
+            `✅ Successfully loaded ${entries.length} entries into calendar for user ${userId.value}`,
+          );
+          showSeedButton.value = false;
+        } else {
+          console.warn("❌ No entries found or empty response");
+          showSeedButton.value = true;
+        }
+      } catch (error) {
+        console.error("❌ Error fetching entries:", error);
+        showSeedButton.value = true;
+      } finally {
+        isLoadingEntries.value = false;
+        // Build calendar data after loading entries
+        buildCalendarData();
+      }
+    })();
   });
 
   // Navigation handlers
@@ -185,6 +248,10 @@ export default component$(() => {
 
   // Day interaction handlers
   const handleDayClick = $((day: CalendarDayTypes) => {
+    if (!day.hasEntries) {
+      window.location.href = `/entry?date=${day.date}`;
+      return;
+    }
     selectedDay.value = day;
     showDayModal.value = true;
   });
@@ -197,13 +264,13 @@ export default component$(() => {
     });
   };
 
-  const handleNewEntry = $((date?: string) => {
-    const targetDate = date || DateUtils.getCurrentDate();
-    window.location.href = `/entry`;
-    // window.location.href = `/entry?date=${targetDate}`;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleNewEntry = $((date: string) => {
+    window.location.href = `/entry?date=${date}`;
   });
 
-  const handleEditEntry = $((entryId: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleEditEntry = $((_entryId: string) => {
     window.location.href = `/entry`;
     // window.location.href = `/entry?edit=${entryId}`;
   });
@@ -213,7 +280,7 @@ export default component$(() => {
       <div class="mx-auto max-w-7xl space-y-8">
         {/* Header Section */}
         <CalendarHeader
-          onAddEntry$={() => handleNewEntry()}
+          onAddEntry$={() => handleNewEntry(new Date().toISOString().split("T")[0])}
           onGoToToday$={goToToday}
         />
 

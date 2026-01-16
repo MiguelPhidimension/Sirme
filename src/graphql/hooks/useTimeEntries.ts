@@ -98,6 +98,8 @@ const CREATE_TIME_ENTRY_PROJECTS_MUTATION = `
 
 /**
  * Query to get time entries for a user and date range
+ * Note: This query doesn't include the nested time_entry_projects relation
+ * We fetch them separately in useGetTimeEntries
  */
 const GET_TIME_ENTRIES_QUERY = `
   query GetTimeEntries($user_id: uuid!, $start_date: date!, $end_date: date!) {
@@ -110,21 +112,62 @@ const GET_TIME_ENTRIES_QUERY = `
     ) {
       time_entry_id
       entry_date
+      user_id
       created_at
-      time_entry_projects {
-        tep_id
-        project_id
-        hours_reported
-        is_mps
-        notes
-        project {
-          project_id
-          name
-          client {
-            name
-          }
-        }
+      updated_at
+    }
+  }
+`;
+
+/**
+ * Query to get time entry projects
+ */
+const GET_TIME_ENTRY_PROJECTS_QUERY = `
+  query GetTimeEntryProjects($time_entry_ids: [uuid!]!) {
+    time_entry_projects(
+      where: {
+        time_entry_id: { _in: $time_entry_ids }
       }
+    ) {
+      tep_id
+      time_entry_id
+      project_id
+      hours_reported
+      is_mps
+      notes
+    }
+  }
+`;
+
+/**
+ * Query to get projects details
+ */
+const GET_PROJECTS_BY_IDS_QUERY = `
+  query GetProjectsByIds($project_ids: [uuid!]!) {
+    projects(
+      where: {
+        project_id: { _in: $project_ids }
+      }
+    ) {
+      project_id
+      name
+      client_id
+    }
+  }
+`;
+
+/**
+ * Query to get clients details
+ */
+const GET_CLIENTS_BY_IDS_QUERY = `
+  query GetClientsByIds($client_ids: [uuid!]!) {
+    clients(
+      where: {
+        client_id: { _in: $client_ids }
+      }
+    ) {
+      client_id
+      name
     }
   }
 `;
@@ -140,20 +183,26 @@ const GET_TIME_ENTRY_BY_ID_QUERY = `
       entry_date
       created_at
       updated_at
-      time_entry_projects {
-        tep_id
-        project_id
-        hours_reported
-        is_mps
-        notes
-        project {
-          project_id
-          name
-          client {
-            name
-          }
-        }
+    }
+  }
+`;
+
+/**
+ * Query to get time entry projects by time entry ID
+ */
+const GET_TIME_ENTRY_PROJECTS_BY_ID_QUERY = `
+  query GetTimeEntryProjectsById($time_entry_id: uuid!) {
+    time_entry_projects(
+      where: {
+        time_entry_id: { _eq: $time_entry_id }
       }
+    ) {
+      tep_id
+      time_entry_id
+      project_id
+      hours_reported
+      is_mps
+      notes
     }
   }
 `;
@@ -220,8 +269,9 @@ export const useCreateTimeEntry = () => {
 
 /**
  * Hook to fetch time entries for a user within a date range
+ * This fetches entries and then enriches them with project details
  *
- * @returns Function to fetch time entries
+ * @returns Function to fetch time entries with projects
  *
  * @example
  * ```tsx
@@ -242,12 +292,116 @@ export const useGetTimeEntries = () => {
       end_date: string;
     }) => {
       try {
-        const response: any = await graphqlClient.request(
+        console.log("📝 Fetching time entries...");
+
+        // First: Get the time entries
+        const entriesResponse: any = await graphqlClient.request(
           GET_TIME_ENTRIES_QUERY,
           params,
         );
 
-        return response.time_entries;
+        const timeEntries = entriesResponse.time_entries || [];
+        console.log(`✅ Found ${timeEntries.length} time entries`);
+
+        if (timeEntries.length === 0) {
+          return [];
+        }
+
+        // Second: Get the projects for these entries
+        const timeEntryIds = timeEntries.map(
+          (entry: any) => entry.time_entry_id,
+        );
+
+        console.log(
+          `📝 Fetching projects for ${timeEntryIds.length} entries...`,
+        );
+
+        const projectsResponse: any = await graphqlClient.request(
+          GET_TIME_ENTRY_PROJECTS_QUERY,
+          {
+            time_entry_ids: timeEntryIds,
+          },
+        );
+
+        const allProjects = projectsResponse.time_entry_projects || [];
+        console.log(`✅ Found ${allProjects.length} project entries`);
+
+        // Get unique project IDs
+        const uniqueProjectIds = [
+          ...new Set(allProjects.map((p: any) => p.project_id)),
+        ];
+
+        if (uniqueProjectIds.length === 0) {
+          // No projects found, return entries as is
+          return timeEntries.map((entry: any) => ({
+            ...entry,
+            time_entry_projects: [],
+          }));
+        }
+
+        // Third: Get project details
+        console.log(
+          `📝 Fetching details for ${uniqueProjectIds.length} projects...`,
+        );
+
+        const projectDetailsResponse: any = await graphqlClient.request(
+          GET_PROJECTS_BY_IDS_QUERY,
+          {
+            project_ids: uniqueProjectIds,
+          },
+        );
+
+        const projectsDetails = projectDetailsResponse.projects || [];
+        console.log(`✅ Found ${projectsDetails.length} project details`);
+
+        // Get unique client IDs
+        const uniqueClientIds = [
+          ...new Set(
+            projectsDetails.map((p: any) => p.client_id).filter(Boolean),
+          ),
+        ];
+
+        // Fourth: Get client details
+        let clientsMap = new Map();
+        if (uniqueClientIds.length > 0) {
+          console.log(
+            `📝 Fetching details for ${uniqueClientIds.length} clients...`,
+          );
+
+          const clientsResponse: any = await graphqlClient.request(
+            GET_CLIENTS_BY_IDS_QUERY,
+            {
+              client_ids: uniqueClientIds,
+            },
+          );
+
+          const clients = clientsResponse.clients || [];
+          clientsMap = new Map(clients.map((c: any) => [c.client_id, c]));
+        }
+
+        // Create a map of project details for quick lookup
+        const projectDetailsMap = new Map(
+          projectsDetails.map((p: any) => [
+            p.project_id,
+            {
+              ...p,
+              client: p.client_id ? clientsMap.get(p.client_id) : null,
+            },
+          ]),
+        );
+
+        // Combine: Add projects to their respective time entries with details
+        const enrichedEntries = timeEntries.map((entry: any) => ({
+          ...entry,
+          time_entry_projects: allProjects
+            .filter((p: any) => p.time_entry_id === entry.time_entry_id)
+            .map((p: any) => ({
+              ...p,
+              project: projectDetailsMap.get(p.project_id),
+            })),
+        }));
+
+        return enrichedEntries;
       } catch (error) {
         console.error("Error fetching time entries:", error);
         throw new Error(
@@ -275,7 +429,83 @@ export const useGetTimeEntryById = () => {
         },
       );
 
-      return response.time_entries_by_pk;
+      const timeEntry = response.time_entries_by_pk;
+      if (!timeEntry) {
+        return null;
+      }
+
+      // Get projects for this time entry
+      const projectsResponse: any = await graphqlClient.request(
+        GET_TIME_ENTRY_PROJECTS_BY_ID_QUERY,
+        {
+          time_entry_id,
+        },
+      );
+
+      const allProjects = projectsResponse.time_entry_projects || [];
+
+      // Get unique project IDs
+      const uniqueProjectIds = [
+        ...new Set(allProjects.map((p: any) => p.project_id)),
+      ];
+
+      if (uniqueProjectIds.length === 0) {
+        return {
+          ...timeEntry,
+          time_entry_projects: [],
+        };
+      }
+
+      // Get project details
+      const projectDetailsResponse: any = await graphqlClient.request(
+        GET_PROJECTS_BY_IDS_QUERY,
+        {
+          project_ids: uniqueProjectIds,
+        },
+      );
+
+      const projectsDetails = projectDetailsResponse.projects || [];
+
+      // Get unique client IDs
+      const uniqueClientIds = [
+        ...new Set(
+          projectsDetails.map((p: any) => p.client_id).filter(Boolean),
+        ),
+      ];
+
+      // Get client details
+      let clientsMap = new Map();
+      if (uniqueClientIds.length > 0) {
+        const clientsResponse: any = await graphqlClient.request(
+          GET_CLIENTS_BY_IDS_QUERY,
+          {
+            client_ids: uniqueClientIds,
+          },
+        );
+
+        const clients = clientsResponse.clients || [];
+        clientsMap = new Map(clients.map((c: any) => [c.client_id, c]));
+      }
+
+      // Create a map of project details for quick lookup
+      const projectDetailsMap = new Map(
+        projectsDetails.map((p: any) => [
+          p.project_id,
+          {
+            ...p,
+            client: p.client_id ? clientsMap.get(p.client_id) : null,
+          },
+        ]),
+      );
+
+      // Combine projects with their details
+      return {
+        ...timeEntry,
+        time_entry_projects: allProjects.map((p: any) => ({
+          ...p,
+          project: projectDetailsMap.get(p.project_id),
+        })),
+      };
     } catch (error) {
       console.error("Error fetching time entry:", error);
       throw new Error(
