@@ -105,6 +105,9 @@ export const MainLayout = component$(() => {
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("auth_token");
       sessionStorage.removeItem("auth_user");
+      sidebarState.isAuthenticated = false;
+      sidebarState.userData = null;
+      window.location.href = "/";
     }
   });
 

@@ -1,6 +1,6 @@
 import { component$, type QRL, type JSXOutput } from "@builder.io/qwik";
-import { LuX, LuLogOut } from "@qwikest/icons/lucide";
-import { SidebarLogo } from "~/components/molecules";
+import { LuX } from "@qwikest/icons/lucide";
+import { SidebarLogo, SidebarUserProfile } from "~/components/molecules";
 
 interface NavItem {
   path: string;
@@ -89,33 +89,14 @@ export const MobileSidebar = component$<MobileSidebarProps>(
             ))}
           </nav>
 
-          {/* Mobile User Info */}
+          {/* User Profile */}
           {userData && (
-            <div class="border-t border-white/20 p-4 dark:border-slate-700/20">
-              <div class="flex items-center space-x-3">
-                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 shadow-lg">
-                  <span class="text-sm font-bold text-white">
-                    {userData.first_name?.[0] || "U"}
-                    {userData.last_name?.[0] || ""}
-                  </span>
-                </div>
-                <div class="min-w-0 flex-1">
-                  <p class="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                    {userData.first_name} {userData.last_name}
-                  </p>
-                  <p class="truncate text-xs text-gray-500 dark:text-gray-400">
-                    {userData.role?.role_name || "Empleado"}
-                  </p>
-                </div>
-                <a
-                  href="/"
-                  onClick$={onLogout$}
-                  class="rounded-xl p-2 text-red-600 transition-all duration-200 hover:bg-red-50 dark:hover:bg-red-900/20"
-                  title="Cerrar sesión"
-                >
-                  <LuLogOut class="h-5 w-5" />
-                </a>
-              </div>
+            <div class="overflow-visible border-t border-white/20 p-4 dark:border-slate-700/20">
+              <SidebarUserProfile
+                userData={userData}
+                isExpanded={true}
+                onLogout$={onLogout$}
+              />
             </div>
           )}
         </aside>

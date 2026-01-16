@@ -61,6 +61,7 @@ export const DesktopSidebar = component$<DesktopSidebarProps>(
               userData={userData}
               isExpanded={isExpanded}
               onLogout$={onLogout$}
+              onToggle$={onToggle$}
             />
           </div>
         )}
