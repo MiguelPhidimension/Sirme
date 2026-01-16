@@ -40,11 +40,13 @@ export default component$(() => {
     const user = sessionStorage.getItem("auth_user");
 
     if (!token || !user) {
-      // No autenticado: redirigir inmediatamente
+      // No autenticado: redirigir inmediatamente y limpiar todo
+      sessionStorage.clear();
+      localStorage.clear();
       isAuthenticated.value = false;
       isChecking.value = false;
       // Usar replace para que no se pueda volver atrás con el botón back
-      window.location.href = "/";
+      window.location.replace("/");
     } else {
       // Autenticado: permitir acceso
       isAuthenticated.value = true;
