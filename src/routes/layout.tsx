@@ -24,34 +24,54 @@ export default component$(() => {
     const publicPaths = ["/", "/register"];
     const currentPath = loc.url.pathname;
 
-    // Si es ruta pública, permitir acceso
-    if (
-      publicPaths.some(
-        (path) => currentPath === path || currentPath.startsWith(path + "/"),
-      )
-    ) {
-      isChecking.value = false;
-      isAuthenticated.value = true;
-      return;
-    }
+    const checkAuth = () => {
+      // Si es ruta pública, permitir acceso
+      if (
+        publicPaths.some(
+          (path) => currentPath === path || currentPath.startsWith(path + "/"),
+        )
+      ) {
+        isChecking.value = false;
+        isAuthenticated.value = true;
+        return;
+      }
 
-    // Verificar autenticación para rutas protegidas
-    const token = sessionStorage.getItem("auth_token");
-    const user = sessionStorage.getItem("auth_user");
+      // Verificar autenticación para rutas protegidas
+      const token = sessionStorage.getItem("auth_token");
+      const user = sessionStorage.getItem("auth_user");
 
-    if (!token || !user) {
-      // No autenticado: redirigir inmediatamente y limpiar todo
-      sessionStorage.clear();
-      localStorage.clear();
-      isAuthenticated.value = false;
-      isChecking.value = false;
-      // Usar replace para que no se pueda volver atrás con el botón back
-      window.location.replace("/");
-    } else {
-      // Autenticado: permitir acceso
-      isAuthenticated.value = true;
-      isChecking.value = false;
-    }
+      if (!token || !user) {
+        // No autenticado: redirigir inmediatamente y limpiar todo
+        sessionStorage.clear();
+        localStorage.clear();
+        isAuthenticated.value = false;
+        isChecking.value = false;
+        // Usar replace para que no se pueda volver atrás con el botón back
+        window.location.replace("/");
+      } else {
+        // Autenticado: permitir acceso
+        isAuthenticated.value = true;
+        isChecking.value = false;
+      }
+    };
+
+    // Verificar autenticación al cargar
+    checkAuth();
+
+    // Detectar cuando la página se carga desde el cache del navegador (botón atrás)
+    const handlePageShow = (event: PageTransitionEvent) => {
+      // Si la página viene del cache (bfcache), verificar autenticación de nuevo
+      if (event.persisted) {
+        checkAuth();
+      }
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+    };
   });
 
   // Mostrar loader mientras se verifica
