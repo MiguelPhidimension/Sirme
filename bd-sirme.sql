@@ -97,3 +97,25 @@ CREATE TABLE time_reports (
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 );
+
+-- =====================================================
+-- DATOS INICIALES
+-- =====================================================
+
+-- Insertar roles predeterminados
+INSERT INTO roles (role_name, description) VALUES
+    ('Architect MuleSoft', 'Arquitecto especializado en soluciones MuleSoft'),
+    ('MuleSoft Developer', 'Desarrollador de integraciones con MuleSoft'),
+    ('Developer Fullstack', 'Desarrollador Full Stack'),
+    ('Data Engineer', 'Ingeniero de Datos'),
+    ('Developer Snowflake', 'Desarrollador especializado en Snowflake'),
+    ('Analista BI', 'Analista de Business Intelligence'),
+    ('Other', 'Otro rol')
+ON CONFLICT (role_name) DO NOTHING;
+
+-- Insertar clientes de ejemplo (opcional)
+INSERT INTO clients (name) VALUES
+    ('Cliente Demo 1'),
+    ('Cliente Demo 2'),
+    ('MuleSoft Professional Services')
+ON CONFLICT DO NOTHING;

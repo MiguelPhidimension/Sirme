@@ -3,9 +3,9 @@
 /**
  * Available employee roles in the system
  */
-export type EmployeeRole = 
+export type EmployeeRole =
   | "Architect MuleSoft"
-  | "MuleSoft Developer" 
+  | "MuleSoft Developer"
   | "Developer Fullstack"
   | "Data Engineer"
   | "Developer Snowflake"
@@ -25,7 +25,7 @@ export interface ProjectEntry {
 }
 
 /**
- * Daily time entry 
+ * Daily time entry
  * Contains all work done by an employee in a single day
  */
 export interface DailyTimeEntry {
@@ -60,7 +60,7 @@ export interface TimeEntryFormData {
   employeeName: string;
   date: string;
   role: EmployeeRole;
-  projects: Omit<ProjectEntry, 'id'>[];
+  projects: Omit<ProjectEntry, "id">[];
 }
 
 /**
@@ -72,14 +72,14 @@ export interface WeeklyBulkFormData {
   weekStartDate: string;
   dailyEntries: Array<{
     date: string;
-    projects: Omit<ProjectEntry, 'id'>[];
+    projects: Omit<ProjectEntry, "id">[];
   }>;
 }
 
 /**
  * Calendar day view data
  */
-export interface CalendarDay {
+export interface CalendarDayTypes {
   date: string;
   totalHours: number;
   hasEntries: boolean;
@@ -112,8 +112,8 @@ export interface ValidationRules {
  */
 export interface AppSettings {
   defaultRole: EmployeeRole;
-  timeFormat: '12h' | '24h';
-  weekStartsOn: 'monday' | 'sunday';
+  timeFormat: "12h" | "24h";
+  weekStartsOn: "monday" | "sunday";
   validation: ValidationRules;
   theme: string;
 }
@@ -146,8 +146,8 @@ export interface TimeEntryFilters {
 export interface PaginationOptions {
   page: number;
   limit: number;
-  sortBy?: 'date' | 'hours' | 'client';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "date" | "hours" | "client";
+  sortOrder?: "asc" | "desc";
 }
 
 /**
@@ -155,4 +155,62 @@ export interface PaginationOptions {
  */
 export interface FormErrors {
   [key: string]: string | string[];
-} 
+}
+
+/**
+ * User authentication types
+ */
+export interface User {
+  user_id: string;
+  role_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  created_at: string;
+  updated_at?: string;
+  role?: {
+    role_id: string;
+    role_name: string;
+    description?: string;
+  };
+}
+
+/**
+ * Login form data
+ */
+export interface LoginFormData {
+  email: string;
+  password: string;
+}
+
+/**
+ * Register form data
+ */
+export interface RegisterFormData {
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
+  confirm_password: string;
+  role_id: string;
+}
+
+/**
+ * Auth response from API
+ */
+export interface AuthResponse {
+  success: boolean;
+  user?: User;
+  token?: string;
+  message?: string;
+  errors?: string[];
+}
+
+/**
+ * Auth session data
+ */
+export interface AuthSession {
+  user: User;
+  token: string;
+  expiresAt: string;
+}

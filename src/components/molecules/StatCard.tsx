@@ -1,5 +1,13 @@
-import { component$, Slot } from '@builder.io/qwik';
-import { DataUtils } from '~/utils';
+import { component$ } from "@builder.io/qwik";
+import {
+  LuClock,
+  LuCalendar,
+  LuUser,
+  LuBarChart3,
+  LuTrendingUp,
+  LuTrendingDown,
+} from "@qwikest/icons/lucide";
+import { DataUtils } from "~/utils";
 
 /**
  * Props interface for StatCard component
@@ -8,22 +16,29 @@ interface StatCardProps {
   title: string;
   value: number | string;
   subtitle?: string;
-  icon?: 'clock' | 'calendar' | 'user' | 'chart';
+  icon?: "clock" | "calendar" | "user" | "chart";
   trend?: {
     value: number;
     isPositive: boolean;
   };
-  color?: 'primary' | 'secondary' | 'accent' | 'info' | 'success' | 'warning' | 'error';
-  format?: 'hours' | 'percentage' | 'number' | 'text';
+  color?:
+    | "primary"
+    | "secondary"
+    | "accent"
+    | "info"
+    | "success"
+    | "warning"
+    | "error";
+  format?: "hours" | "percentage" | "number" | "text";
 }
 
 /**
  * StatCard Molecule Component
  * Displays statistical information with optional icons and trends
  * Perfect for dashboard summaries and key metrics
- * 
+ *
  * @example
- * <StatCard 
+ * <StatCard
  *   title="Today's Hours"
  *   value={8.5}
  *   format="hours"
@@ -31,100 +46,111 @@ interface StatCardProps {
  *   color="primary"
  * />
  */
-export const StatCard = component$<StatCardProps>(({
-  title,
-  value,
-  subtitle,
-  icon,
-  trend,
-  color = 'primary',
-  format = 'text'
-}) => {
-  // Format the value based on the specified format
-  const formatValue = (val: number | string): string => {
-    if (typeof val === 'string') return val;
-    
-    switch (format) {
-      case 'hours':
-        return DataUtils.formatHours(val);
-      case 'percentage':
-        return `${val.toFixed(1)}%`;
-      case 'number':
-        return val.toLocaleString();
-      default:
-        return val.toString();
-    }
-  };
+export const StatCard = component$<StatCardProps>(
+  ({
+    title,
+    value,
+    subtitle,
+    icon,
+    trend,
+    color = "primary",
+    format = "text",
+  }) => {
+    // Format the value based on the specified format
+    const formatValue = (val: number | string): string => {
+      if (typeof val === "string") return val;
 
-  // Get icon SVG based on type
-  const getIcon = (iconType: string) => {
-    const iconMap = {
-      clock: (
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-      calendar: (
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-      ),
-      user: (
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      ),
-      chart: (
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      )
+      switch (format) {
+        case "hours":
+          return DataUtils.formatHours(val);
+        case "percentage":
+          return `${val.toFixed(1)}%`;
+        case "number":
+          return val.toLocaleString();
+        default:
+          return val.toString();
+      }
     };
-    return iconMap[iconType as keyof typeof iconMap] || null;
-  };
 
-  return (
-    <div class="stats shadow bg-base-100 border border-base-200">
-      <div class="stat">
-        <div class="stat-figure text-secondary">
-          {icon && (
-            <div class={`text-${color}`}>
-              {getIcon(icon)}
+    // Get icon component based on type
+    const getIcon = (iconType: string) => {
+      const iconMap = {
+        clock: <LuClock class="h-6 w-6" />,
+        calendar: <LuCalendar class="h-6 w-6" />,
+        user: <LuUser class="h-6 w-6" />,
+        chart: <LuBarChart3 class="h-6 w-6" />,
+      };
+      return iconMap[iconType as keyof typeof iconMap] || null;
+    };
+
+    // Get color classes based on color prop
+    const getColorClasses = () => {
+      const colorMap = {
+        primary: "from-blue-500 to-indigo-600 text-blue-600 dark:text-blue-400",
+        secondary:
+          "from-purple-500 to-pink-600 text-purple-600 dark:text-purple-400",
+        accent: "from-teal-500 to-cyan-600 text-teal-600 dark:text-teal-400",
+        info: "from-sky-500 to-blue-600 text-sky-600 dark:text-sky-400",
+        success:
+          "from-emerald-500 to-green-600 text-emerald-600 dark:text-emerald-400",
+        warning:
+          "from-amber-500 to-orange-600 text-amber-600 dark:text-amber-400",
+        error: "from-red-500 to-rose-600 text-red-600 dark:text-red-400",
+      };
+      return colorMap[color];
+    };
+
+    const colorClasses = getColorClasses();
+    const [gradientClass, textColorClass] = colorClasses.split(" text-");
+
+    return (
+      <div class="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/90 p-6 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl dark:border-slate-700/20 dark:bg-slate-800/90">
+        {/* Gradient background on hover */}
+        <div
+          class={`absolute inset-0 bg-gradient-to-br ${gradientClass} opacity-0 transition-opacity duration-300 group-hover:opacity-5`}
+        ></div>
+
+        <div class="relative">
+          <div class="mb-4 flex items-start justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                {title}
+              </p>
+              <h3 class={`mt-2 text-3xl font-bold text-${textColorClass}`}>
+                {formatValue(value)}
+              </h3>
+            </div>
+
+            {icon && (
+              <div
+                class={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${gradientClass} shadow-lg`}
+              >
+                <div class="text-white">{getIcon(icon)}</div>
+              </div>
+            )}
+          </div>
+
+          {subtitle && (
+            <p class="text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
+          )}
+
+          {trend && (
+            <div class="mt-2 flex items-center gap-1">
+              {trend.isPositive ? (
+                <LuTrendingUp class="h-4 w-4 text-emerald-500" />
+              ) : (
+                <LuTrendingDown class="h-4 w-4 text-red-500" />
+              )}
+              <span
+                class={`text-sm font-medium ${trend.isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}
+              >
+                {trend.isPositive ? "+" : "-"}
+                {Math.abs(trend.value).toFixed(1)}%
+              </span>
             </div>
           )}
         </div>
-        
-        <div class="stat-title text-base-content/60">
-          {title}
-        </div>
-        
-        <div class={`stat-value text-${color}`}>
-          {formatValue(value)}
-        </div>
-        
-        {subtitle && (
-          <div class="stat-desc text-base-content/50">
-            {subtitle}
-          </div>
-        )}
-        
-        {trend && (
-          <div class={`stat-desc ${trend.isPositive ? 'text-success' : 'text-error'}`}>
-            <div class="flex items-center gap-1">
-              {trend.isPositive ? (
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17l9.2-9.2M17 17V7H7" />
-                </svg>
-              ) : (
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 7l-9.2 9.2M7 7v10h10" />
-                </svg>
-              )}
-              <span>{Math.abs(trend.value).toFixed(1)}%</span>
-            </div>
-          </div>
-        )}
       </div>
-    </div>
-  );
-}); 
+    );
+  },
+);
