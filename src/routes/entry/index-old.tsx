@@ -1,4 +1,10 @@
 import { component$, useSignal, useStore, $ } from "@builder.io/qwik";
+import {
+  LuCalendar,
+  LuChevronLeft,
+  LuChevronRight,
+  LuCheck,
+} from "@qwikest/icons/lucide";
 import type { DocumentHead } from "@builder.io/qwik-city";
 import { TimeEntryForm } from "~/components/organisms";
 
@@ -247,19 +253,7 @@ export default component$(() => {
             <div class="mb-6 flex items-center justify-between">
               <div class="flex items-center space-x-3">
                 <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/20">
-                  <svg
-                    class="h-6 w-6 text-blue-600 dark:text-blue-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
+                  <LuCalendar class="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
                   <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
@@ -313,19 +307,7 @@ export default component$(() => {
                 class="rounded-lg p-2 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-700"
                 onClick$={() => navigateMonth("prev")}
               >
-                <svg
-                  class="h-5 w-5 text-gray-600 dark:text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
+                <LuChevronLeft class="h-5 w-5 text-gray-600 dark:text-gray-400" />
               </button>
 
               <h3 class="text-xl font-bold text-gray-900 dark:text-white">
@@ -336,19 +318,7 @@ export default component$(() => {
                 class="rounded-lg p-2 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-700"
                 onClick$={() => navigateMonth("next")}
               >
-                <svg
-                  class="h-5 w-5 text-gray-600 dark:text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
+                <LuChevronRight class="h-5 w-5 text-gray-600 dark:text-gray-400" />
               </button>
             </div>
 
@@ -435,19 +405,7 @@ export default component$(() => {
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                   <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/20">
-                    <svg
-                      class="h-4 w-4 text-blue-600 dark:text-blue-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                    <LuCheck class="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
                     <div class="text-sm text-gray-600 dark:text-gray-400">

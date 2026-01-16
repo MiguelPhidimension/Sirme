@@ -1,4 +1,5 @@
 import { component$, type QRL, type JSXOutput } from "@builder.io/qwik";
+import { LuX, LuLogOut } from "@qwikest/icons/lucide";
 import { SidebarLogo } from "~/components/molecules";
 
 interface NavItem {
@@ -28,14 +29,14 @@ export const MobileSidebar = component$<MobileSidebarProps>(
         {/* Mobile Sidebar Overlay */}
         {isOpen && (
           <div
-            class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+            class="fixed inset-0 z-1 bg-black/50 backdrop-blur-sm md:hidden"
             onClick$={onClose$}
           ></div>
         )}
 
         {/* Mobile Sidebar */}
         <aside
-          class={`fixed inset-y-0 left-0 z-50 w-64 transform border-r border-white/20 bg-white/95 backdrop-blur-xl transition-transform duration-300 md:hidden dark:border-slate-700/20 dark:bg-slate-900/95 ${
+          class={`fixed inset-y-0 left-0 z-1 w-64 transform border-r border-white/20 bg-white/95 backdrop-blur-xl transition-transform duration-300 md:hidden dark:border-slate-700/20 dark:bg-slate-900/95 ${
             isOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -46,19 +47,7 @@ export const MobileSidebar = component$<MobileSidebarProps>(
               onClick$={onClose$}
               class="rounded-xl p-2 text-gray-600 transition-all duration-200 hover:bg-white/50 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-slate-800/50 dark:hover:text-blue-400"
             >
-              <svg
-                class="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <LuX class="h-6 w-6" />
             </button>
           </div>
 
@@ -124,19 +113,7 @@ export const MobileSidebar = component$<MobileSidebarProps>(
                   class="rounded-xl p-2 text-red-600 transition-all duration-200 hover:bg-red-50 dark:hover:bg-red-900/20"
                   title="Cerrar sesión"
                 >
-                  <svg
-                    class="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                    />
-                  </svg>
+                  <LuLogOut class="h-5 w-5" />
                 </a>
               </div>
             </div>

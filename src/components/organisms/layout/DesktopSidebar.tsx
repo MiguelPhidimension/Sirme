@@ -30,7 +30,7 @@ export const DesktopSidebar = component$<DesktopSidebarProps>(
   ({ isExpanded, currentPath, navItems, userData, onToggle$, onLogout$ }) => {
     return (
       <aside
-        class={`hidden flex-col border-r border-white/20 bg-white/80 backdrop-blur-xl transition-all duration-300 md:flex dark:border-slate-700/20 dark:bg-slate-900/80 ${
+        class={`hidden flex-col overflow-visible border-r border-white/20 bg-white/80 backdrop-blur-xl transition-all duration-300 md:flex dark:border-slate-700/20 dark:bg-slate-900/80 ${
           isExpanded ? "w-64" : "w-20"
         }`}
       >
@@ -56,7 +56,7 @@ export const DesktopSidebar = component$<DesktopSidebarProps>(
 
         {/* User Profile */}
         {userData && (
-          <div class="border-t border-white/20 p-4 dark:border-slate-700/20">
+          <div class="overflow-visible border-t border-white/20 p-4 dark:border-slate-700/20">
             <SidebarUserProfile
               userData={userData}
               isExpanded={isExpanded}

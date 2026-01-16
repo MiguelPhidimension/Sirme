@@ -11,6 +11,7 @@ import { BrandHeader, AnimatedBackground } from "~/components/molecules";
 import { registerUser, saveUserSession } from "~/graphql/hooks/useAuth";
 import { graphqlClient } from "~/graphql/client";
 import type { RegisterFormData } from "~/types";
+import { LuAlertCircle } from "@qwikest/icons/lucide";
 
 const GET_ALL_ROLES_QUERY = `
   query GetAllRoles {
@@ -99,9 +100,9 @@ export default component$(() => {
       <BrandHeader />
 
       {/* Main Content */}
-      <div class="relative z-10 mt-20 w-full max-w-2xl sm:mt-0">
+      <div class="relative z-1 mt-20 w-full max-w-2xl sm:mt-0">
         {/* Main Content */}
-        <div class="relative z-10 w-full max-w-2xl">
+        <div class="relative z-1 w-full max-w-2xl">
           <Resource
             value={rolesResource}
             onPending={() => (
@@ -130,19 +131,7 @@ export default component$(() => {
                 <div class="absolute inset-0 rounded-3xl bg-gradient-to-r from-red-500/20 to-orange-500/20 blur-xl"></div>
                 <div class="relative rounded-3xl border border-white/20 bg-white/70 p-8 shadow-2xl backdrop-blur-xl dark:border-slate-700/20 dark:bg-slate-800/70">
                   <div class="py-12 text-center">
-                    <svg
-                      class="mx-auto mb-4 h-16 w-16 text-red-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
+                    <LuAlertCircle class="mx-auto mb-4 h-16 w-16 text-red-500" />
                     <p class="text-lg font-semibold text-red-600 dark:text-red-400">
                       Error al cargar el formulario
                     </p>

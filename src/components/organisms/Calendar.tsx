@@ -6,6 +6,7 @@ import {
   useVisibleTask$,
   QRL,
 } from "@builder.io/qwik";
+import { LuChevronLeft, LuChevronRight, LuX, LuCalendar } from "@qwikest/icons/lucide";
 import { CalendarCell } from "../molecules";
 import { Button, Badge } from "../atoms";
 import { DateUtils, DataUtils } from "~/utils";
@@ -170,7 +171,7 @@ export const Calendar = component$<CalendarProps>(
         <div class="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
           <div>
             <h1 class="text-base-content text-3xl font-bold">
-              📅 Time Calendar
+              <LuCalendar class="inline-block h-8 w-8" /> Time Calendar
             </h1>
             <p class="text-base-content/60 mt-1">
               View your time entries across different months
@@ -235,19 +236,7 @@ export const Calendar = component$<CalendarProps>(
         {/* Calendar Navigation */}
         <div class="flex items-center justify-between">
           <Button variant="ghost" onClick$={() => navigateMonth("prev")}>
-            <svg
-              class="mr-1 h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
+            <LuChevronLeft class="mr-1 h-5 w-5" />
             Previous
           </Button>
 
@@ -255,19 +244,7 @@ export const Calendar = component$<CalendarProps>(
 
           <Button variant="ghost" onClick$={() => navigateMonth("next")}>
             Next
-            <svg
-              class="ml-1 h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
+            <LuChevronRight class="ml-1 h-5 w-5" />
           </Button>
         </div>
 
@@ -307,7 +284,7 @@ export const Calendar = component$<CalendarProps>(
 
         {/* Day Details Modal */}
         {showDayDetails.value && selectedDay.value && (
-          <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div class="fixed inset-0 z-1 flex items-center justify-center bg-black/50 p-4">
             <div class="card bg-base-100 max-h-[80vh] w-full max-w-2xl overflow-auto">
               <div class="card-body">
                 <div class="mb-4 flex items-start justify-between">
@@ -327,19 +304,7 @@ export const Calendar = component$<CalendarProps>(
                     square
                     onClick$={() => (showDayDetails.value = false)}
                   >
-                    <svg
-                      class="h-5 w-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
+                    <LuX class="h-5 w-5" />
                   </Button>
                 </div>
 

@@ -1,4 +1,14 @@
 import { component$, useSignal, $, QRL } from "@builder.io/qwik";
+import {
+  LuPencil,
+  LuTrash2,
+  LuUser,
+  LuCalendar,
+  LuBriefcase,
+  LuClock,
+  LuCheck,
+  LuFileText,
+} from "@qwikest/icons/lucide";
 import { DataUtils } from "~/utils";
 import type { ProjectEntry, EmployeeRole } from "~/types";
 
@@ -114,19 +124,7 @@ export const ProjectEntryCard = component$<ProjectEntryCardProps>(
         <div class="overflow-hidden rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-lg dark:border-slate-500 dark:from-slate-700 dark:to-slate-600">
           <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-4">
             <h3 class="flex items-center space-x-2 text-xl font-bold text-white">
-              <svg
-                class="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                />
-              </svg>
+              <LuPencil class="h-5 w-5" />
               <span>Edit Project</span>
             </h3>
           </div>
@@ -253,38 +251,14 @@ export const ProjectEntryCard = component$<ProjectEntryCardProps>(
                 <div
                   class={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-white ${getRoleColor(role)}`}
                 >
-                  <svg
-                    class="mr-1 h-3 w-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
+                  <LuUser class="mr-1 h-3 w-3" />
                   {role}
                 </div>
               )}
 
               {date && (
                 <div class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                  <svg
-                    class="mr-1 h-3 w-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
+                  <LuCalendar class="mr-1 h-3 w-3" />
                   {formatDate(date)}
                 </div>
               )}
@@ -298,19 +272,7 @@ export const ProjectEntryCard = component$<ProjectEntryCardProps>(
                   onClick$={handleEdit}
                   title="Edit project"
                 >
-                  <svg
-                    class="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
+                  <LuPencil class="h-4 w-4" />
                 </button>
               )}
 
@@ -320,19 +282,7 @@ export const ProjectEntryCard = component$<ProjectEntryCardProps>(
                   onClick$={handleDelete}
                   title="Delete project"
                 >
-                  <svg
-                    class="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
+                  <LuTrash2 class="h-4 w-4" />
                 </button>
               )}
             </div>
@@ -346,19 +296,7 @@ export const ProjectEntryCard = component$<ProjectEntryCardProps>(
               {/* Project name with icon */}
               <div class="mb-4 flex items-center space-x-3">
                 <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg">
-                  <svg
-                    class="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                    />
-                  </svg>
+                  <LuBriefcase class="h-5 w-5" />
                 </div>
                 <div>
                   <h3 class="text-lg font-bold text-gray-900 dark:text-white">
@@ -374,19 +312,7 @@ export const ProjectEntryCard = component$<ProjectEntryCardProps>(
               <div class="mb-4 flex items-center space-x-4">
                 <div class="flex items-center space-x-2">
                   <div class="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
-                    <svg
-                      class="h-4 w-4 text-green-600 dark:text-green-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
+                    <LuClock class="h-4 w-4 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
                     <span class="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-3xl font-bold text-transparent">
@@ -400,19 +326,7 @@ export const ProjectEntryCard = component$<ProjectEntryCardProps>(
 
                 {project.isMPS && (
                   <div class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
-                    <svg
-                      class="mr-1 h-3 w-3"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                    <LuCheck class="mr-1 h-3 w-3" />
                     MPS
                   </div>
                 )}
@@ -422,19 +336,7 @@ export const ProjectEntryCard = component$<ProjectEntryCardProps>(
               {project.notes && (
                 <div class="rounded-xl border-l-4 border-blue-500 bg-gray-50 p-4 dark:bg-slate-700">
                   <div class="flex items-start space-x-2">
-                    <svg
-                      class="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
+                    <LuFileText class="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400" />
                     <div>
                       <p class="mb-1 text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                         Notes

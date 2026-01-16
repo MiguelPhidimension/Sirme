@@ -29,6 +29,7 @@
     "@builder.io/qwik-city": "^1.14.1",
     "@eslint/js": "latest",
     "@graphql-markdown/cli": "^0.3.0",
+    "@qwikest/icons": "^0.0.13",
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "20.14.11",
     "eslint": "9.25.1",

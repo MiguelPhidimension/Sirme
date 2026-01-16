@@ -11,6 +11,7 @@ import { useLocation } from "@builder.io/qwik-city";
 import { SidebarContext } from "~/contexts/sidebar-context";
 import { MobileTopBar } from "~/components/molecules";
 import { DesktopSidebar, MobileSidebar } from "~/components/organisms";
+import { LuBarChart3, LuCalendar, LuClock } from "@qwikest/icons/lucide";
 
 /**
  * MainLayout Template Component
@@ -25,9 +26,16 @@ import { DesktopSidebar, MobileSidebar } from "~/components/organisms";
  * </MainLayout>
  */
 export const MainLayout = component$(() => {
+  // Load sidebar state from localStorage immediately to prevent flickering
+  const getInitialSidebarState = () => {
+    if (typeof window === "undefined") return true;
+    const saved = localStorage.getItem("sidebar_expanded");
+    return saved === null ? true : saved === "true";
+  };
+
   // Use store instead of multiple signals for better performance
   const sidebarState = useStore({
-    isExpanded: true,
+    isExpanded: getInitialSidebarState(),
     isMobileOpen: false,
     isAuthenticated: false,
     userData: null as any,
@@ -62,74 +70,24 @@ export const MainLayout = component$(() => {
     }
   });
 
-  // Load sidebar state from localStorage - only once on mount
-  useVisibleTask$(() => {
-    const savedSidebarState = localStorage.getItem("sidebar_expanded");
-    if (savedSidebarState !== null) {
-      sidebarState.isExpanded = savedSidebarState === "true";
-    }
-  });
-
   // Navigation items with modern icons
   const navItems = [
     {
       path: "/reports",
       label: "Reports",
-      icon: (
-        <svg
-          class="h-6 w-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-          />
-        </svg>
-      ),
+      icon: <LuBarChart3 class="h-6 w-6" />,
       description: "Analytics and exports",
     },
     {
       path: "/calendar",
       label: "Calendar",
-      icon: (
-        <svg
-          class="h-6 w-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
-        </svg>
-      ),
+      icon: <LuCalendar class="h-6 w-6" />,
       description: "View calendar",
     },
     {
       path: "/entry",
       label: "Time Entry",
-      icon: (
-        <svg
-          class="h-6 w-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
+      icon: <LuClock class="h-6 w-6" />,
       description: "Time entries",
     },
   ];

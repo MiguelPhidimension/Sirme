@@ -1,4 +1,5 @@
 import { component$, type QRL } from "@builder.io/qwik";
+import { LuUser } from "@qwikest/icons/lucide";
 
 interface EmployeeInfoProps {
   employeeName: string;
@@ -17,19 +18,7 @@ export const EmployeeInfo = component$<EmployeeInfoProps>(
       <div class="rounded-2xl border border-white/20 bg-white/90 p-6 shadow-xl backdrop-blur-sm dark:border-slate-700/20 dark:bg-slate-800/90">
         <div class="mb-4 flex items-center space-x-3">
           <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/20">
-            <svg
-              class="h-5 w-5 text-purple-600 dark:text-purple-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-              />
-            </svg>
+            <LuUser class="h-5 w-5 text-purple-600 dark:text-purple-400" />
           </div>
           <h2 class="text-xl font-bold text-gray-900 dark:text-white">
             Employee Information

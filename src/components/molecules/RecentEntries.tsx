@@ -1,4 +1,5 @@
 import { component$, QRL, useSignal } from "@builder.io/qwik";
+import { LuClipboard, LuUser, LuClock, LuPencil } from "@qwikest/icons/lucide";
 import { Badge } from "../atoms";
 import { DataUtils, DateUtils } from "~/utils";
 import type { DailyTimeEntry } from "~/types";
@@ -68,19 +69,7 @@ export const RecentEntries = component$<RecentEntriesProps>(
             /* Empty state */
             <div class="py-16 text-center">
               <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-indigo-500/20">
-                <svg
-                  class="h-10 w-10 text-indigo-600 dark:text-indigo-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                  />
-                </svg>
+                <LuClipboard class="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
               </div>
               <h4 class="mb-3 text-xl font-semibold text-slate-800 dark:text-slate-200">
                 No time entries yet
@@ -131,37 +120,13 @@ export const RecentEntries = component$<RecentEntriesProps>(
                         {/* Entry details */}
                         <div class="mb-4 flex items-center gap-6 text-slate-600 dark:text-slate-400">
                           <span class="flex items-center gap-2">
-                            <svg
-                              class="h-5 w-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                              />
-                            </svg>
+                            <LuUser class="h-5 w-5" />
                             <span class="font-medium">
                               {entry.employeeName}
                             </span>
                           </span>
                           <span class="flex items-center gap-2 text-lg font-bold text-blue-600 dark:text-blue-400">
-                            <svg
-                              class="h-5 w-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                              />
-                            </svg>
+                            <LuClock class="h-5 w-5" />
                             {DataUtils.formatHours(entry.totalHours)}
                           </span>
                         </div>
@@ -199,19 +164,7 @@ export const RecentEntries = component$<RecentEntriesProps>(
                         class="ml-6 rounded-xl border border-white/20 bg-white/20 p-3 text-slate-600 backdrop-blur-sm transition-all duration-200 hover:bg-white/30 hover:text-blue-600 dark:border-slate-500/20 dark:bg-slate-600/30 dark:text-slate-400 dark:hover:bg-slate-600/40 dark:hover:text-blue-400"
                         onClick$={() => onEditEntry$ && onEditEntry$(entry.id)}
                       >
-                        <svg
-                          class="h-5 w-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                          />
-                        </svg>
+                        <LuPencil class="h-5 w-5" />
                       </button>
                     </div>
                   </div>

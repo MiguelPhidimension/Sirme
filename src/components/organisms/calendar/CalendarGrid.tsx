@@ -1,4 +1,5 @@
 import { component$, type QRL } from "@builder.io/qwik";
+import { LuChevronLeft, LuChevronRight } from "@qwikest/icons/lucide";
 import { CalendarDay } from "~/components/molecules/calendar/CalendarDay";
 import type { CalendarDayTypes } from "~/types";
 
@@ -45,19 +46,7 @@ export const CalendarGrid = component$<CalendarGridProps>(
                 class="group flex items-center space-x-2 rounded-xl border border-white/20 bg-white/20 px-6 py-3 text-slate-700 backdrop-blur-sm transition-all duration-200 hover:bg-white/30 hover:text-blue-600 dark:border-slate-500/20 dark:bg-slate-600/30 dark:text-slate-300 dark:hover:bg-slate-600/40 dark:hover:text-blue-400"
                 onClick$={onPrevMonth$}
               >
-                <svg
-                  class="h-5 w-5 transition-transform group-hover:scale-110"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
+                <LuChevronLeft class="h-5 w-5 transition-transform group-hover:scale-110" />
                 <span class="font-medium">Previous</span>
               </button>
 
@@ -70,19 +59,7 @@ export const CalendarGrid = component$<CalendarGridProps>(
                 onClick$={onNextMonth$}
               >
                 <span class="font-medium">Next</span>
-                <svg
-                  class="h-5 w-5 transition-transform group-hover:scale-110"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
+                <LuChevronRight class="h-5 w-5 transition-transform group-hover:scale-110" />
               </button>
             </div>
           </div>

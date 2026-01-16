@@ -79,7 +79,7 @@ export default component$(() => {
       <BrandHeader />
 
       {/* Main Content */}
-      <div class="relative z-10 mt-20 w-full max-w-md sm:mt-0">
+      <div class="relative z-1 mt-20 w-full max-w-md sm:mt-0">
         <LoginForm
           onSubmit={handleLogin}
           isLoading={isLoading.value}

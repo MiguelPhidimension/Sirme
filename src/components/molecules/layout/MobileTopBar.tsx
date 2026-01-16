@@ -1,4 +1,5 @@
 import { component$, type QRL } from "@builder.io/qwik";
+import { LuMenu } from "@qwikest/icons/lucide";
 
 interface MobileTopBarProps {
   onToggleSidebar$: QRL<() => void>;
@@ -16,19 +17,7 @@ export const MobileTopBar = component$<MobileTopBarProps>(
           onClick$={onToggleSidebar$}
           class="rounded-xl p-2 text-gray-600 transition-all duration-200 hover:bg-white/50 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-slate-800/50 dark:hover:text-blue-400"
         >
-          <svg
-            class="h-6 w-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
+          <LuMenu class="h-6 w-6" />
         </button>
         <h1 class="bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-lg font-bold text-transparent dark:from-white dark:to-gray-300">
           SIRME

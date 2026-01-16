@@ -1,4 +1,5 @@
 import { component$, type QRL } from "@builder.io/qwik";
+import { LuX, LuClipboard } from "@qwikest/icons/lucide";
 import { DataUtils, DateUtils } from "~/utils";
 import type { CalendarDayTypes } from "~/types";
 
@@ -15,7 +16,7 @@ export const DayDetailsModal = component$<DayDetailsModalProps>(
     if (!isOpen || !day) return null;
 
     return (
-      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+      <div class="fixed inset-0 z-1 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
         <div class="group relative max-h-[85vh] w-full max-w-4xl overflow-auto">
           <div class="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-xl transition-all duration-300 group-hover:blur-2xl"></div>
           <div class="relative rounded-3xl border border-white/20 bg-white/10 shadow-2xl backdrop-blur-sm dark:border-slate-700/20 dark:bg-slate-800/30">
@@ -34,19 +35,7 @@ export const DayDetailsModal = component$<DayDetailsModalProps>(
                   class="rounded-xl border border-white/20 bg-white/20 p-3 text-slate-600 backdrop-blur-sm transition-all duration-200 hover:bg-white/30 hover:text-red-500 dark:border-slate-500/20 dark:bg-slate-600/30 dark:text-slate-400 dark:hover:bg-slate-600/40 dark:hover:text-red-400"
                   onClick$={onClose$}
                 >
-                  <svg
-                    class="h-6 w-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <LuX class="h-6 w-6" />
                 </button>
               </div>
             </div>
@@ -121,19 +110,7 @@ export const DayDetailsModal = component$<DayDetailsModalProps>(
               ) : (
                 <div class="py-16 text-center">
                   <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-indigo-500/20">
-                    <svg
-                      class="h-10 w-10 text-indigo-600 dark:text-indigo-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                      />
-                    </svg>
+                    <LuClipboard class="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
                   </div>
                   <h4 class="mb-3 text-xl font-semibold text-slate-800 dark:text-slate-200">
                     No time entries

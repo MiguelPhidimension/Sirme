@@ -9,6 +9,13 @@ import {
 import { Badge } from "../atoms";
 import { DataUtils, DateUtils } from "~/utils";
 import type { DailyTimeEntry } from "~/types";
+import {
+  LuChevronLeft,
+  LuChevronRight,
+  LuX,
+  LuClipboard,
+  LuCalendar,
+} from "@qwikest/icons/lucide";
 
 /**
  * Calendar day interface for calendar functionality
@@ -203,24 +210,12 @@ export const CalendarView = component$<CalendarViewProps>(
                 class="group flex items-center space-x-2 rounded-xl border border-white/20 bg-white/20 px-6 py-3 text-slate-700 backdrop-blur-sm transition-all duration-200 hover:bg-white/30 hover:text-blue-600 dark:border-slate-500/20 dark:bg-slate-600/30 dark:text-slate-300 dark:hover:bg-slate-600/40 dark:hover:text-blue-400"
                 onClick$={() => navigateMonth("prev")}
               >
-                <svg
-                  class="h-5 w-5 transition-transform group-hover:scale-110"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
+                <LuChevronLeft class="h-5 w-5 transition-transform group-hover:scale-110" />
                 <span class="font-medium">Previous</span>
               </button>
 
               <h2 class="flex items-center gap-3 text-3xl font-bold text-slate-800 dark:text-slate-200">
-                <span class="text-3xl">📅</span>
+                <LuCalendar class="h-8 w-8" />
                 {getMonthYearDisplay()}
               </h2>
 
@@ -229,19 +224,7 @@ export const CalendarView = component$<CalendarViewProps>(
                 onClick$={() => navigateMonth("next")}
               >
                 <span class="font-medium">Next</span>
-                <svg
-                  class="h-5 w-5 transition-transform group-hover:scale-110"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
+                <LuChevronRight class="h-5 w-5 transition-transform group-hover:scale-110" />
               </button>
             </div>
           </div>
@@ -349,7 +332,7 @@ export const CalendarView = component$<CalendarViewProps>(
 
         {/* Day details modal */}
         {showDayModal.value && selectedDay.value && (
-          <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div class="fixed inset-0 z-1 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
             <div class="group relative max-h-[85vh] w-full max-w-4xl overflow-auto">
               <div class="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-xl transition-all duration-300 group-hover:blur-2xl"></div>
               <div class="relative rounded-3xl border border-white/20 bg-white/10 shadow-2xl backdrop-blur-sm dark:border-slate-700/20 dark:bg-slate-800/30">
@@ -369,19 +352,7 @@ export const CalendarView = component$<CalendarViewProps>(
                       class="rounded-xl border border-white/20 bg-white/20 p-3 text-slate-600 backdrop-blur-sm transition-all duration-200 hover:bg-white/30 hover:text-red-500 dark:border-slate-500/20 dark:bg-slate-600/30 dark:text-slate-400 dark:hover:bg-slate-600/40 dark:hover:text-red-400"
                       onClick$={() => (showDayModal.value = false)}
                     >
-                      <svg
-                        class="h-6 w-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
+                      <LuX class="h-6 w-6" />
                     </button>
                   </div>
                 </div>
@@ -458,19 +429,7 @@ export const CalendarView = component$<CalendarViewProps>(
                   ) : (
                     <div class="py-16 text-center">
                       <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-indigo-500/20">
-                        <svg
-                          class="h-10 w-10 text-indigo-600 dark:text-indigo-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                          />
-                        </svg>
+                        <LuClipboard class="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
                       </div>
                       <h4 class="mb-3 text-xl font-semibold text-slate-800 dark:text-slate-200">
                         No time entries

@@ -1,9 +1,4 @@
-import {
-  component$,
-  useSignal,
-  $,
-  QRL,
-} from "@builder.io/qwik";
+import { component$, useSignal, $, QRL } from "@builder.io/qwik";
 import {
   DashboardStats,
   WeeklyProgress,
@@ -17,8 +12,7 @@ import type {
   DailyTimeEntry,
   TimeEntryFormData,
 } from "~/types";
-
-
+import { LuPlus, LuX } from "@qwikest/icons/lucide";
 
 /**
  * Props interface for Dashboard component
@@ -184,7 +178,7 @@ export const Dashboard = component$<DashboardProps>(
 
         {/* Time Entry Form Modal */}
         {showTimeEntryForm.value && (
-          <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div class="fixed inset-0 z-1 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
             <div class="group relative max-h-[90vh] w-full max-w-2xl overflow-auto">
               <div class="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-xl transition-all duration-300 group-hover:blur-2xl"></div>
               <div class="relative rounded-3xl border border-white/20 bg-white/10 shadow-2xl backdrop-blur-sm dark:border-slate-700/20 dark:bg-slate-800/30">
@@ -199,19 +193,7 @@ export const Dashboard = component$<DashboardProps>(
                         class="group flex transform items-center space-x-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-4 py-2 font-semibold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:from-emerald-600 hover:to-teal-700 hover:shadow-xl"
                         onClick$={() => (showAddProjectSignal.value = true)}
                       >
-                        <svg
-                          class="h-4 w-4 transition-transform group-hover:scale-110"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                          />
-                        </svg>
+                        <LuPlus class="h-4 w-4 transition-transform group-hover:scale-110" />
                         <span>Add Project</span>
                       </button>
 
@@ -220,19 +202,7 @@ export const Dashboard = component$<DashboardProps>(
                         class="rounded-xl border border-white/20 bg-white/20 p-3 text-slate-600 backdrop-blur-sm transition-all duration-200 hover:bg-white/30 hover:text-red-500 dark:border-slate-500/20 dark:bg-slate-600/30 dark:text-slate-400 dark:hover:bg-slate-600/40 dark:hover:text-red-400"
                         onClick$={() => (showTimeEntryForm.value = false)}
                       >
-                        <svg
-                          class="h-6 w-6"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
+                        <LuX class="h-6 w-6" />
                       </button>
                     </div>
                   </div>
@@ -253,7 +223,7 @@ export const Dashboard = component$<DashboardProps>(
         )}
 
         {/* Floating Action Button for Quick Time Entry */}
-        <div class="fixed right-8 bottom-8 z-40">
+        <div class="fixed right-8 bottom-8 z-1">
           <Button
             variant="primary"
             size="lg"
@@ -263,19 +233,7 @@ export const Dashboard = component$<DashboardProps>(
           >
             <div class="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400/20 to-purple-400/20 blur-xl transition-all duration-300 group-hover:blur-2xl"></div>
             <div class="relative flex items-center justify-center">
-              <svg
-                class="h-8 w-8 text-white transition-transform group-hover:scale-110"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
+              <LuPlus class="h-8 w-8 text-white transition-transform group-hover:scale-110" />
             </div>
           </Button>
         </div>

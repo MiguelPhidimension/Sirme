@@ -12,7 +12,7 @@ import type {
   TimeEntryFormData,
   ProjectEntry,
   EmployeeRole,
-  FormErrors
+  FormErrors,
 } from "~/types";
 // Import GraphQL hooks and Resource component for role dropdown
 import { useRoles } from "~/graphql/hooks/useRoles";
@@ -21,6 +21,15 @@ import {
   useClientProjectOptions,
   type ClientProjectOption,
 } from "../../graphql/hooks/useProjects";
+import {
+  LuClock,
+  LuBriefcase,
+  LuPlus,
+  LuCheck,
+  LuLoader2,
+  LuAlertCircle,
+  LuClipboard,
+} from "@qwikest/icons/lucide";
 
 /**
  * Props interface for TimeEntryForm component
@@ -223,19 +232,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
           {!simplified && (
             <div class="space-y-4 text-center">
               <div class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
-                <svg
-                  class="h-8 w-8 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+                <LuClock class="h-8 w-8 text-white" />
               </div>
               <h1 class="bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-4xl font-bold text-transparent dark:from-white dark:to-gray-300">
                 {mode === "daily" ? "Daily Time Entry" : "Weekly Time Entry"}
@@ -256,19 +253,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
                 <div class="flex items-center justify-between">
                   <div class="flex items-center space-x-3">
                     <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
-                      <svg
-                        class="h-5 w-5 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0V6a2 2 0 012 2v6M8 8v10l4-2 4 2V8"
-                        />
-                      </svg>
+                      <LuBriefcase class="h-5 w-5 text-white" />
                     </div>
                     <div>
                       <h2 class="text-2xl font-bold text-white">
@@ -297,19 +282,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
                       }}
                       disabled={isAddingProject.value}
                     >
-                      <svg
-                        class="h-5 w-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                        />
-                      </svg>
+                      <LuPlus class="h-5 w-5" />
                       <span>Add Project</span>
                     </button>
                   </div>
@@ -321,19 +294,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
                 {errors.projects && (
                   <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
                     <div class="flex items-center space-x-2">
-                      <svg
-                        class="h-5 w-5 text-red-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
+                      <LuAlertCircle class="h-5 w-5 text-red-500" />
                       <span class="font-medium text-red-700 dark:text-red-300">
                         {errors.projects}
                       </span>
@@ -344,19 +305,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
                 {errors.dailyTotal && (
                   <div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
                     <div class="flex items-center space-x-2">
-                      <svg
-                        class="h-5 w-5 text-amber-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                        />
-                      </svg>
+                      <LuAlertCircle class="h-5 w-5 text-amber-500" />
                       <span class="font-medium text-amber-700 dark:text-amber-300">
                         {errors.dailyTotal}
                       </span>
@@ -399,19 +348,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
                   {formData.projects.length === 0 && !isAddingProject.value && (
                     <div class="py-12 text-center text-gray-500 dark:text-gray-400">
                       <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-slate-700">
-                        <svg
-                          class="h-8 w-8"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2H5a2 2 0 00-2 2v2M7 7h10"
-                          />
-                        </svg>
+                        <LuClipboard class="h-8 w-8" />
                       </div>
                       <p class="mb-2 text-lg font-semibold">
                         No projects added yet
@@ -430,17 +367,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
           {simplified && errors.projects && (
             <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
               <div class="flex items-center space-x-2">
-                <svg
-                  class="h-5 w-5 text-red-500"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
+                <LuAlertCircle class="h-5 w-5 text-red-500" />
                 <span class="font-medium text-red-700 dark:text-red-300">
                   {errors.projects}
                 </span>
@@ -451,17 +378,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
           {simplified && errors.dailyTotal && (
             <div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
               <div class="flex items-center space-x-2">
-                <svg
-                  class="h-5 w-5 text-amber-500"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
+                <LuAlertCircle class="h-5 w-5 text-amber-500" />
                 <span class="font-medium text-amber-700 dark:text-amber-300">
                   {errors.dailyTotal}
                 </span>
@@ -504,19 +421,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
             <div class="overflow-hidden rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 dark:border-slate-500 dark:from-slate-700 dark:to-slate-600">
               <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-4">
                 <h3 class="flex items-center space-x-2 text-xl font-bold text-white">
-                  <svg
-                    class="h-6 w-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
+                  <LuPlus class="h-6 w-6" />
                   <span>Add New Project</span>
                 </h3>
               </div>
@@ -525,19 +430,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
                   <div class="space-y-2">
                     <label class="flex items-center space-x-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      <svg
-                        class="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0V6a2 2 0 012 2v6M8 8v10l4-2 4 2V8"
-                        />
-                      </svg>
+                      <LuBriefcase class="h-4 w-4" />
                       <span>Employee Role</span>
                     </label>
 
@@ -557,25 +450,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
                             </select>
                             {/* Loading spinner overlay */}
                             <div class="absolute top-1/2 right-3 -translate-y-1/2 transform">
-                              <svg
-                                class="h-5 w-5 animate-spin text-blue-500"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                              >
-                                <circle
-                                  class="opacity-25"
-                                  cx="12"
-                                  cy="12"
-                                  r="10"
-                                  stroke="currentColor"
-                                  stroke-width="4"
-                                />
-                                <path
-                                  class="opacity-75"
-                                  fill="currentColor"
-                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                />
-                              </svg>
+                              <LuLoader2 class="h-5 w-5 animate-spin text-blue-500" />
                             </div>
                           </div>
                         )}
@@ -633,23 +508,21 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
                     </div>
 
                     {/* Show total roles count for debugging */}
-                    {/* <Resource
-                    value={rolesResource}
-                    onPending={() => (
-                      <p class="text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-1">
-                        <svg class="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
-                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        <span>Loading roles...</span>
-                      </p>
-                    )}
-                    onResolved={(data) => (
-                      <p class="text-xs text-gray-500 dark:text-gray-400">
-                        {data.total} {data.total !== 1 ? 'roles' : 'role'} available
-                      </p>
-                    )}
-                  /> */}
+                    <Resource
+                      value={rolesResource}
+                      onPending={() => (
+                        <p class="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+                          <LuLoader2 class="h-3 w-3 animate-spin" />
+                          <span>Loading roles...</span>
+                        </p>
+                      )}
+                      onResolved={(data) => (
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                          {data.total} {data.total !== 1 ? "roles" : "role"}{" "}
+                          available
+                        </p>
+                      )}
+                    />
                   </div>
 
                   <div class="space-y-2">
@@ -670,25 +543,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
                             </select>
                             {/* Loading spinner overlay */}
                             <div class="absolute top-1/2 right-3 -translate-y-1/2 transform">
-                              <svg
-                                class="h-5 w-5 animate-spin text-blue-500"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                              >
-                                <circle
-                                  class="opacity-25"
-                                  cx="12"
-                                  cy="12"
-                                  r="10"
-                                  stroke="currentColor"
-                                  stroke-width="4"
-                                />
-                                <path
-                                  class="opacity-75"
-                                  fill="currentColor"
-                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                />
-                              </svg>
+                              <LuLoader2 class="h-5 w-5 animate-spin text-blue-500" />
                             </div>
                           </div>
                         )}
@@ -741,26 +596,28 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
                     </div>
 
                     {/* Show project count with loading state */}
-                    {/* <Resource
-                    value={clientProjectResource}
-                    onPending={() => (
-                      <p class="text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-1">
-                        <svg class="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
-                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        <span>Loading projects...</span>
-                      </p>
-                    )}
-                    onResolved={(data) => {
-                      const projectCount = data.options.filter((option: ClientProjectOption) => option.type === 'project').length;
-                      return (
-                        <p class="text-xs text-gray-500 dark:text-gray-400">
-                          {projectCount} {projectCount !== 1 ? 'projects' : 'project'} available
+                    <Resource
+                      value={clientProjectResource}
+                      onPending={() => (
+                        <p class="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+                          <LuLoader2 class="h-3 w-3 animate-spin" />
+                          <span>Loading projects...</span>
                         </p>
-                      );
-                    }}
-                  /> */}
+                      )}
+                      onResolved={(data) => {
+                        const projectCount = data.options.filter(
+                          (option: ClientProjectOption) =>
+                            option.type === "project",
+                        ).length;
+                        return (
+                          <p class="text-xs text-gray-500 dark:text-gray-400">
+                            {projectCount}{" "}
+                            {projectCount !== 1 ? "projects" : "project"}{" "}
+                            available
+                          </p>
+                        );
+                      }}
+                    />
                   </div>
 
                   <div class="space-y-2">
@@ -867,40 +724,8 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
                 onClick$={handleSubmit}
                 disabled={formData.projects.length === 0 || isLoading}
               >
-                {isLoading && (
-                  <svg
-                    class="h-5 w-5 animate-spin"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    />
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                )}
-                <svg
-                  class="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
+                {isLoading && <LuLoader2 class="h-5 w-5 animate-spin" />}
+                <LuCheck class="h-5 w-5" />
                 <span>
                   {mode === "daily" ? "Save Daily Entry" : "Save Weekly Entry"}
                 </span>
