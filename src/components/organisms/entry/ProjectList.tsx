@@ -4,6 +4,7 @@ import { ProjectEntry } from "../../molecules";
 
 interface ProjectData {
   clientName: string;
+  projectId?: string;
   hours: number;
   isMPS: boolean;
   notes: string;

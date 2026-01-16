@@ -1,4 +1,11 @@
-import { component$, useSignal, useStore, $ } from "@builder.io/qwik";
+import {
+  component$,
+  useSignal,
+  useStore,
+  $,
+  useContext,
+  useVisibleTask$,
+} from "@builder.io/qwik";
 import type { DocumentHead } from "@builder.io/qwik-city";
 import {
   DateSelector,
@@ -6,9 +13,12 @@ import {
   TimeEntryActions,
 } from "~/components/molecules";
 import { ProjectList } from "~/components/organisms";
+import { useCreateTimeEntry } from "~/graphql/hooks/useTimeEntries";
+import { AuthContext } from "~/components/providers/AuthProvider";
 
 interface ProjectData {
   clientName: string;
+  projectId?: string;
   hours: number;
   isMPS: boolean;
   notes: string;
@@ -18,18 +28,28 @@ interface ProjectData {
  * Time entry page component - Refactored with modular components
  */
 export default component$(() => {
+  // Get authentication context
+  const authContext = useContext(AuthContext);
+
   // State management
   const isLoading = useSignal(false);
   const selectedDate = useSignal(new Date().toISOString().split("T")[0]);
+  const errorMessage = useSignal("");
+  const successMessage = useSignal("");
+
+  // Get hooks
+  const createTimeEntry = useCreateTimeEntry();
 
   // Form data
   const formData = useStore({
     employeeName: "",
+    employeeId: "",
     date: selectedDate.value,
-    role: "Other" as const,
+    role: "" as string,
     projects: [
       {
         clientName: "",
+        projectId: "",
         hours: 0,
         isMPS: false,
         notes: "",
@@ -37,15 +57,72 @@ export default component$(() => {
     ] as ProjectData[],
   });
 
+  // Load user data from auth context
+  useVisibleTask$(({ track }) => {
+    track(() => authContext.user);
+
+    if (authContext.user) {
+      formData.employeeName = `${authContext.user.first_name} ${authContext.user.last_name}`;
+      formData.employeeId = authContext.user.user_id;
+    }
+  });
+
   // Handle form submission
   const handleSubmit = $(async () => {
+    errorMessage.value = "";
+    successMessage.value = "";
+
+    // Use the selected employee ID, or fall back to authenticated user
+    const userId = formData.employeeId || authContext.user?.user_id;
+
+    // Validate user is selected
+    if (!userId) {
+      errorMessage.value = "Debes seleccionar un empleado para registrar horas";
+      return;
+    }
+
+    // Validate projects have valid IDs
+    const invalidProjects = formData.projects.filter(
+      (p) => !p.projectId || p.hours <= 0,
+    );
+    if (invalidProjects.length > 0) {
+      errorMessage.value =
+        "Todos los proyectos deben tener un cliente/proyecto seleccionado y horas mayores a 0";
+      return;
+    }
+
     isLoading.value = true;
+
     try {
-      console.log("Submitting time entry:", formData);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      window.location.href = "/";
+      // Prepare time entry data
+      const timeEntryData = {
+        user_id: userId,
+        entry_date: formData.date,
+        projects: formData.projects.map((project) => ({
+          project_id: project.projectId!,
+          hours_reported: project.hours,
+          is_mps: project.isMPS,
+          notes: project.notes || "",
+        })),
+      };
+
+      console.log("Submitting time entry:", timeEntryData);
+
+      // Create time entry
+      await createTimeEntry(timeEntryData);
+
+      successMessage.value = "¡Horas registradas exitosamente!";
+
+      // Redirect after success
+      setTimeout(() => {
+        window.location.href = "/calendar";
+      }, 1500);
     } catch (error) {
       console.error("Failed to submit time entry:", error);
+      errorMessage.value =
+        error instanceof Error
+          ? error.message
+          : "Error al guardar el registro de horas";
     } finally {
       isLoading.value = false;
     }
@@ -53,13 +130,14 @@ export default component$(() => {
 
   // Handle cancel
   const handleCancel = $(() => {
-    window.location.href = "/";
+    window.location.href = "/calendar";
   });
 
   // Add project
   const addProject = $(() => {
     formData.projects.push({
       clientName: "",
+      projectId: "",
       hours: 0,
       isMPS: false,
       notes: "",
@@ -85,6 +163,8 @@ export default component$(() => {
       value: string | number | boolean,
     ) => {
       formData.projects[index][field] = value as never;
+
+      // If projectId is being updated, this is handled by the ProjectEntry component
     },
   );
 
@@ -107,6 +187,20 @@ export default component$(() => {
       </div>
 
       <div class="mx-auto max-w-4xl space-y-6">
+        {/* Error Message */}
+        {errorMessage.value && (
+          <div class="rounded-lg bg-red-50 p-4 text-red-800 dark:bg-red-900/20 dark:text-red-300">
+            <p class="font-medium">{errorMessage.value}</p>
+          </div>
+        )}
+
+        {/* Success Message */}
+        {successMessage.value && (
+          <div class="rounded-lg bg-green-50 p-4 text-green-800 dark:bg-green-900/20 dark:text-green-300">
+            <p class="font-medium">{successMessage.value}</p>
+          </div>
+        )}
+
         {/* Date Selection */}
         <DateSelector
           selectedDate={selectedDate}
@@ -116,9 +210,13 @@ export default component$(() => {
         {/* Employee Information */}
         <EmployeeInfo
           employeeName={formData.employeeName}
+          employeeId={formData.employeeId}
           role={formData.role}
           onNameChange={$((name) => {
             formData.employeeName = name;
+          })}
+          onEmployeeIdChange={$((userId) => {
+            formData.employeeId = userId;
           })}
           onRoleChange={$((role) => {
             formData.role = role as any;

@@ -199,11 +199,13 @@ export default component$(() => {
 
   const handleNewEntry = $((date?: string) => {
     const targetDate = date || DateUtils.getCurrentDate();
-    window.location.href = `/entry?date=${targetDate}`;
+    window.location.href = `/entry`;
+    // window.location.href = `/entry?date=${targetDate}`;
   });
 
   const handleEditEntry = $((entryId: string) => {
-    window.location.href = `/entry?edit=${entryId}`;
+    window.location.href = `/entry`;
+    // window.location.href = `/entry?edit=${entryId}`;
   });
 
   return (
