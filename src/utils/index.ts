@@ -64,7 +64,10 @@ export class DateUtils {
    * Format date for display
    */
   static formatDisplayDate(date: string): string {
-    return new Date(date).toLocaleDateString("en-US", {
+    // Append T00:00:00 to ensure date is treated as local time, not UTC
+    // This prevents timezone shifts when displaying the date
+    const localDate = date.includes("T") ? date : `${date}T00:00:00`;
+    return new Date(localDate).toLocaleDateString("en-US", {
       weekday: "short",
       month: "short",
       day: "numeric",

@@ -24,7 +24,11 @@ export const CalendarGrid = component$<CalendarGridProps>(
     onDayClick$,
   }) => {
     const getCurrentDate = () => {
-      return new Date().toISOString().split("T")[0];
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
     };
 
     const isToday = (date: string) => {
@@ -32,7 +36,9 @@ export const CalendarGrid = component$<CalendarGridProps>(
     };
 
     const isCurrentMonth = (date: string) => {
-      return new Date(date).getMonth() === currentMonth;
+      // Safely parse month from YYYY-MM-DD string to avoid timezone shifts
+      const monthPart = parseInt(date.split("-")[1], 10);
+      return monthPart - 1 === currentMonth;
     };
 
     return (

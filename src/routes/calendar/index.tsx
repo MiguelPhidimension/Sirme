@@ -61,14 +61,17 @@ export default component$(() => {
     const year = currentDate.value.getFullYear();
     const month = currentDate.value.getMonth();
 
-    // Calculate calendar grid boundaries
+    // Calculate calendar grid boundaries using local dates
     const firstDayOfMonth = new Date(year, month, 1);
     const lastDayOfMonth = new Date(year, month + 1, 0);
-    const startDate = new Date(firstDayOfMonth);
-    startDate.setDate(startDate.getDate() - startDate.getDay()); // Start from Sunday
 
-    const endDate = new Date(lastDayOfMonth);
-    endDate.setDate(endDate.getDate() + (6 - lastDayOfMonth.getDay())); // End on Saturday
+    // Calculate start date (Sunday before or on first day of month)
+    const firstDayWeekday = firstDayOfMonth.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const startDate = new Date(year, month, 1 - firstDayWeekday);
+
+    // Calculate end date (Saturday after or on last day of month)
+    const lastDayWeekday = lastDayOfMonth.getDay();
+    const endDate = new Date(year, month + 1, 0 + (6 - lastDayWeekday));
 
     // Build calendar days array
     const days: CalendarDayTypes[] = [];
@@ -78,7 +81,14 @@ export default component$(() => {
     let workingDays = 0;
 
     while (currentDay <= endDate) {
-      const dateStr = currentDay.toISOString().split("T")[0];
+      // Build date string from local date parts
+      const y = currentDay.getFullYear();
+      const m = currentDay.getMonth();
+      const d = currentDay.getDate();
+      const monthStr = String(m + 1).padStart(2, "0");
+      const dayStr = String(d).padStart(2, "0");
+      const dateStr = `${y}-${monthStr}-${dayStr}`;
+
       const dayEntries = entries.filter((entry) => entry.date === dateStr);
       const totalHours = dayEntries.reduce(
         (sum, entry) => sum + entry.totalHours,
@@ -86,7 +96,7 @@ export default component$(() => {
       );
 
       // Only count current month days for statistics
-      if (currentDay.getMonth() === month && totalHours > 0) {
+      if (m === month && totalHours > 0) {
         monthTotal += totalHours;
         workingDays++;
       }
@@ -98,6 +108,7 @@ export default component$(() => {
         entries: dayEntries,
       });
 
+      // Advance to next day
       currentDay.setDate(currentDay.getDate() + 1);
     }
 
@@ -192,7 +203,8 @@ export default component$(() => {
             ? `${authContext.user.first_name} ${authContext.user.last_name}`
             : "";
 
-          const userRole = (authContext.user?.role?.role_name || "Employee") as EmployeeRole;
+          const userRole = (authContext.user?.role?.role_name ||
+            "Employee") as EmployeeRole;
 
           timeEntriesData.forEach((entry: any, index: number) => {
             const projects = entry.time_entry_projects || [];
@@ -277,7 +289,6 @@ export default component$(() => {
       year: "numeric",
     });
   };
-
 
   const handleNewEntry = $((date: string) => {
     window.location.href = `/entry?date=${date}`;
