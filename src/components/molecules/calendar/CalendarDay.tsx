@@ -17,23 +17,44 @@ const getHoursColorClass = (hours: number) => {
   return "text-amber-500 dark:text-amber-400";
 };
 
+const getBackgroundColorClass = (
+  hours: number,
+  isCurrentMonth: boolean,
+  isToday: boolean,
+) => {
+  if (isToday)
+    return "bg-blue-500/20 ring-2 ring-blue-400/50 dark:ring-blue-500/50";
+  if (!isCurrentMonth) return "";
+  if (hours === 0)
+    return "bg-white/5 hover:bg-white/20 dark:bg-slate-800/20 dark:hover:bg-slate-700/30";
+  if (hours < 4)
+    return "bg-blue-500/10 hover:bg-blue-500/20 dark:bg-blue-900/20 dark:hover:bg-blue-900/30";
+  if (hours < 8)
+    return "bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/30";
+  if (hours === 8)
+    return "bg-purple-500/10 hover:bg-purple-500/20 dark:bg-purple-900/20 dark:hover:bg-purple-900/30";
+  return "bg-amber-500/10 hover:bg-amber-500/20 dark:bg-amber-900/20 dark:hover:bg-amber-900/30";
+};
+
 export const CalendarDay = component$<CalendarDayProps>(
   ({ day, isCurrentMonth, isToday, onClick$ }) => {
     const dayNumber = new Date(day.date).getDate();
 
     return (
       <div
-        class={`group relative h-28 cursor-pointer border-r border-b border-white/10 p-3 transition-all duration-300 md:h-36 dark:border-slate-600/20 ${
-          isCurrentMonth
-            ? "bg-white/5 hover:bg-white/20 dark:bg-slate-800/20 dark:hover:bg-slate-700/30"
-            : "bg-white/5 text-slate-400 dark:bg-slate-900/20 dark:text-slate-600"
-        } ${isToday ? "bg-blue-500/20 ring-2 ring-blue-400/50 dark:ring-blue-500/50" : ""} ${day.hasEntries ? "border-l-4 border-l-emerald-400 dark:border-l-emerald-500" : ""} hover:scale-105 hover:shadow-lg`}
+        class={`group relative h-28 cursor-pointer border-r border-b border-white/10 p-3 transition-all duration-300 md:h-36 dark:border-slate-600/20 ${getBackgroundColorClass(day.totalHours, isCurrentMonth, isToday)} ${day.hasEntries ? "border-l-4 border-l-emerald-400 dark:border-l-emerald-500" : ""} hover:scale-105 hover:shadow-lg`}
         onClick$={() => onClick$(day)}
       >
         {/* Day number */}
         <div class="mb-2 flex items-start justify-between">
           <span
-            class={`text-sm font-medium ${isToday ? "font-bold text-blue-600 dark:text-blue-400" : ""}`}
+            class={`text-sm font-medium ${
+              isToday
+                ? "font-bold text-blue-600 dark:text-blue-400"
+                : isCurrentMonth
+                  ? "text-slate-700 dark:text-slate-200"
+                  : "text-slate-400 dark:text-slate-600"
+            }`}
           >
             {dayNumber}
           </span>

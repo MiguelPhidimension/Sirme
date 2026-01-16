@@ -5,6 +5,7 @@ import {
   useOnDocument,
   $,
 } from "@builder.io/qwik";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { LuUser, LuSettings, LuLogOut } from "@qwikest/icons/lucide";
 
 interface SidebarUserProfileProps {
@@ -86,7 +87,7 @@ export const SidebarUserProfile = component$<SidebarUserProfileProps>(
             isMenuOpen.value ? "visible opacity-100" : "invisible opacity-0"
           }`}
         >
-          <a
+          {/* <a
             href="/profile"
             class="block px-4 py-3 text-sm text-gray-700 transition-colors duration-200 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-slate-700"
             onClick$={() => (isMenuOpen.value = false)}
@@ -105,8 +106,8 @@ export const SidebarUserProfile = component$<SidebarUserProfileProps>(
               <LuSettings class="h-4 w-4" />
               <span>Settings</span>
             </div>
-          </a>
-          <div class="border-t border-gray-200 dark:border-slate-700"></div>
+          </a> */}
+          {/* <div class="border-t border-gray-200 dark:border-slate-700"></div> */}
           <button
             onClick$={(e) => {
               e.preventDefault();

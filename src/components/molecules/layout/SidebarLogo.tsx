@@ -11,7 +11,7 @@ interface SidebarLogoProps {
  */
 export const SidebarLogo = component$<SidebarLogoProps>(({ isExpanded }) => {
   return (
-    <a href="/" class="group flex items-center space-x-3">
+    <a href="/calendar" class="group flex items-center space-x-3">
       <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg transition-all duration-200 group-hover:shadow-xl">
         <LuClock class="h-6 w-6 text-white" />
       </div>
