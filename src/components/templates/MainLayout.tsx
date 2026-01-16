@@ -103,11 +103,12 @@ export const MainLayout = component$(() => {
 
   const handleLogout = $(() => {
     if (typeof window !== "undefined") {
-      sessionStorage.removeItem("auth_token");
-      sessionStorage.removeItem("auth_user");
+      sessionStorage.clear();
+      localStorage.clear();
       sidebarState.isAuthenticated = false;
       sidebarState.userData = null;
-      window.location.href = "/";
+      // Use replace to prevent back button navigation
+      window.location.replace("/");
     }
   });
 
