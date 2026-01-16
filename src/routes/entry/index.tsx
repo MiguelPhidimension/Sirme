@@ -13,7 +13,11 @@ import {
   TimeEntryActions,
 } from "~/components/molecules";
 import { ProjectList } from "~/components/organisms";
-import { useCreateTimeEntry } from "~/graphql/hooks/useTimeEntries";
+import {
+  useCreateTimeEntry,
+  useGetTimeEntryById,
+  useUpdateTimeEntry,
+} from "~/graphql/hooks/useTimeEntries";
 import { AuthContext } from "~/components/providers/AuthProvider";
 
 interface ProjectData {
@@ -37,11 +41,14 @@ export default component$(() => {
   const selectedDate = useSignal(
     loc.url.searchParams.get("date") || new Date().toISOString().split("T")[0],
   );
+  const entryId = useSignal(loc.url.searchParams.get("id") || "");
   const errorMessage = useSignal("");
   const successMessage = useSignal("");
 
   // Get hooks
   const createTimeEntry = useCreateTimeEntry();
+  const getTimeEntryById = useGetTimeEntryById();
+  const updateTimeEntry = useUpdateTimeEntry();
 
   // Form data
   const formData = useStore({
@@ -67,6 +74,49 @@ export default component$(() => {
     if (authContext.user) {
       formData.employeeName = `${authContext.user.first_name} ${authContext.user.last_name}`;
       formData.employeeId = authContext.user.user_id;
+    }
+  });
+
+  // Load existing entry data if editing
+  useVisibleTask$(async ({ track }) => {
+    track(() => entryId.value);
+
+    if (entryId.value) {
+      isLoading.value = true;
+      try {
+        const entry = await getTimeEntryById(entryId.value);
+        if (entry) {
+          formData.date = entry.entry_date;
+          selectedDate.value = entry.entry_date;
+
+          // Set employee info from entry
+          if (entry.user) {
+            formData.employeeName = `${entry.user.first_name} ${entry.user.last_name}`;
+            formData.employeeId = entry.user_id;
+            if (entry.user.role?.role_name) {
+              formData.role = entry.user.role.role_name;
+            }
+          }
+
+          if (
+            entry.time_entry_projects &&
+            entry.time_entry_projects.length > 0
+          ) {
+            formData.projects = entry.time_entry_projects.map((p: any) => ({
+              clientName: p.project?.client?.name || "",
+              projectId: p.project_id,
+              hours: p.hours_reported,
+              isMPS: p.is_mps,
+              notes: p.notes || "",
+            }));
+          }
+        }
+      } catch (error) {
+        console.error("Error loading entry:", error);
+        errorMessage.value = "Error loading entry details";
+      } finally {
+        isLoading.value = false;
+      }
     }
   });
 
@@ -99,6 +149,7 @@ export default component$(() => {
     try {
       // Prepare time entry data
       const timeEntryData = {
+        time_entry_id: entryId.value || undefined,
         user_id: userId,
         entry_date: formData.date,
         projects: formData.projects.map((project) => ({
@@ -111,10 +162,15 @@ export default component$(() => {
 
       console.log("Submitting time entry:", timeEntryData);
 
-      // Create time entry
-      await createTimeEntry(timeEntryData);
-
-      successMessage.value = "¡Horas registradas exitosamente!";
+      if (entryId.value) {
+        // Update existing entry
+        await updateTimeEntry(timeEntryData);
+        successMessage.value = "¡Horas actualizadas exitosamente!";
+      } else {
+        // Create new entry
+        await createTimeEntry(timeEntryData);
+        successMessage.value = "¡Horas registradas exitosamente!";
+      }
 
       // Redirect after success
       setTimeout(() => {

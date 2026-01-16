@@ -4,12 +4,14 @@ import {
   useStore,
   $,
   useVisibleTask$,
+  useContext,
 } from "@builder.io/qwik";
 import type { DocumentHead } from "@builder.io/qwik-city";
-import type { EmployeeRole, DailyTimeEntry, CalendarDayTypes } from "~/types";
+import type { DailyTimeEntry, CalendarDayTypes, EmployeeRole } from "~/types";
 import { CalendarHeader, CalendarStats } from "~/components/molecules";
 import { CalendarGrid, DayDetailsModal } from "~/components/organisms";
 import { useGetTimeEntries } from "~/graphql/hooks/useTimeEntries";
+import { AuthContext } from "~/components/providers/AuthProvider";
 
 /**
  * Modern Dark Theme Calendar Component
@@ -28,6 +30,9 @@ export default component$(() => {
   const showDayModal = useSignal(false);
   const userId = useSignal<string>("");
   const isLoadingEntries = useSignal(false);
+
+  // Authentication
+  const authContext = useContext(AuthContext);
 
   // Get the hook for fetching time entries
   const getTimeEntries = useGetTimeEntries();
@@ -183,6 +188,12 @@ export default component$(() => {
 
           entries.length = 0;
 
+          const userName = authContext.user
+            ? `${authContext.user.first_name} ${authContext.user.last_name}`
+            : "";
+
+          const userRole = (authContext.user?.role?.role_name || "Employee") as EmployeeRole;
+
           timeEntriesData.forEach((entry: any, index: number) => {
             const projects = entry.time_entry_projects || [];
             const totalHours = projects.reduce(
@@ -196,9 +207,9 @@ export default component$(() => {
 
             entries.push({
               id: entry.time_entry_id,
-              employeeName: "",
+              employeeName: userName,
               date: entry.entry_date,
-              role: "Other" as EmployeeRole,
+              role: userRole,
               projects: projects.map((p: any) => ({
                 id: p.tep_id,
                 clientName: p.project?.client?.name || "Unknown",
@@ -248,12 +259,15 @@ export default component$(() => {
 
   // Day interaction handlers
   const handleDayClick = $((day: CalendarDayTypes) => {
-    if (!day.hasEntries) {
+    console.log("📅 Day clicked:", day);
+    if (day.hasEntries) {
+      console.log("✅ Day has entries, opening modal");
+      selectedDay.value = day;
+      showDayModal.value = true;
+    } else {
+      console.log("➡️ Day has no entries, navigating to entry page");
       window.location.href = `/entry?date=${day.date}`;
-      return;
     }
-    selectedDay.value = day;
-    showDayModal.value = true;
   });
 
   // Helper functions
@@ -264,15 +278,13 @@ export default component$(() => {
     });
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   const handleNewEntry = $((date: string) => {
     window.location.href = `/entry?date=${date}`;
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleEditEntry = $((_entryId: string) => {
-    window.location.href = `/entry`;
-    // window.location.href = `/entry?edit=${entryId}`;
+  const handleEditEntry = $((entryId: string) => {
+    window.location.href = `/entry?id=${entryId}`;
   });
 
   return (
@@ -280,7 +292,9 @@ export default component$(() => {
       <div class="mx-auto max-w-7xl space-y-8">
         {/* Header Section */}
         <CalendarHeader
-          onAddEntry$={() => handleNewEntry(new Date().toISOString().split("T")[0])}
+          onAddEntry$={() =>
+            handleNewEntry(new Date().toISOString().split("T")[0])
+          }
           onGoToToday$={goToToday}
         />
 
@@ -302,13 +316,15 @@ export default component$(() => {
         />
 
         {/* Day Details Modal */}
-        <DayDetailsModal
-          day={selectedDay.value}
-          isOpen={showDayModal.value}
-          onClose$={() => (showDayModal.value = false)}
-          onAddEntry$={handleNewEntry}
-          onEditEntry$={handleEditEntry}
-        />
+        {showDayModal.value && (
+          <DayDetailsModal
+            day={selectedDay.value}
+            isOpen={showDayModal.value}
+            onClose$={() => (showDayModal.value = false)}
+            onAddEntry$={handleNewEntry}
+            onEditEntry$={handleEditEntry}
+          />
+        )}
       </div>
     </div>
   );

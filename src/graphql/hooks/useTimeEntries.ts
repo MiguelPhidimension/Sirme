@@ -188,6 +188,30 @@ const GET_TIME_ENTRY_BY_ID_QUERY = `
 `;
 
 /**
+ * Query to get user details by ID
+ */
+const GET_USER_BY_ID_QUERY = `
+  query GetUserById($user_id: uuid!) {
+    users_by_pk(user_id: $user_id) {
+      first_name
+      last_name
+      role_id
+    }
+  }
+`;
+
+/**
+ * Query to get role details by ID
+ */
+const GET_ROLE_BY_ID_QUERY = `
+  query GetRoleById($role_id: uuid!) {
+    roles_by_pk(role_id: $role_id) {
+      role_name
+    }
+  }
+`;
+
+/**
  * Query to get time entry projects by time entry ID
  */
 const GET_TIME_ENTRY_PROJECTS_BY_ID_QUERY = `
@@ -203,6 +227,31 @@ const GET_TIME_ENTRY_PROJECTS_BY_ID_QUERY = `
       hours_reported
       is_mps
       notes
+    }
+  }
+`;
+
+/**
+ * Mutation to delete time entry projects
+ */
+const DELETE_TIME_ENTRY_PROJECTS_MUTATION = `
+  mutation DeleteTimeEntryProjects($time_entry_id: uuid!) {
+    delete_time_entry_projects(where: {time_entry_id: {_eq: $time_entry_id}}) {
+      affected_rows
+    }
+  }
+`;
+
+/**
+ * Mutation to update time entry date
+ */
+const UPDATE_TIME_ENTRY_DATE_MUTATION = `
+  mutation UpdateTimeEntry($time_entry_id: uuid!, $entry_date: date!) {
+    update_time_entries_by_pk(
+      pk_columns: {time_entry_id: $time_entry_id}, 
+      _set: {entry_date: $entry_date}
+    ) {
+      time_entry_id
     }
   }
 `;
@@ -262,6 +311,54 @@ export const useCreateTimeEntry = () => {
       console.error("Error creating time entry:", error);
       throw new Error(
         error instanceof Error ? error.message : "Failed to create time entry",
+      );
+    }
+  });
+};
+
+/**
+ * Hook to update a time entry with projects
+ *
+ * @returns Function to update a time entry
+ */
+export const useUpdateTimeEntry = () => {
+  return $(async (timeEntry: TimeEntry) => {
+    try {
+      if (!timeEntry.time_entry_id) {
+        throw new Error("Time entry ID is required for update");
+      }
+
+      // Step 1: Update the time entry date (if changed)
+      await graphqlClient.request(UPDATE_TIME_ENTRY_DATE_MUTATION, {
+        time_entry_id: timeEntry.time_entry_id,
+        entry_date: timeEntry.entry_date,
+      });
+
+      // Step 2: Delete existing projects
+      await graphqlClient.request(DELETE_TIME_ENTRY_PROJECTS_MUTATION, {
+        time_entry_id: timeEntry.time_entry_id,
+      });
+
+      // Step 3: Create the new projects
+      const projects = timeEntry.projects.map((project) => ({
+        time_entry_id: timeEntry.time_entry_id,
+        project_id: project.project_id,
+        hours_reported: project.hours_reported,
+        is_mps: project.is_mps,
+        notes: project.notes || null,
+      }));
+
+      if (projects.length > 0) {
+        await graphqlClient.request(CREATE_TIME_ENTRY_PROJECTS_MUTATION, {
+          projects,
+        });
+      }
+
+      return { time_entry_id: timeEntry.time_entry_id };
+    } catch (error) {
+      console.error("Error updating time entry:", error);
+      throw new Error(
+        error instanceof Error ? error.message : "Failed to update time entry",
       );
     }
   });
@@ -434,6 +531,40 @@ export const useGetTimeEntryById = () => {
         return null;
       }
 
+      // Get user details
+      let userDetails: any = null;
+      if (timeEntry.user_id) {
+        try {
+          const userResponse: any = await graphqlClient.request(
+            GET_USER_BY_ID_QUERY,
+            { user_id: timeEntry.user_id },
+          );
+          const rawUser = userResponse.users_by_pk;
+
+          if (rawUser) {
+            userDetails = { ...rawUser };
+            // Get Role if role_id exists
+            if (rawUser.role_id) {
+              try {
+                const roleResponse: any = await graphqlClient.request(
+                  GET_ROLE_BY_ID_QUERY,
+                  { role_id: rawUser.role_id },
+                );
+                if (roleResponse.roles_by_pk) {
+                  userDetails.role = {
+                    role_name: roleResponse.roles_by_pk.role_name,
+                  };
+                }
+              } catch (roleErr) {
+                console.error("Failed to fetch role details", roleErr);
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Failed to fetch user details", e);
+        }
+      }
+
       // Get projects for this time entry
       const projectsResponse: any = await graphqlClient.request(
         GET_TIME_ENTRY_PROJECTS_BY_ID_QUERY,
@@ -452,6 +583,7 @@ export const useGetTimeEntryById = () => {
       if (uniqueProjectIds.length === 0) {
         return {
           ...timeEntry,
+          user: userDetails,
           time_entry_projects: [],
         };
       }
@@ -501,6 +633,7 @@ export const useGetTimeEntryById = () => {
       // Combine projects with their details
       return {
         ...timeEntry,
+        user: userDetails,
         time_entry_projects: allProjects.map((p: any) => ({
           ...p,
           project: projectDetailsMap.get(p.project_id),
