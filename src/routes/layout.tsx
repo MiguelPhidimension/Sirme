@@ -25,33 +25,51 @@ export default component$(() => {
     const currentPath = loc.url.pathname;
 
     const checkAuth = () => {
-      // Si es ruta pública, permitir acceso
-      if (
-        publicPaths.some(
-          (path) => currentPath === path || currentPath.startsWith(path + "/"),
-        )
-      ) {
-        isChecking.value = false;
-        isAuthenticated.value = true;
-        return;
-      }
+      try {
+        // Si es ruta pública, permitir acceso
+        const isPublic = publicPaths.some((path) => {
+          // Exact match handling
+          if (currentPath === path) return true;
+          const pathWithSlash = path.endsWith("/") ? path : `${path}/`;
+          const currentWithSlash = currentPath.endsWith("/")
+            ? currentPath
+            : `${currentPath}/`;
+          if (currentWithSlash === pathWithSlash) return true;
 
-      // Verificar autenticación para rutas protegidas
-      const token = sessionStorage.getItem("auth_token");
-      const user = sessionStorage.getItem("auth_user");
+          // Subpath handling (excluding root path "/" which would match everything)
+          if (path === "/" || path === "") return false;
+          return currentPath.startsWith(pathWithSlash);
+        });
 
-      if (!token || !user) {
-        // No autenticado: redirigir inmediatamente y limpiar todo
-        sessionStorage.clear();
-        localStorage.clear();
+        if (isPublic) {
+          isChecking.value = false;
+          isAuthenticated.value = true;
+          return;
+        }
+
+        // Verificar autenticación para rutas protegidas
+        const token = sessionStorage.getItem("auth_token");
+        const user = sessionStorage.getItem("auth_user");
+
+        if (!token || !user) {
+          // No autenticado: redirigir inmediatamente y limpiar todo
+          sessionStorage.clear();
+          localStorage.clear();
+          isAuthenticated.value = false;
+          isChecking.value = false;
+          // Usar replace para que no se pueda volver atrás con el botón back
+          window.location.replace("/");
+        } else {
+          // Autenticado: permitir acceso
+          isAuthenticated.value = true;
+          isChecking.value = false;
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        // In case of error, redirect to login for safety
         isAuthenticated.value = false;
         isChecking.value = false;
-        // Usar replace para que no se pueda volver atrás con el botón back
         window.location.replace("/");
-      } else {
-        // Autenticado: permitir acceso
-        isAuthenticated.value = true;
-        isChecking.value = false;
       }
     };
 

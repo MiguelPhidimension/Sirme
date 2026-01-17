@@ -106,12 +106,15 @@ export const DateSelector = component$<DateSelectorProps>(
                 Select Date
               </h2>
               <p class="text-sm text-gray-500 dark:text-gray-400">
-                {new Date(selectedDate.value).toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
+                {getDateFromStr(selectedDate.value).toLocaleDateString(
+                  "en-US",
+                  {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  },
+                )}
               </p>
             </div>
           </div>
