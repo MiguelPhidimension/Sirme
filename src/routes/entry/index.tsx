@@ -19,6 +19,7 @@ import {
   useUpdateTimeEntry,
 } from "~/graphql/hooks/useTimeEntries";
 import { AuthContext } from "~/components/providers/AuthProvider";
+import { DateUtils } from "~/utils";
 
 interface ProjectData {
   clientName: string;
@@ -39,7 +40,7 @@ export default component$(() => {
   // State management
   const isLoading = useSignal(false);
   const selectedDate = useSignal(
-    loc.url.searchParams.get("date") || new Date().toISOString().split("T")[0],
+    loc.url.searchParams.get("date") || DateUtils.getCurrentDate(),
   );
   const entryId = useSignal(loc.url.searchParams.get("id") || "");
   const errorMessage = useSignal("");
