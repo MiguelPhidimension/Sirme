@@ -232,10 +232,13 @@ export const useClients = () => {
  *
  * @returns Resource containing projects array and total count
  */
-export const useProjects = () => {
+export const useProjects = (trackSignal?: any) => {
   console.log("🔧 useProjects hook called");
 
-  return useResource$<{ projects: ProjectData[]; total: number }>(async () => {
+  return useResource$<{ projects: ProjectData[]; total: number }>(async (ctx) => {
+    if (trackSignal) {
+        ctx.track(trackSignal);
+    }
     console.log("🚀 useProjects resource executing with direct graphqlClient");
 
     try {

@@ -14,86 +14,95 @@ export * from "./jwt";
  */
 export class DateUtils {
   /**
-   * Helper to format a Date object to YYYY-MM-DD local string
+   * Helper to format a Date object to YYYY-MM-DD GMT string
    */
-  private static toLocalISOString(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
+  private static toGMTISOString(date: Date): string {
+    return date.toISOString().split("T")[0];
   }
 
   /**
-   * Get current date in YYYY-MM-DD format
+   * Get current date in YYYY-MM-DD format (GMT)
    */
   static getCurrentDate(): string {
-    return DateUtils.toLocalISOString(new Date());
+    return DateUtils.toGMTISOString(new Date());
   }
 
   /**
-   * Get start of current week (Monday)
+   * Get start of current week (Monday) - GMT
    */
   static getWeekStart(date?: string): string {
     const d = date ? new Date(date) : new Date();
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-    return new Date(d.setDate(diff)).toISOString().split("T")[0];
-  }
+    // Normalize to UTC midnight if string provided might imply local
+    if (date && !date.endsWith("Z")) {
+      // Assume YYYY-MM-DD string is already "GMT date", create date object as if it is UTC
+      const [y, m, day] = date.split("-").map(Number);
+      d.setUTCFullYear(y, m - 1, day);
+      d.setUTCHours(0, 0, 0, 0);
+    }
 
-  /**
-   * Get end of current week (Sunday)
-   */
-  static getWeekEnd(date?: string): string {
-    const weekStart = DateUtils.getWeekStart(date);
-    const d = new Date(weekStart);
-    d.setDate(d.getDate() + 6);
+    const day = d.getUTCDay();
+    const diff = d.getUTCDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+    d.setUTCDate(diff);
     return d.toISOString().split("T")[0];
   }
 
   /**
-   * Get start of current month
+   * Get end of current week (Sunday) - GMT
    */
-  static getMonthStart(date?: string): string {
-    const d = date ? new Date(date) : new Date();
-    return new Date(d.getFullYear(), d.getMonth(), 1)
-      .toISOString()
-      .split("T")[0];
+  static getWeekEnd(date?: string): string {
+    const weekStart = DateUtils.getWeekStart(date);
+    const d = new Date(weekStart); // weekStart is YYYY-MM-DD which parses as UTC in ISO format usually, but let's be safe
+    // Actually new Date("2023-01-01") parses as UTC.
+    d.setUTCDate(d.getUTCDate() + 6);
+    return d.toISOString().split("T")[0];
   }
 
   /**
-   * Get end of current month
+   * Get start of current month - GMT
+   */
+  static getMonthStart(date?: string): string {
+    const d = date ? new Date(date) : new Date();
+    const year = d.getUTCFullYear();
+    const month = d.getUTCMonth();
+    return new Date(Date.UTC(year, month, 1)).toISOString().split("T")[0];
+  }
+
+  /**
+   * Get end of current month - GMT
    */
   static getMonthEnd(date?: string): string {
     const d = date ? new Date(date) : new Date();
-    return new Date(d.getFullYear(), d.getMonth() + 1, 0)
-      .toISOString()
-      .split("T")[0];
+    const year = d.getUTCFullYear();
+    const month = d.getUTCMonth();
+    return new Date(Date.UTC(year, month + 1, 0)).toISOString().split("T")[0];
   }
 
   /**
    * Format date for display
    */
   static formatDisplayDate(date: string): string {
-    // Append T00:00:00 to ensure date is treated as local time, not UTC
-    // This prevents timezone shifts when displaying the date
-    const localDate = date.includes("T") ? date : `${date}T00:00:00`;
-    return new Date(localDate).toLocaleDateString("en-US", {
+    // Treat the date string as UTC
+    // Appending T00:00:00Z makes it explicitly UTC
+    const utcDate = date.includes("T") ? date : `${date}T00:00:00Z`;
+    return new Date(utcDate).toLocaleDateString("en-US", {
       weekday: "short",
       month: "short",
       day: "numeric",
       year: "numeric",
+      timeZone: "UTC", // Force display in UTC timezone
     });
   }
 
   /**
-   * Get days in month for calendar view
+   * Get days in month for calendar view - GMT
    */
   static getDaysInMonth(year: number, month: number): Date[] {
     const days = [];
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    // Date.UTC creates timestamp for GMT
+    const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
 
     for (let day = 1; day <= daysInMonth; day++) {
-      days.push(new Date(year, month, day));
+      days.push(new Date(Date.UTC(year, month, day)));
     }
 
     return days;

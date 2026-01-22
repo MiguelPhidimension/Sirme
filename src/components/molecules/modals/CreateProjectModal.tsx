@@ -7,6 +7,7 @@ import {
   Resource,
 } from "@builder.io/qwik";
 import { graphqlClient } from "~/graphql/client";
+import { useToast } from "~/components/providers/ToastProvider";
 
 interface ClientData {
   client_id: string;
@@ -58,23 +59,22 @@ export const CreateProjectModal = component$<CreateProjectModalProps>(
     });
 
     const isSubmitting = useSignal(false);
-    const error = useSignal("");
+    const toast = useToast();
 
     // Handle form submission
     const handleSubmit = $(async () => {
       // Validation
       if (!formData.value.name.trim()) {
-        error.value = "Project name is required";
+        toast.error("Project name is required");
         return;
       }
 
       if (!formData.value.client_id) {
-        error.value = "Please select a client";
+        toast.error("Please select a client");
         return;
       }
 
       isSubmitting.value = true;
-      error.value = "";
 
       try {
         const CREATE_PROJECT_MUTATION = `
@@ -132,12 +132,14 @@ export const CreateProjectModal = component$<CreateProjectModalProps>(
           // Notify parent component
           await onProjectCreated$(newProject.project_id, newProject.name);
 
+          toast.success("Project created successfully");
+
           // Close modal
           await onClose$();
         }
       } catch (err) {
         console.error("Error creating project:", err);
-        error.value = "Failed to create project. Please try again.";
+        toast.error("Failed to create project. Please try again.");
       } finally {
         isSubmitting.value = false;
       }
@@ -153,7 +155,6 @@ export const CreateProjectModal = component$<CreateProjectModalProps>(
         start_date: "",
         end_date: "",
       };
-      error.value = "";
       await onClose$();
     });
 
@@ -199,12 +200,6 @@ export const CreateProjectModal = component$<CreateProjectModalProps>(
 
         {/* Body */}
         <div class="px-6 py-6">
-          {error.value && (
-            <div class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-400">
-              {error.value}
-            </div>
-          )}
-
           <div class="space-y-5">
             {/* Project Name */}
             <div>

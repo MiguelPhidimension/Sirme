@@ -135,10 +135,6 @@ export default component$(() => {
     console.log("View entry:", id);
   });
 
-  const handleEditEntry = $((id: string) => {
-    window.location.href = `/entry?edit=${id}`;
-  });
-
   return (
     <div class="min-h-full p-6">
       {/* Page header */}
@@ -195,7 +191,6 @@ export default component$(() => {
         <RecentEntriesList
           entries={reportData.timeEntries}
           onViewEntry$={handleViewEntry}
-          onEditEntry$={handleEditEntry}
         />
       </div>
     </div>

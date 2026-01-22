@@ -75,17 +75,6 @@ export const HomePage = component$(() => {
   });
 
   // Handler functions for dashboard interactions
-  const handleNewEntry = $(() => {
-    // Navigate to new entry page
-    console.log("Navigate to new time entry");
-    window.location.href = "/entry";
-  });
-
-  const handleEditEntry = $((entryId: string) => {
-    // Navigate to edit entry page with specific entry
-    console.log("Edit entry:", entryId);
-    window.location.href = `/entry?edit=${entryId}`;
-  });
 
   const handleViewCalendar = $(() => {
     // Navigate to calendar view
@@ -111,8 +100,6 @@ export const HomePage = component$(() => {
       <Dashboard
         summary={summary}
         recentEntries={recentEntries}
-        onNewEntry$={handleNewEntry}
-        onEditEntry$={handleEditEntry}
         onViewCalendar$={handleViewCalendar}
         isLoading={isLoading.value}
       />

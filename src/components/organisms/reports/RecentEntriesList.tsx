@@ -25,7 +25,6 @@ interface TimeEntry {
 interface RecentEntriesListProps {
   entries: TimeEntry[];
   onViewEntry$: QRL<(id: string) => void>;
-  onEditEntry$: QRL<(id: string) => void>;
 }
 
 /**
@@ -33,7 +32,7 @@ interface RecentEntriesListProps {
  * Displays a list of recent time entries with empty state
  */
 export const RecentEntriesList = component$<RecentEntriesListProps>(
-  ({ entries, onViewEntry$, onEditEntry$ }) => {
+  ({ entries, onViewEntry$ }) => {
     return (
       <div class="rounded-2xl border border-white/20 bg-white/90 p-6 shadow-xl backdrop-blur-sm dark:border-slate-700/20 dark:bg-slate-800/90">
         <div class="mb-6 flex items-center space-x-3">
@@ -51,7 +50,6 @@ export const RecentEntriesList = component$<RecentEntriesListProps>(
                 key={entry.id}
                 entry={entry}
                 onView$={onViewEntry$}
-                onEdit$={onEditEntry$}
               />
             ))
           ) : (

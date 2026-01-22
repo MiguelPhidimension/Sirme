@@ -26,8 +26,11 @@ interface ProjectEntryProps {
  */
 export const ProjectEntry = component$<ProjectEntryProps>(
   ({ project, index, canRemove, onRemove$, onUpdate$ }) => {
+    // Add signal to trigger refresh
+    const refreshTrigger = useSignal(0);
+
     // Load projects from database
-    const projectsResource = useProjects();
+    const projectsResource = useProjects(refreshTrigger);
 
     // State for modal
     const showModal = useSignal(false);
@@ -41,8 +44,8 @@ export const ProjectEntry = component$<ProjectEntryProps>(
         onUpdate$("projectId", projectId);
         onUpdate$("clientName", projectName);
 
-        // Refresh projects list to show the new project
-        window.location.reload();
+        // Refresh projects resource
+        refreshTrigger.value++;
       },
     );
 
