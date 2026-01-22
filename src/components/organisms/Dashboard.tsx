@@ -20,7 +20,6 @@ import { LuPlus, LuX } from "@qwikest/icons/lucide";
 interface DashboardProps {
   summary?: DashboardSummary;
   recentEntries?: DailyTimeEntry[];
-  onNewEntry$?: QRL<() => void>;
   onViewCalendar$?: QRL<() => void>;
   onEditEntry$?: QRL<(entryId: string) => void>;
   isLoading?: boolean;
@@ -53,9 +52,6 @@ export const Dashboard = component$<DashboardProps>(
   ({
     summary,
     recentEntries = [],
-    onNewEntry$,
-    // onViewCalendar$,
-    onEditEntry$,
     isLoading = false,
   }) => {
     // Time entry form state
@@ -172,8 +168,6 @@ export const Dashboard = component$<DashboardProps>(
         {/* Recent Entries */}
         <RecentEntries
           entries={recentEntries}
-          onEditEntry$={onEditEntry$}
-          onNewEntry$={onNewEntry$}
         />
 
         {/* Time Entry Form Modal */}

@@ -24,7 +24,6 @@ interface TimeEntry {
 interface TimeEntryCardProps {
   entry: TimeEntry;
   onView$: QRL<(id: string) => void>;
-  onEdit$: QRL<(id: string) => void>;
 }
 
 /**
@@ -32,7 +31,7 @@ interface TimeEntryCardProps {
  * Shows employee info, date, projects, and action buttons
  */
 export const TimeEntryCard = component$<TimeEntryCardProps>(
-  ({ entry, onView$, onEdit$ }) => {
+  ({ entry, onView$ }) => {
     return (
       <div class="space-y-3 rounded-2xl border border-white/20 bg-gradient-to-br from-white/95 to-gray-50/95 p-6 shadow-lg backdrop-blur-sm dark:border-slate-700/20 dark:from-slate-800/95 dark:to-slate-700/95">
         {/* Entry Header */}
@@ -109,12 +108,12 @@ export const TimeEntryCard = component$<TimeEntryCardProps>(
           >
             View Details
           </button>
-          <button
+          {/* <button
             class="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-blue-600"
             onClick$={() => onEdit$(entry.id)}
           >
             Edit Entry
-          </button>
+          </button> */}
         </div>
       </div>
     );

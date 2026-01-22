@@ -11,7 +11,7 @@ import { useLocation } from "@builder.io/qwik-city";
 import { SidebarContext } from "~/contexts/sidebar-context";
 import { MobileTopBar } from "~/components/molecules";
 import { DesktopSidebar, MobileSidebar } from "~/components/organisms";
-import { LuBarChart3, LuCalendar, LuClock } from "@qwikest/icons/lucide";
+import { LuBarChart3, LuCalendar } from "@qwikest/icons/lucide";
 
 /**
  * MainLayout Template Component
@@ -83,12 +83,6 @@ export const MainLayout = component$(() => {
       label: "Calendar",
       icon: <LuCalendar class="h-6 w-6" />,
       description: "View calendar",
-    },
-    {
-      path: "/entry",
-      label: "Time Entry",
-      icon: <LuClock class="h-6 w-6" />,
-      description: "Time entries",
     },
   ];
 

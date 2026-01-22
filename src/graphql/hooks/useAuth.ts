@@ -23,11 +23,6 @@ const GET_USER_BY_EMAIL_QUERY = `
       password
       created_at
       updated_at
-      role {
-        role_id
-        role_name
-        description
-      }
     }
   }
 `;

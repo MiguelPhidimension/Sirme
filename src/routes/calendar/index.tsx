@@ -9,7 +9,11 @@ import {
 import type { DocumentHead } from "@builder.io/qwik-city";
 import type { DailyTimeEntry, CalendarDayTypes, EmployeeRole } from "~/types";
 import { CalendarHeader, CalendarStats } from "~/components/molecules";
-import { CalendarGrid, DayDetailsModal } from "~/components/organisms";
+import {
+  CalendarGrid,
+  DayDetailsModal,
+  TimeEntryModal,
+} from "~/components/organisms";
 import { useGetTimeEntries } from "~/graphql/hooks/useTimeEntries";
 import { AuthContext } from "~/components/providers/AuthProvider";
 
@@ -28,6 +32,13 @@ export default component$(() => {
   const currentDate = useSignal(new Date());
   const selectedDay = useSignal<CalendarDayTypes | null>(null);
   const showDayModal = useSignal(false);
+
+  // Time Entry Modal State
+  const showTimeEntryModal = useSignal(false);
+  const timeEntryModalDate = useSignal("");
+  const timeEntryModalId = useSignal("");
+  const refreshTrigger = useSignal(0);
+
   const userId = useSignal<string>("");
   const isLoadingEntries = useSignal(false);
 
@@ -122,7 +133,7 @@ export default component$(() => {
   // Initialize calendar when component mounts or month changes
   useVisibleTask$(({ track }) => {
     track(() => currentDate.value);
-    track(() => entries);
+    track(() => refreshTrigger.value);
 
     // Get user ID from localStorage - try multiple keys
     if (typeof window !== "undefined") {
@@ -269,6 +280,19 @@ export default component$(() => {
     currentDate.value = new Date();
   });
 
+  const handleNewEntry = $((date: string) => {
+    timeEntryModalDate.value = date;
+    timeEntryModalId.value = "";
+    showTimeEntryModal.value = true;
+  });
+
+  const handleEditEntry = $((entryId: string) => {
+    timeEntryModalId.value = entryId;
+    timeEntryModalDate.value = "";
+    showTimeEntryModal.value = true;
+    showDayModal.value = false;
+  });
+
   // Day interaction handlers
   const handleDayClick = $((day: CalendarDayTypes) => {
     console.log("📅 Day clicked:", day);
@@ -277,8 +301,11 @@ export default component$(() => {
       selectedDay.value = day;
       showDayModal.value = true;
     } else {
-      console.log("➡️ Day has no entries, navigating to entry page");
-      window.location.href = `/entry?date=${day.date}`;
+      console.log("➡️ Day has no entries, opening time entry modal");
+      // Directly set signals instead of calling the other QRL to avoid scoping issues
+      timeEntryModalDate.value = day.date;
+      timeEntryModalId.value = "";
+      showTimeEntryModal.value = true;
     }
   });
 
@@ -289,14 +316,6 @@ export default component$(() => {
       year: "numeric",
     });
   };
-
-  const handleNewEntry = $((date: string) => {
-    window.location.href = `/entry?date=${date}`;
-  });
-
-  const handleEditEntry = $((entryId: string) => {
-    window.location.href = `/entry?id=${entryId}`;
-  });
 
   return (
     <div class="min-h-full p-6">
@@ -334,6 +353,20 @@ export default component$(() => {
             onClose$={() => (showDayModal.value = false)}
             onAddEntry$={handleNewEntry}
             onEditEntry$={handleEditEntry}
+          />
+        )}
+
+        {/* Time Entry Modal */}
+        {showTimeEntryModal.value && (
+          <TimeEntryModal
+            isOpen={showTimeEntryModal.value}
+            date={timeEntryModalDate.value}
+            entryId={timeEntryModalId.value}
+            onClose$={$(() => (showTimeEntryModal.value = false))}
+            onSuccess$={$(() => {
+              console.log("🔄 Time entry saved, refreshing calendar...");
+              refreshTrigger.value++;
+            })}
           />
         )}
       </div>
