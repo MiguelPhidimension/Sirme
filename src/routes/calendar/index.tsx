@@ -69,33 +69,42 @@ export default component$(() => {
 
   // Build calendar grid data for current month
   const buildCalendarData = $(() => {
-    const year = currentDate.value.getFullYear();
-    const month = currentDate.value.getMonth();
+    // Treat currentDate as UTC source of truth for month/year
+    const d = currentDate.value;
+    // currentDate doesn't have "getUTC..." reliable on the object itself if it was set via "new Date()" local,
+    // but semantically we want to treat the "2023-11" part of it as GMT.
+    // However, JS Date objects store a timestamp.
+    // If we want consistency, we should lean on getUTC* methods.
 
-    // Calculate calendar grid boundaries using local dates
-    const firstDayOfMonth = new Date(year, month, 1);
-    const lastDayOfMonth = new Date(year, month + 1, 0);
+    const year = d.getUTCFullYear(); // Changed to UTC
+    const month = d.getUTCMonth(); // Changed to UTC
+
+    // Calculate calendar grid boundaries using UTC dates
+    const firstDayOfMonth = new Date(Date.UTC(year, month, 1));
+    const lastDayOfMonth = new Date(Date.UTC(year, month + 1, 0));
 
     // Calculate start date (Sunday before or on first day of month)
-    const firstDayWeekday = firstDayOfMonth.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    const startDate = new Date(year, month, 1 - firstDayWeekday);
+    const firstDayWeekday = firstDayOfMonth.getUTCDay(); // 0 = Sunday
+    const startDate = new Date(firstDayOfMonth);
+    startDate.setUTCDate(startDate.getUTCDate() - firstDayWeekday);
 
     // Calculate end date (Saturday after or on last day of month)
-    const lastDayWeekday = lastDayOfMonth.getDay();
-    const endDate = new Date(year, month + 1, 0 + (6 - lastDayWeekday));
+    const lastDayWeekday = lastDayOfMonth.getUTCDay();
+    const endDate = new Date(lastDayOfMonth);
+    endDate.setUTCDate(endDate.getUTCDate() + (6 - lastDayWeekday));
 
     // Build calendar days array
     const days: CalendarDayTypes[] = [];
-    const currentDay = new Date(startDate);
+    const currentDay = new Date(startDate); // This is a UTC Date
 
     let monthTotal = 0;
     let workingDays = 0;
 
     while (currentDay <= endDate) {
-      // Build date string from local date parts
-      const y = currentDay.getFullYear();
-      const m = currentDay.getMonth();
-      const d = currentDay.getDate();
+      // Build date string from UTC date parts
+      const y = currentDay.getUTCFullYear();
+      const m = currentDay.getUTCMonth();
+      const d = currentDay.getUTCDate();
       const monthStr = String(m + 1).padStart(2, "0");
       const dayStr = String(d).padStart(2, "0");
       const dateStr = `${y}-${monthStr}-${dayStr}`;
@@ -119,8 +128,8 @@ export default component$(() => {
         entries: dayEntries,
       });
 
-      // Advance to next day
-      currentDay.setDate(currentDay.getDate() + 1);
+      // Advance to next day using UTC date setter
+      currentDay.setUTCDate(currentDay.getUTCDate() + 1);
     }
 
     // Update calendar data
@@ -174,11 +183,12 @@ export default component$(() => {
       try {
         isLoadingEntries.value = true;
 
-        const year = currentDate.value.getFullYear();
-        const month = currentDate.value.getMonth();
+        // Use UTC for data fetching ranges
+        const year = currentDate.value.getUTCFullYear();
+        const month = currentDate.value.getUTCMonth();
 
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
+        const firstDay = new Date(Date.UTC(year, month, 1));
+        const lastDay = new Date(Date.UTC(year, month + 1, 0));
 
         const startDate = firstDay.toISOString().split("T")[0];
         const endDate = lastDay.toISOString().split("T")[0];
@@ -269,9 +279,9 @@ export default component$(() => {
   const navigateMonth = $((direction: "prev" | "next") => {
     const newDate = new Date(currentDate.value);
     if (direction === "prev") {
-      newDate.setMonth(newDate.getMonth() - 1);
+      newDate.setUTCMonth(newDate.getUTCMonth() - 1);
     } else {
-      newDate.setMonth(newDate.getMonth() + 1);
+      newDate.setUTCMonth(newDate.getUTCMonth() + 1);
     }
     currentDate.value = newDate;
   });
@@ -314,6 +324,7 @@ export default component$(() => {
     return currentDate.value.toLocaleDateString("en-US", {
       month: "long",
       year: "numeric",
+      timeZone: "UTC",
     });
   };
 
@@ -339,7 +350,7 @@ export default component$(() => {
         <CalendarGrid
           days={calendarData.days}
           monthYearDisplay={getMonthYearDisplay()}
-          currentMonth={currentDate.value.getMonth()}
+          currentMonth={currentDate.value.getUTCMonth()}
           onPrevMonth$={() => navigateMonth("prev")}
           onNextMonth$={() => navigateMonth("next")}
           onDayClick$={handleDayClick}

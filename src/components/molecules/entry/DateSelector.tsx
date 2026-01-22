@@ -27,27 +27,34 @@ export const DateSelector = component$<DateSelectorProps>(
     const getDateFromStr = (dateStr: string) => {
       if (!dateStr) return new Date();
       const [year, month, day] = dateStr.split("-").map(Number);
-      return new Date(year, month - 1, day);
+      return new Date(Date.UTC(year, month - 1, day));
     };
 
     // State for the currently displayed month
-    const currentMonthDate = useSignal(getDateFromStr(selectedDate.value));
+    // Use selected date or today (in UTC)
+    const currentMonthDate = useSignal(
+      getDateFromStr(
+        selectedDate.value || new Date().toISOString().split("T")[0],
+      ),
+    );
 
     // Computed values for calendar grid
     const calendarData = useComputed$(() => {
-      const year = currentMonthDate.value.getFullYear();
-      const month = currentMonthDate.value.getMonth();
+      const year = currentMonthDate.value.getUTCFullYear();
+      const month = currentMonthDate.value.getUTCMonth();
 
-      const firstDayOfMonth = new Date(year, month, 1);
-      const lastDayOfMonth = new Date(year, month + 1, 0);
+      const firstDayOfMonth = new Date(Date.UTC(year, month, 1));
+      const lastDayOfMonth = new Date(Date.UTC(year, month + 1, 0));
 
       // Start from the Sunday before or on the first day
+      const firstDayWeekday = firstDayOfMonth.getUTCDay();
       const startDate = new Date(firstDayOfMonth);
-      startDate.setDate(startDate.getDate() - startDate.getDay());
+      startDate.setUTCDate(startDate.getUTCDate() - firstDayWeekday);
 
       // End on the Saturday after or on the last day
+      const lastDayWeekday = lastDayOfMonth.getUTCDay();
       const endDate = new Date(lastDayOfMonth);
-      endDate.setDate(endDate.getDate() + (6 - lastDayOfMonth.getDay()));
+      endDate.setUTCDate(endDate.getUTCDate() + (6 - lastDayWeekday));
 
       const days: { date: Date; isCurrentMonth: boolean; dateStr: string }[] =
         [];
@@ -55,17 +62,17 @@ export const DateSelector = component$<DateSelectorProps>(
 
       while (currentDay <= endDate) {
         const dateStr = [
-          currentDay.getFullYear(),
-          String(currentDay.getMonth() + 1).padStart(2, "0"),
-          String(currentDay.getDate()).padStart(2, "0"),
+          currentDay.getUTCFullYear(),
+          String(currentDay.getUTCMonth() + 1).padStart(2, "0"),
+          String(currentDay.getUTCDate()).padStart(2, "0"),
         ].join("-");
 
         days.push({
           date: new Date(currentDay),
-          isCurrentMonth: currentDay.getMonth() === month,
+          isCurrentMonth: currentDay.getUTCMonth() === month,
           dateStr,
         });
-        currentDay.setDate(currentDay.getDate() + 1);
+        currentDay.setUTCDate(currentDay.getUTCDate() + 1);
       }
 
       return days;
@@ -75,18 +82,19 @@ export const DateSelector = component$<DateSelectorProps>(
       return currentMonthDate.value.toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",
+        timeZone: "UTC",
       });
     });
 
     const handlePrevMonth = $(() => {
       const d = new Date(currentMonthDate.value);
-      d.setMonth(d.getMonth() - 1);
+      d.setUTCMonth(d.getUTCMonth() - 1);
       currentMonthDate.value = d;
     });
 
     const handleNextMonth = $(() => {
       const d = new Date(currentMonthDate.value);
-      d.setMonth(d.getMonth() + 1);
+      d.setUTCMonth(d.getUTCMonth() + 1);
       currentMonthDate.value = d;
     });
 
@@ -177,7 +185,7 @@ export const DateSelector = component$<DateSelectorProps>(
                         : "text-slate-300 dark:text-slate-600"
                   } ${isToday && !isSelected ? "ring-1 ring-blue-500 ring-offset-1 dark:ring-offset-slate-800" : ""} `}
                 >
-                  {day.date.getDate()}
+                  {day.date.getUTCDate()}
                 </button>
               );
             })}

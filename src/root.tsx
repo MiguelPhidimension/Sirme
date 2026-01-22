@@ -3,6 +3,7 @@ import { QwikCityProvider, RouterOutlet } from "@builder.io/qwik-city";
 import { RouterHead } from "./components/router-head/router-head";
 import { GraphQLProvider } from "./components/providers/GraphQLProvider";
 import { AuthProvider } from "./components/providers/AuthProvider";
+import { ToastProvider } from "./components/providers/ToastProvider";
 
 import "./global.css";
 
@@ -29,7 +30,9 @@ export default component$(() => {
       <body lang="en">
         <AuthProvider>
           <GraphQLProvider>
-            <RouterOutlet />
+            <ToastProvider>
+              <RouterOutlet />
+            </ToastProvider>
           </GraphQLProvider>
         </AuthProvider>
       </body>

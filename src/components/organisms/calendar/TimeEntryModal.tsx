@@ -20,6 +20,7 @@ import {
   useUpdateTimeEntry,
 } from "~/graphql/hooks/useTimeEntries";
 import { AuthContext } from "~/components/providers/AuthProvider";
+import { useToast } from "~/components/providers/ToastProvider";
 
 interface LocalProjectData {
   clientName: string;
@@ -40,14 +41,13 @@ interface TimeEntryModalProps {
 export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
   // Get authentication context
   const authContext = useContext(AuthContext);
+  const toast = useToast();
 
   // State management
   const isLoading = useSignal(false);
   const selectedDate = useSignal(
     props.date || new Date().toISOString().split("T")[0],
   );
-  const errorMessage = useSignal("");
-  const successMessage = useSignal("");
 
   // Get hooks
   const createTimeEntry = useCreateTimeEntry();
@@ -90,8 +90,6 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
     if (!props.isOpen) return;
 
     // Reset state
-    errorMessage.value = "";
-    successMessage.value = "";
     isLoading.value = false;
 
     // Set date
@@ -152,7 +150,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
         }
       } catch (error) {
         console.error("Error loading entry:", error);
-        errorMessage.value = "Error loading entry details";
+        toast.error("Error loading entry details");
       } finally {
         isLoading.value = false;
       }
@@ -161,15 +159,12 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
 
   // Handle form submission
   const handleSubmit = $(async () => {
-    errorMessage.value = "";
-    successMessage.value = "";
-
     // Use the selected employee ID, or fall back to authenticated user
     const userId = formData.employeeId || authContext.user?.user_id;
 
     // Validate user is selected
     if (!userId) {
-      errorMessage.value = "Debes seleccionar un empleado para registrar horas";
+      toast.error("You must select an employee to log hours");
       return;
     }
 
@@ -178,8 +173,9 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
       (p) => !p.projectId || p.hours <= 0,
     );
     if (invalidProjects.length > 0) {
-      errorMessage.value =
-        "Todos los proyectos deben tener un cliente/proyecto seleccionado y horas mayores a 0";
+      toast.error(
+        "All projects must have a client/project selected and hours greater than 0",
+      );
       return;
     }
 
@@ -204,24 +200,21 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
       if (props.entryId) {
         // Update existing entry
         await updateTimeEntry(timeEntryData);
-        successMessage.value = "¡Horas actualizadas exitosamente!";
+        toast.success("Time entry updated successfully!");
       } else {
         // Create new entry
         await createTimeEntry(timeEntryData);
-        successMessage.value = "¡Horas registradas exitosamente!";
+        toast.success("Time entry created successfully!");
       }
 
-      // Close modal and refresh after short delay
-      setTimeout(() => {
-        props.onSuccess$();
-        props.onClose$();
-      }, 1000);
+      // Close modal and refresh immediately
+      props.onSuccess$();
+      props.onClose$();
     } catch (error) {
       console.error("Failed to submit time entry:", error);
-      errorMessage.value =
-        error instanceof Error
-          ? error.message
-          : "Error al guardar el registro de horas";
+      toast.error(
+        error instanceof Error ? error.message : "Error saving time entry",
+      );
     } finally {
       isLoading.value = false;
     }
@@ -286,12 +279,12 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
         <div class="flex items-center justify-between border-b border-gray-100 px-6 py-5 dark:border-slate-800">
           <div>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-              {props.entryId ? "Editar Registro" : "Nuevo Registro"}
+              {props.entryId ? "Edit Entry" : "New Entry"}
             </h2>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {props.entryId
-                ? "Actualiza la información de tus horas"
-                : "Registra tus actividades del día"}
+                ? "Update your time entry details"
+                : "Record your daily activities"}
             </p>
           </div>
           <button
@@ -305,25 +298,6 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
         {/* Scrollable Body */}
         <div class="custom-scrollbar flex-1 overflow-y-auto p-6 sm:p-8">
           <div class="space-y-8">
-            {/* Error/Success Messages */}
-            {(errorMessage.value || successMessage.value) && (
-              <div class="space-y-4">
-                {errorMessage.value && (
-                  <div class="rounded-xl border border-red-100 bg-red-50 p-4 text-red-800 dark:border-red-900/30 dark:bg-red-900/20 dark:text-red-300">
-                    <p class="flex items-center gap-2 font-medium">
-                      <span class="i-lucide-alert-circle text-lg"></span>
-                      {errorMessage.value}
-                    </p>
-                  </div>
-                )}
-                {successMessage.value && (
-                  <div class="rounded-xl border border-green-100 bg-green-50 p-4 text-green-800 dark:border-green-900/30 dark:bg-green-900/20 dark:text-green-300">
-                    <p class="font-medium">{successMessage.value}</p>
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* Date Selection */}
             <div class="grid gap-6 md:grid-cols-2">
               <div class="md:col-span-2">
@@ -352,7 +326,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
 
             <div class="border-t border-gray-100 pt-6 dark:border-slate-800">
               <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-                Proyectos y Actividades
+                Projects and Activities
               </h3>
               <ProjectList
                 projects={formData.projects}
