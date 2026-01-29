@@ -23,6 +23,7 @@ import { AuthContext } from "~/components/providers/AuthProvider";
 import { useToast } from "~/components/providers/ToastProvider";
 
 interface LocalProjectData {
+  clientId?: string;
   clientName: string;
   projectId?: string;
   hours: number;
@@ -44,7 +45,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
   const toast = useToast();
 
   // State management
-  const isLoading = useSignal(false);
+  const isLoading = useSignal(props.isOpen);
   const selectedDate = useSignal(
     props.date || new Date().toISOString().split("T")[0],
   );
@@ -89,8 +90,8 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
 
     if (!props.isOpen) return;
 
-    // Reset state
-    isLoading.value = false;
+    // Set loading state
+    isLoading.value = true;
 
     // Set date
     if (props.date) {
@@ -102,6 +103,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
     if (!props.entryId) {
       formData.projects = [
         {
+          clientId: "",
           clientName: "",
           projectId: "",
           hours: 0,
@@ -115,11 +117,13 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
         formData.employeeName = `${authContext.user.first_name} ${authContext.user.last_name}`;
         formData.employeeId = authContext.user.user_id;
       }
+
+      // Finish loading for new entry
+      isLoading.value = false;
     }
 
     // Load existing entry data if editing
     if (props.entryId) {
-      isLoading.value = true;
       try {
         const entry = await getTimeEntryById(props.entryId);
         if (entry) {
@@ -140,6 +144,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
             entry.time_entry_projects.length > 0
           ) {
             formData.projects = entry.time_entry_projects.map((p: any) => ({
+              clientId: p.project?.client_id || "",
               clientName: p.project?.client?.name || "",
               projectId: p.project_id,
               hours: p.hours_reported,
@@ -313,6 +318,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
               employeeName={formData.employeeName}
               employeeId={formData.employeeId}
               role={formData.role}
+              disabled={isLoading.value}
               onNameChange={$((name) => {
                 formData.employeeName = name;
               })}
@@ -331,6 +337,8 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
               <ProjectList
                 projects={formData.projects}
                 totalHours={totalHours}
+                isEditing={!!props.entryId}
+                disabled={isLoading.value}
                 onAddProject$={addProject}
                 onRemoveProject$={removeProject}
                 onUpdateProject$={handleProjectUpdate}
@@ -348,6 +356,21 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
             onSubmit$={handleSubmit}
           />
         </div>
+
+        {/* Loading Overlay */}
+        {isLoading.value && (
+          <div class="absolute inset-0 flex items-center justify-center rounded-3xl bg-white/50 backdrop-blur-sm dark:bg-slate-900/50">
+            <div class="flex flex-col items-center space-y-4">
+              <div class="relative h-12 w-12">
+                <div class="absolute inset-0 rounded-full border-4 border-gray-200 dark:border-slate-700"></div>
+                <div class="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-blue-500 border-r-blue-500"></div>
+              </div>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Loading entry details...
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

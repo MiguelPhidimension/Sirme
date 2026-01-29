@@ -18,6 +18,7 @@ export type EmployeeRole =
  */
 export interface ProjectEntry {
   id: string;
+  clientId?: string;
   clientName: string;
   hours: number;
   isMPS: boolean; // MuleSoft Professional Services flag

@@ -1,8 +1,16 @@
-import { component$, type QRL, Resource, useSignal, $ } from "@builder.io/qwik";
-import { useProjects } from "~/graphql/hooks/useProjects";
+import {
+  component$,
+  type QRL,
+  Resource,
+  useSignal,
+  $,
+  useVisibleTask$,
+} from "@builder.io/qwik";
+import { useProjects, useClients } from "~/graphql/hooks/useProjects";
 import { CreateProjectModal } from "../modals/CreateProjectModal";
 
 interface ProjectData {
+  clientId?: string;
   clientName: string;
   projectId?: string;
   hours: number;
@@ -14,6 +22,7 @@ interface ProjectEntryProps {
   project: ProjectData;
   index: number;
   canRemove: boolean;
+  isEditing?: boolean;
   onRemove$: QRL<() => void>;
   onUpdate$: QRL<
     (field: keyof ProjectData, value: string | number | boolean) => void
@@ -25,11 +34,12 @@ interface ProjectEntryProps {
  * Displays all fields for one project (client, hours, MPS, notes)
  */
 export const ProjectEntry = component$<ProjectEntryProps>(
-  ({ project, index, canRemove, onRemove$, onUpdate$ }) => {
+  ({ project, index, canRemove, isEditing = false, onRemove$, onUpdate$ }) => {
     // Add signal to trigger refresh
     const refreshTrigger = useSignal(0);
 
-    // Load projects from database
+    // Load clients and projects from database
+    const clientsResource = useClients();
     const projectsResource = useProjects(refreshTrigger);
 
     // State for modal
@@ -37,17 +47,31 @@ export const ProjectEntry = component$<ProjectEntryProps>(
 
     // Handle project created from modal
     const handleProjectCreated = $(
-      async (projectId: string, projectName: string) => {
-        console.log("✅ Project created:", projectId, projectName);
+      async (projectId: string, projectName: string, clientId?: string) => {
+        console.log("✅ Project created:", projectId, projectName, clientId);
 
         // Update the form with the new project
         onUpdate$("projectId", projectId);
         onUpdate$("clientName", projectName);
+        if (clientId) {
+          onUpdate$("clientId", clientId);
+        }
 
         // Refresh projects resource
         refreshTrigger.value++;
       },
     );
+
+    // Auto-populate clientId when editing existing project
+    useVisibleTask$(async ({ track }) => {
+      track(() => project.projectId);
+
+      // If we have a projectId but no clientId, search for the client
+      if (project.projectId && !project.clientId) {
+        console.log("🔍 Searching for client of project:", project.projectId);
+        // The client will be populated when projectsResource loads
+      }
+    });
 
     return (
       <>
@@ -58,6 +82,7 @@ export const ProjectEntry = component$<ProjectEntryProps>(
             showModal.value = false;
           })}
           onProjectCreated$={handleProjectCreated}
+          preselectedClientId={project.clientId}
         />
 
         <div class="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-slate-700 dark:bg-slate-700/50">
@@ -77,7 +102,68 @@ export const ProjectEntry = component$<ProjectEntryProps>(
           </div>
 
           <div class="grid gap-4 md:grid-cols-2">
-            <div class="md:col-span-2">
+            {/* Client Selection */}
+            <div>
+              <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Client
+              </label>
+              <Resource
+                value={clientsResource}
+                onPending={() => (
+                  <select
+                    disabled
+                    class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                  >
+                    <option>Loading clients...</option>
+                  </select>
+                )}
+                onRejected={(error) => (
+                  <div class="text-sm text-red-600 dark:text-red-400">
+                    Error loading clients: {error.message}
+                  </div>
+                )}
+                onResolved={(clientsData) => {
+                  console.log("👥 ProjectEntry: Clients loaded:", clientsData);
+                  return (
+                    <select
+                      value={project.clientId || ""}
+                      onChange$={(e) => {
+                        const selectedClientId = (e.target as HTMLSelectElement)
+                          .value;
+                        const selectedClient = clientsData.clients.find(
+                          (c) => c.client_id === selectedClientId,
+                        );
+
+                        if (selectedClient) {
+                          onUpdate$("clientId", selectedClientId);
+                          onUpdate$("clientName", selectedClient.name);
+                          // Clear project selection when client changes
+                          onUpdate$("projectId", "");
+                        }
+                      }}
+                      class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                    >
+                      <option value="">Select a client...</option>
+                      {clientsData.clients && clientsData.clients.length > 0 ? (
+                        clientsData.clients.map((client) => (
+                          <option
+                            key={client.client_id}
+                            value={client.client_id}
+                          >
+                            {client.name}
+                          </option>
+                        ))
+                      ) : (
+                        <option disabled>No clients found</option>
+                      )}
+                    </select>
+                  );
+                }}
+              />
+            </div>
+
+            {/* Project Selection */}
+            <div>
               <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Client/Project Name
               </label>
@@ -98,10 +184,33 @@ export const ProjectEntry = component$<ProjectEntryProps>(
                 )}
                 onResolved={(data) => {
                   console.log("📋 ProjectEntry: Projects loaded:", data);
+
+                  // If we have a projectId but no clientId, find and set the client
+                  if (project.projectId && !project.clientId) {
+                    const foundProject = data.projects.find(
+                      (p) => p.project_id === project.projectId,
+                    );
+                    if (foundProject && foundProject.client_id) {
+                      console.log(
+                        "📌 Auto-setting clientId from existing project:",
+                        foundProject.client_id,
+                      );
+                      onUpdate$("clientId", foundProject.client_id);
+                    }
+                  }
+
+                  // Filter projects by selected client
+                  const filteredProjects = project.clientId
+                    ? data.projects.filter(
+                        (p) => p.client_id === project.clientId,
+                      )
+                    : data.projects;
+
                   return (
                     <div>
                       <select
                         value={project.projectId || ""}
+                        disabled={!isEditing && !project.clientId}
                         onChange$={(e) => {
                           const selectedId = (e.target as HTMLSelectElement)
                             .value;
@@ -118,29 +227,43 @@ export const ProjectEntry = component$<ProjectEntryProps>(
                           if (selectedProject) {
                             onUpdate$("projectId", selectedId);
                             onUpdate$("clientName", selectedProject.name);
+                            // Also update clientId when selecting a project
+                            if (selectedProject.client_id) {
+                              onUpdate$("clientId", selectedProject.client_id);
+                            }
                           }
                         }}
-                        class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                        class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:disabled:bg-slate-800 dark:disabled:text-gray-400"
                       >
-                        <option value="">Select a project...</option>
-                        <option
-                          value="__new__"
-                          class="font-semibold text-blue-600"
-                        >
-                          + Create New Project
+                        <option value="">
+                          {!isEditing && !project.clientId
+                            ? "Select a client first..."
+                            : project.clientId
+                              ? "Select a project..."
+                              : "Select a project (or client first)..."}
                         </option>
-                        {data.projects && data.projects.length > 0 ? (
-                          data.projects.map((proj) => (
-                            <option
-                              key={proj.project_id}
-                              value={proj.project_id}
-                            >
-                              {proj.name}
-                            </option>
-                          ))
-                        ) : (
-                          <option disabled>No projects found</option>
+                        {project.clientId && (
+                          <option
+                            value="__new__"
+                            class="font-semibold text-blue-600"
+                          >
+                            + Create New Project
+                          </option>
                         )}
+                        {filteredProjects && filteredProjects.length > 0
+                          ? filteredProjects.map((proj) => (
+                              <option
+                                key={proj.project_id}
+                                value={proj.project_id}
+                              >
+                                {proj.name}
+                              </option>
+                            ))
+                          : project.clientId && (
+                              <option disabled>
+                                No projects found for this client
+                              </option>
+                            )}
                       </select>
                     </div>
                   );

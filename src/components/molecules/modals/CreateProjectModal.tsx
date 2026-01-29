@@ -17,7 +17,10 @@ interface ClientData {
 interface CreateProjectModalProps {
   isOpen: boolean;
   onClose$: QRL<() => void>;
-  onProjectCreated$: QRL<(projectId: string, projectName: string) => void>;
+  onProjectCreated$: QRL<
+    (projectId: string, projectName: string, clientId?: string) => void
+  >;
+  preselectedClientId?: string;
 }
 
 /**
@@ -25,7 +28,7 @@ interface CreateProjectModalProps {
  * Includes all project fields: name, client, description, dates
  */
 export const CreateProjectModal = component$<CreateProjectModalProps>(
-  ({ isOpen, onClose$, onProjectCreated$ }) => {
+  ({ isOpen, onClose$, onProjectCreated$, preselectedClientId }) => {
     // Load clients directly using graphqlClient
     const clientsResource = useResource$<ClientData[]>(async () => {
       try {
@@ -52,7 +55,7 @@ export const CreateProjectModal = component$<CreateProjectModalProps>(
     // Form state
     const formData = useSignal({
       name: "",
-      client_id: "",
+      client_id: preselectedClientId || "",
       description: "",
       start_date: "",
       end_date: "",
@@ -123,14 +126,18 @@ export const CreateProjectModal = component$<CreateProjectModalProps>(
           // Reset form
           formData.value = {
             name: "",
-            client_id: "",
+            client_id: preselectedClientId || "",
             description: "",
             start_date: "",
             end_date: "",
           };
 
-          // Notify parent component
-          await onProjectCreated$(newProject.project_id, newProject.name);
+          // Notify parent component with projectId, projectName, and clientId
+          await onProjectCreated$(
+            newProject.project_id,
+            newProject.name,
+            newProject.client_id,
+          );
 
           toast.success("Project created successfully");
 

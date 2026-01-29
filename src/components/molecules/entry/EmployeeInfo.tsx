@@ -12,6 +12,7 @@ interface EmployeeInfoProps {
   employeeName: string;
   employeeId?: string;
   role: string;
+  disabled?: boolean;
   onNameChange: QRL<(name: string) => void>;
   onEmployeeIdChange: QRL<(userId: string) => void>;
   onRoleChange: QRL<(role: string) => void>;
@@ -32,7 +33,14 @@ const GET_ROLE_BY_ID = `
  * Displays the current session user's name and role
  */
 export const EmployeeInfo = component$<EmployeeInfoProps>(
-  ({ employeeName, role, onNameChange, onEmployeeIdChange, onRoleChange }) => {
+  ({
+    employeeName,
+    role,
+    disabled = false,
+    onNameChange,
+    onEmployeeIdChange,
+    onRoleChange,
+  }) => {
     const isLoading = useSignal(true);
 
     // Load current user from session on component mount
@@ -80,7 +88,9 @@ export const EmployeeInfo = component$<EmployeeInfoProps>(
     });
 
     return (
-      <div class="rounded-2xl border border-white/20 bg-gradient-to-br from-white/95 to-white/85 p-6 shadow-xl backdrop-blur-sm dark:border-slate-700/20 dark:bg-gradient-to-br dark:from-slate-800/95 dark:to-slate-900/85">
+      <div
+        class={`rounded-2xl border border-white/20 bg-gradient-to-br from-white/95 to-white/85 p-6 shadow-xl backdrop-blur-sm transition-all duration-200 dark:border-slate-700/20 dark:bg-gradient-to-br dark:from-slate-800/95 dark:to-slate-900/85 ${disabled ? "pointer-events-none opacity-50" : ""}`}
+      >
         {/* Header with icon */}
         <div class="mb-6 flex items-center space-x-3">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500/30 to-purple-600/20">

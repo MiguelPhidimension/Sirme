@@ -3,6 +3,7 @@ import { LuFileText } from "@qwikest/icons/lucide";
 import { ProjectEntry } from "../../molecules";
 
 interface ProjectData {
+  clientId?: string;
   clientName: string;
   projectId?: string;
   hours: number;
@@ -13,6 +14,8 @@ interface ProjectData {
 interface ProjectListProps {
   projects: ProjectData[];
   totalHours: number;
+  isEditing?: boolean;
+  disabled?: boolean;
   onAddProject$: QRL<() => void>;
   onRemoveProject$: QRL<(index: number) => void>;
   onUpdateProject$: QRL<
@@ -32,12 +35,16 @@ export const ProjectList = component$<ProjectListProps>(
   ({
     projects,
     totalHours,
+    isEditing = false,
+    disabled = false,
     onAddProject$,
     onRemoveProject$,
     onUpdateProject$,
   }) => {
     return (
-      <div class="rounded-2xl border border-white/20 bg-white/90 p-6 shadow-xl backdrop-blur-sm dark:border-slate-700/20 dark:bg-slate-800/90">
+      <div
+        class={`rounded-2xl border border-white/20 bg-white/90 p-6 shadow-xl backdrop-blur-sm transition-all duration-200 dark:border-slate-700/20 dark:bg-slate-800/90 ${disabled ? "pointer-events-none opacity-50" : ""}`}
+      >
         <div class="mb-6 flex items-center justify-between">
           <div class="flex items-center space-x-3">
             <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/20">
@@ -67,6 +74,7 @@ export const ProjectList = component$<ProjectListProps>(
               key={index}
               project={project}
               index={index}
+              isEditing={isEditing}
               canRemove={projects.length > 1}
               onRemove$={$(() => onRemoveProject$(index))}
               onUpdate$={$(
