@@ -5,6 +5,7 @@ import {
   type QRL,
   useResource$,
   Resource,
+  useVisibleTask$,
 } from "@builder.io/qwik";
 import { graphqlClient } from "~/graphql/client";
 import { useToast } from "~/components/providers/ToastProvider";
@@ -21,6 +22,7 @@ interface CreateProjectModalProps {
     (projectId: string, projectName: string, clientId?: string) => void
   >;
   preselectedClientId?: string;
+  refreshTrigger?: any;
 }
 
 /**
@@ -28,9 +30,20 @@ interface CreateProjectModalProps {
  * Includes all project fields: name, client, description, dates
  */
 export const CreateProjectModal = component$<CreateProjectModalProps>(
-  ({ isOpen, onClose$, onProjectCreated$, preselectedClientId }) => {
+  ({
+    isOpen,
+    onClose$,
+    onProjectCreated$,
+    preselectedClientId,
+    refreshTrigger,
+  }) => {
     // Load clients directly using graphqlClient
-    const clientsResource = useResource$<ClientData[]>(async () => {
+    const clientsResource = useResource$<ClientData[]>(async (ctx) => {
+      // Track the refresh trigger to reload clients when it changes
+      if (refreshTrigger) {
+        ctx.track(refreshTrigger);
+      }
+
       try {
         const GET_CLIENTS_QUERY = `
           query GetClients {
@@ -63,6 +76,27 @@ export const CreateProjectModal = component$<CreateProjectModalProps>(
 
     const isSubmitting = useSignal(false);
     const toast = useToast();
+
+    // Sync form data when modal opens or preselectedClientId changes
+    useVisibleTask$(({ track }) => {
+      track(() => isOpen);
+      track(() => preselectedClientId);
+
+      if (isOpen) {
+        // Update form data with preselected client
+        formData.value = {
+          name: "",
+          client_id: preselectedClientId || "",
+          description: "",
+          start_date: "",
+          end_date: "",
+        };
+        console.log(
+          "📌 Form initialized with preselected client:",
+          preselectedClientId,
+        );
+      }
+    });
 
     // Handle form submission
     const handleSubmit = $(async () => {
