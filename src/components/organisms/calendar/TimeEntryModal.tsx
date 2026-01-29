@@ -9,7 +9,7 @@ import {
 } from "@builder.io/qwik";
 import { LuX } from "@qwikest/icons/lucide";
 import {
-  DateSelector,
+  // DateSelector,
   EmployeeInfo,
   TimeEntryActions,
 } from "~/components/molecules";
@@ -241,10 +241,10 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
   });
 
   // Handle date change
-  const handleDateChange = $((date: string) => {
-    selectedDate.value = date;
-    formData.date = date;
-  });
+  // const handleDateChange = $((date: string) => {
+  //   selectedDate.value = date;
+  //   formData.date = date;
+  // });
 
   // Handle project updates
   const handleProjectUpdate = $(
@@ -299,14 +299,14 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
         <div class="custom-scrollbar flex-1 overflow-y-auto p-6 sm:p-8">
           <div class="space-y-8">
             {/* Date Selection */}
-            <div class="grid gap-6 md:grid-cols-2">
+            {/* <div class="grid gap-6 md:grid-cols-2">
               <div class="md:col-span-2">
                 <DateSelector
                   selectedDate={selectedDate}
                   onDateChange={handleDateChange}
                 />
               </div>
-            </div>
+            </div> */}
 
             {/* Employee Information */}
             <EmployeeInfo
