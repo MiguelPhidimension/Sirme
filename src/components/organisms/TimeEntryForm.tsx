@@ -193,6 +193,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
         notes: newProject.notes,
       };
 
+      // Always append at the end for ascending order (Project 1, 2, 3...)
       formData.projects.push(project);
 
       // Reset new project form
