@@ -71,6 +71,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
         notes: "",
       },
     ] as LocalProjectData[],
+    isPTO: false,
   });
 
   // Load user data from auth context
@@ -129,6 +130,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
         const entry = await getTimeEntryById(props.entryId);
         if (entry) {
           formData.date = entry.entry_date;
+          formData.isPTO = entry.is_pto || false;
           selectedDate.value = entry.entry_date;
 
           // Set employee info from entry
@@ -174,15 +176,17 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
       return;
     }
 
-    // Validate projects have valid IDs
-    const invalidProjects = formData.projects.filter(
-      (p) => !p.projectId || p.hours <= 0,
-    );
-    if (invalidProjects.length > 0) {
-      toast.error(
-        "All projects must have a client/project selected and hours greater than 0",
+    // Validate projects or PTO
+    if (!formData.isPTO) {
+      const invalidProjects = formData.projects.filter(
+        (p) => !p.projectId || p.hours <= 0,
       );
-      return;
+      if (invalidProjects.length > 0) {
+        toast.error(
+          "All projects must have a client/project selected and hours greater than 0",
+        );
+        return;
+      }
     }
 
     isLoading.value = true;
@@ -193,12 +197,16 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
         time_entry_id: props.entryId || undefined,
         user_id: userId,
         entry_date: formData.date,
-        projects: formData.projects.map((project) => ({
-          project_id: project.projectId!,
-          hours_reported: project.hours,
-          is_mps: project.isMPS,
-          notes: project.notes || "",
-        })),
+        is_pto: formData.isPTO || false,
+        projects: !formData.isPTO
+          ? formData.projects.map((project) => ({
+              project_id: project.projectId!,
+              hours_reported: project.hours,
+              is_mps: project.isMPS,
+              notes: project.notes || "",
+              role: project.role || formData.role,
+            }))
+          : [],
       };
 
       console.log("Submitting time entry:", timeEntryData);
@@ -332,19 +340,52 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
             />
 
             <div class="border-t border-gray-100 pt-6 dark:border-slate-800">
-              <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-                Projects and Activities
-              </h3>
-              <ProjectList
-                projects={formData.projects}
-                totalHours={totalHours}
-                userRole={formData.role}
-                isEditing={!!props.entryId}
-                disabled={isLoading.value}
-                onAddProject$={addProject}
-                onRemoveProject$={removeProject}
-                onUpdateProject$={handleProjectUpdate}
-              />
+              <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                  Projects and Activities
+                </h3>
+                <label class="flex cursor-pointer items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.isPTO}
+                    onChange$={(e) => {
+                      formData.isPTO = (e.target as HTMLInputElement).checked;
+                      // Clear projects if PTO is selected
+                      if (formData.isPTO) {
+                        formData.projects = [];
+                      } else if (formData.projects.length === 0) {
+                        formData.projects = [
+                          {
+                            clientId: "",
+                            clientName: "",
+                            projectId: "",
+                            hours: 0,
+                            isMPS: false,
+                            notes: "",
+                          },
+                        ];
+                      }
+                    }}
+                    class="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500/20"
+                  />
+                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    PTO (Paid Time Off)
+                  </span>
+                </label>
+              </div>
+
+              {!formData.isPTO && (
+                <ProjectList
+                  projects={formData.projects}
+                  totalHours={totalHours}
+                  userRole={formData.role}
+                  isEditing={!!props.entryId}
+                  disabled={isLoading.value}
+                  onAddProject$={addProject}
+                  onRemoveProject$={removeProject}
+                  onUpdateProject$={handleProjectUpdate}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -353,7 +394,9 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
         <div class="border-t border-gray-100 bg-gray-50/50 px-6 py-4 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/50">
           <TimeEntryActions
             isLoading={isLoading.value}
-            isDisabled={!formData.employeeName || totalHours === 0}
+            isDisabled={
+              !formData.employeeName || (!formData.isPTO && totalHours === 0)
+            }
             onCancel$={closeModal}
             onSubmit$={handleSubmit}
           />

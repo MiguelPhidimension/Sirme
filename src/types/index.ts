@@ -36,6 +36,7 @@ export interface DailyTimeEntry {
   role: EmployeeRole;
   projects: ProjectEntry[];
   totalHours: number;
+  isPTO?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -62,6 +63,7 @@ export interface TimeEntryFormData {
   date: string;
   role: EmployeeRole;
   projects: Omit<ProjectEntry, "id">[];
+  isPTO?: boolean;
 }
 
 /**

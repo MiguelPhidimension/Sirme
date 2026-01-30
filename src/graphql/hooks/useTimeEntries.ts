@@ -34,6 +34,7 @@ export interface TimeEntry {
   time_entry_id?: string;
   user_id: string;
   entry_date: string;
+  is_pto?: boolean;
   projects: TimeEntryProject[];
 }
 
@@ -45,6 +46,7 @@ export interface CreateTimeEntryResponse {
     time_entry_id: string;
     entry_date: string;
     user_id: string;
+    is_pto?: boolean;
   };
 }
 
@@ -59,16 +61,19 @@ const CREATE_TIME_ENTRY_MUTATION = `
   mutation CreateTimeEntry(
     $user_id: uuid!
     $entry_date: date!
+    $is_pto: Boolean
   ) {
     insert_time_entries_one(
       object: {
         user_id: $user_id
         entry_date: $entry_date
+        is_pto: $is_pto
       }
     ) {
       time_entry_id
       entry_date
       user_id
+      is_pto
     }
   }
 `;
@@ -113,6 +118,7 @@ const GET_TIME_ENTRIES_QUERY = `
       time_entry_id
       entry_date
       user_id
+      is_pto
       created_at
       updated_at
     }
@@ -181,6 +187,7 @@ const GET_TIME_ENTRY_BY_ID_QUERY = `
       time_entry_id
       user_id
       entry_date
+      is_pto
       created_at
       updated_at
     }
@@ -243,15 +250,16 @@ const DELETE_TIME_ENTRY_PROJECTS_MUTATION = `
 `;
 
 /**
- * Mutation to update time entry date
+ * Mutation to update time entry date and is_pto
  */
 const UPDATE_TIME_ENTRY_DATE_MUTATION = `
-  mutation UpdateTimeEntry($time_entry_id: uuid!, $entry_date: date!) {
+  mutation UpdateTimeEntry($time_entry_id: uuid!, $entry_date: date!, $is_pto: Boolean) {
     update_time_entries_by_pk(
       pk_columns: {time_entry_id: $time_entry_id}, 
-      _set: {entry_date: $entry_date}
+      _set: {entry_date: $entry_date, is_pto: $is_pto}
     ) {
       time_entry_id
+      is_pto
     }
   }
 `;
@@ -288,23 +296,26 @@ export const useCreateTimeEntry = () => {
           {
             user_id: timeEntry.user_id,
             entry_date: timeEntry.entry_date,
+            is_pto: timeEntry.is_pto || false,
           },
         );
 
       const createdTimeEntry = timeEntryResponse.insert_time_entries_one;
 
-      // Step 2: Create the associated projects
-      const projects = timeEntry.projects.map((project) => ({
-        time_entry_id: createdTimeEntry.time_entry_id,
-        project_id: project.project_id,
-        hours_reported: project.hours_reported,
-        is_mps: project.is_mps,
-        notes: project.notes || null,
-      }));
+      // Step 2: Create the associated projects (only if not PTO)
+      if (!timeEntry.is_pto && timeEntry.projects.length > 0) {
+        const projects = timeEntry.projects.map((project) => ({
+          time_entry_id: createdTimeEntry.time_entry_id,
+          project_id: project.project_id,
+          hours_reported: project.hours_reported,
+          is_mps: project.is_mps,
+          notes: project.notes || null,
+        }));
 
-      await graphqlClient.request(CREATE_TIME_ENTRY_PROJECTS_MUTATION, {
-        projects,
-      });
+        await graphqlClient.request(CREATE_TIME_ENTRY_PROJECTS_MUTATION, {
+          projects,
+        });
+      }
 
       return createdTimeEntry;
     } catch (error) {
@@ -328,10 +339,11 @@ export const useUpdateTimeEntry = () => {
         throw new Error("Time entry ID is required for update");
       }
 
-      // Step 1: Update the time entry date (if changed)
+      // Step 1: Update the time entry date and is_pto
       await graphqlClient.request(UPDATE_TIME_ENTRY_DATE_MUTATION, {
         time_entry_id: timeEntry.time_entry_id,
         entry_date: timeEntry.entry_date,
+        is_pto: timeEntry.is_pto || false,
       });
 
       // Step 2: Delete existing projects
@@ -339,19 +351,21 @@ export const useUpdateTimeEntry = () => {
         time_entry_id: timeEntry.time_entry_id,
       });
 
-      // Step 3: Create the new projects
-      const projects = timeEntry.projects.map((project) => ({
-        time_entry_id: timeEntry.time_entry_id,
-        project_id: project.project_id,
-        hours_reported: project.hours_reported,
-        is_mps: project.is_mps,
-        notes: project.notes || null,
-      }));
+      // Step 3: Create the new projects (only if not PTO)
+      if (!timeEntry.is_pto) {
+        const projects = timeEntry.projects.map((project) => ({
+          time_entry_id: timeEntry.time_entry_id,
+          project_id: project.project_id,
+          hours_reported: project.hours_reported,
+          is_mps: project.is_mps,
+          notes: project.notes || null,
+        }));
 
-      if (projects.length > 0) {
-        await graphqlClient.request(CREATE_TIME_ENTRY_PROJECTS_MUTATION, {
-          projects,
-        });
+        if (projects.length > 0) {
+          await graphqlClient.request(CREATE_TIME_ENTRY_PROJECTS_MUTATION, {
+            projects,
+          });
+        }
       }
 
       return { time_entry_id: timeEntry.time_entry_id };

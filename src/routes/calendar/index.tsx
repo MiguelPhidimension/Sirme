@@ -251,6 +251,7 @@ export default component$(() => {
                 notes: p.notes || "",
               })),
               totalHours,
+              isPTO: entry.is_pto,
               createdAt: entry.created_at,
               updatedAt: entry.updated_at,
             });
