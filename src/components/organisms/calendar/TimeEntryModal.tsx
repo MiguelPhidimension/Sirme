@@ -36,6 +36,7 @@ interface TimeEntryModalProps {
   isOpen: boolean;
   date?: string;
   entryId?: string;
+  selectedDates?: string[]; // Multiple dates from drag selection
   onClose$: QRL<() => void>;
   onSuccess$: QRL<() => void>;
 }
@@ -192,32 +193,50 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
     isLoading.value = true;
 
     try {
-      // Prepare time entry data
-      const timeEntryData = {
-        time_entry_id: props.entryId || undefined,
-        user_id: userId,
-        entry_date: formData.date,
-        is_pto: formData.isPTO || false,
-        projects: !formData.isPTO
-          ? formData.projects.map((project) => ({
-              project_id: project.projectId!,
-              hours_reported: project.hours,
-              is_mps: project.isMPS,
-              notes: project.notes || "",
-              role: project.role || formData.role,
-            }))
-          : [],
-      };
+      // Get dates to save to (either selected range or single date)
+      const datesToSave =
+        props.selectedDates && props.selectedDates.length > 0
+          ? props.selectedDates
+          : [formData.date];
 
-      console.log("Submitting time entry:", timeEntryData);
+      console.log(
+        `📅 Saving time entry to ${datesToSave.length} date(s):`,
+        datesToSave,
+      );
 
-      if (props.entryId) {
-        // Update existing entry
-        await updateTimeEntry(timeEntryData);
-        toast.success("Time entry updated successfully!");
+      // Save entry for each date in the range
+      for (const dateToSave of datesToSave) {
+        const timeEntryData = {
+          time_entry_id: props.entryId || undefined,
+          user_id: userId,
+          entry_date: dateToSave,
+          is_pto: formData.isPTO || false,
+          projects: !formData.isPTO
+            ? formData.projects.map((project) => ({
+                project_id: project.projectId!,
+                hours_reported: project.hours,
+                is_mps: project.isMPS,
+                notes: project.notes || "",
+                role: project.role || formData.role,
+              }))
+            : [],
+        };
+
+        console.log(`Submitting time entry for ${dateToSave}:`, timeEntryData);
+
+        if (props.entryId && dateToSave === formData.date) {
+          // Update existing entry only for the original date
+          await updateTimeEntry(timeEntryData);
+          toast.success("Time entry updated successfully!");
+        } else {
+          // Create new entry
+          await createTimeEntry(timeEntryData);
+        }
+      }
+
+      if (datesToSave.length > 1) {
+        toast.success(`Time entries created for ${datesToSave.length} days!`);
       } else {
-        // Create new entry
-        await createTimeEntry(timeEntryData);
         toast.success("Time entry created successfully!");
       }
 
@@ -298,8 +317,17 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {props.entryId
                 ? "Update your time entry details"
-                : "Record your daily activities"}
+                : props.selectedDates && props.selectedDates.length > 1
+                  ? `Record activities for ${props.selectedDates.length} days`
+                  : "Record your daily activities"}
             </p>
+            {props.selectedDates && props.selectedDates.length > 1 && (
+              <div class="mt-3 inline-flex items-center gap-2 rounded-lg bg-indigo-500/10 px-3 py-1.5">
+                <span class="text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                  🗓️ {props.selectedDates.length} days selected
+                </span>
+              </div>
+            )}
           </div>
           <button
             onClick$={closeModal}

@@ -6,7 +6,13 @@ interface CalendarDayProps {
   day: CalendarDayTypes;
   isCurrentMonth: boolean;
   isToday: boolean;
+  isSelected?: boolean;
+  isSelectionStart?: boolean;
+  isSelectionEnd?: boolean;
   onClick$: QRL<(day: CalendarDayTypes) => void>;
+  onMouseDown$: QRL<(date: string) => void>;
+  onMouseEnter$: QRL<(date: string) => void>;
+  onMouseUp$?: QRL<() => void>;
 }
 
 const getHoursColorClass = (hours: number) => {
@@ -40,16 +46,44 @@ const getBackgroundColorClass = (
 };
 
 export const CalendarDay = component$<CalendarDayProps>(
-  ({ day, isCurrentMonth, isToday, onClick$ }) => {
+  ({
+    day,
+    isCurrentMonth,
+    isToday,
+    isSelected = false,
+    isSelectionStart = false,
+    isSelectionEnd = false,
+    onClick$,
+    onMouseDown$,
+    onMouseEnter$,
+  }) => {
     // Safely extract day number from YYYY-MM-DD string to avoid timezone shifts
     // caused by new Date("YYYY-MM-DD") being interpreted as UTC
     const dayNumber = parseInt(day.date.split("-")[2], 10);
     const isPTO = day.entries?.some((e) => e.isPTO);
 
+    const getSelectionClass = () => {
+      if (isSelectionStart && isSelectionEnd) {
+        return "bg-indigo-600/60 ring-2 ring-indigo-400";
+      }
+      if (isSelectionStart) {
+        return "bg-indigo-600/60 ring-2 ring-indigo-400 rounded-l-lg";
+      }
+      if (isSelectionEnd) {
+        return "bg-indigo-600/60 ring-2 ring-indigo-400 rounded-r-lg";
+      }
+      if (isSelected) {
+        return "bg-indigo-600/50";
+      }
+      return "";
+    };
+
     return (
       <div
-        class={`group relative h-28 cursor-pointer border-r border-b border-white/10 p-3 transition-all duration-300 md:h-36 dark:border-slate-600/20 ${getBackgroundColorClass(day.totalHours, isCurrentMonth, isToday, isPTO)} ${day.hasEntries ? "border-l-4 border-l-emerald-400 dark:border-l-emerald-500" : ""} hover:scale-105 hover:shadow-lg`}
+        class={`group relative h-28 cursor-pointer border-r border-b border-white/10 p-3 transition-all duration-300 select-none md:h-36 dark:border-slate-600/20 ${getSelectionClass() ? getSelectionClass() : getBackgroundColorClass(day.totalHours, isCurrentMonth, isToday, isPTO)} ${day.hasEntries ? "border-l-4 border-l-emerald-400 dark:border-l-emerald-500" : ""} hover:scale-105 hover:shadow-lg`}
         onClick$={() => onClick$(day)}
+        onMouseDown$={() => onMouseDown$(day.date)}
+        onMouseEnter$={() => onMouseEnter$(day.date)}
       >
         {/* Day number */}
         <div class="mb-2 flex items-start justify-between">
