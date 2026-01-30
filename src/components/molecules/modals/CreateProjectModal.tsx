@@ -145,6 +145,7 @@ export const CreateProjectModal = component$<CreateProjectModalProps>(
           insert_projects_one: {
             project_id: string;
             name: string;
+            client_id: string;
           };
         }>(CREATE_PROJECT_MUTATION, {
           name: formData.value.name.trim(),

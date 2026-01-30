@@ -104,7 +104,7 @@ export const CalendarDay = component$<CalendarDayProps>(
         </div>
 
         {/* Hours display */}
-        {!isPTO && day.totalHours > 0 && (
+        {day.totalHours > 0 && (
           <div class="flex flex-1 flex-col items-center justify-center">
             <div
               class={`text-xl font-bold ${getHoursColorClass(day.totalHours)}`}

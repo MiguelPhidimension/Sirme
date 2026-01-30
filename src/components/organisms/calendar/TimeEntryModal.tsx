@@ -30,12 +30,13 @@ interface LocalProjectData {
   isMPS: boolean;
   notes: string;
   role?: string;
+  time_entry_id?: string;
 }
 
 interface TimeEntryModalProps {
   isOpen: boolean;
   date?: string;
-  entryId?: string;
+  entryId?: string | string[];
   selectedDates?: string[]; // Multiple dates from drag selection
   onClose$: QRL<() => void>;
   onSuccess$: QRL<() => void>;
@@ -48,6 +49,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
 
   // State management
   const isLoading = useSignal(props.isOpen);
+  const isMultiUserEdit = useSignal(false);
   const selectedDate = useSignal(
     props.date || new Date().toISOString().split("T")[0],
   );
@@ -128,36 +130,71 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
     // Load existing entry data if editing
     if (props.entryId) {
       try {
-        const entry = await getTimeEntryById(props.entryId);
-        if (entry) {
-          formData.date = entry.entry_date;
-          formData.isPTO = entry.is_pto || false;
-          selectedDate.value = entry.entry_date;
-
-          // Set employee info from entry
-          if (entry.user) {
-            formData.employeeName = `${entry.user.first_name} ${entry.user.last_name}`;
-            formData.employeeId = entry.user_id;
-            if (entry.user.role?.role_name) {
-              formData.role = entry.user.role.role_name;
+        const entryIds = Array.isArray(props.entryId)
+          ? props.entryId
+          : [props.entryId];
+        let allProjects: any[] = [];
+        let entryUser = null;
+        let entryDate = null;
+        let entryRole = "";
+        let isPTO = false;
+        const userIds = new Set<string>();
+        for (const id of entryIds) {
+          const entry = await getTimeEntryById(id);
+          if (entry) {
+            entryDate = entry.entry_date;
+            isPTO = isPTO || entry.is_pto;
+            if (entry.user) {
+              entryUser = entry.user;
+              // Some user objects returned from the API don't include the user_id field,
+              // but the parent `entry` always has `user_id`. Prefer the explicit id when available.
+              const resolvedUserId = (entry.user as any).user_id || entry.user_id;
+              if (resolvedUserId) userIds.add(resolvedUserId);
+              // Ensure entryUser has the id for downstream use
+              (entryUser as any).user_id = resolvedUserId;
+              entryRole = (entry.user as any).role?.role_name || entryRole;
+            }
+            // Fallback to time entry user_id if user object missing
+            if (!entry.user && entry.user_id) userIds.add(entry.user_id);
+            if (
+              entry.time_entry_projects &&
+              entry.time_entry_projects.length > 0
+            ) {
+              allProjects = allProjects.concat(
+                entry.time_entry_projects.map((p: any) => ({
+                  clientId: p.project?.client_id || "",
+                  clientName: p.project?.client?.name || "",
+                  projectId: p.project_id,
+                  hours: p.hours_reported,
+                  isMPS: p.is_mps,
+                  notes: p.notes || "",
+                  role: p.role || "",
+                  time_entry_id: p.time_entry_id,
+                })),
+              );
             }
           }
-
-          if (
-            entry.time_entry_projects &&
-            entry.time_entry_projects.length > 0
-          ) {
-            formData.projects = entry.time_entry_projects.map((p: any) => ({
-              clientId: p.project?.client_id || "",
-              clientName: p.project?.client?.name || "",
-              projectId: p.project_id,
-              hours: p.hours_reported,
-              isMPS: p.is_mps,
-              notes: p.notes || "",
-              role: p.role || "",
-            }));
-          }
         }
+        if (entryUser) {
+          formData.employeeName = `${entryUser.first_name} ${entryUser.last_name}`;
+          formData.employeeId = entryUser.user_id;
+          formData.role = entryRole;
+        }
+        // If multiple distinct user ids are present, mark as multi-user edit
+        if (userIds.size > 1) {
+          isMultiUserEdit.value = true;
+          toast.error(
+            "Cannot edit entries for multiple employees at once. Open each employee's entry separately.",
+          );
+        } else {
+          isMultiUserEdit.value = false;
+        }
+        if (entryDate) {
+          formData.date = entryDate;
+          selectedDate.value = entryDate;
+        }
+        formData.isPTO = isPTO;
+        formData.projects = allProjects;
       } catch (error) {
         console.error("Error loading entry:", error);
         toast.error("Error loading entry details");
@@ -170,9 +207,11 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
   // Handle form submission
   const handleSubmit = $(async () => {
     // Use the selected employee ID, or fall back to authenticated user
+    console.log(authContext.user);
     const userId = formData.employeeId || authContext.user?.user_id;
 
     // Validate user is selected
+    console.log({userId});
     if (!userId) {
       toast.error("You must select an employee to log hours");
       return;
@@ -207,30 +246,57 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
 
       // Save entry for each date in the range
       for (const dateToSave of datesToSave) {
-        const timeEntryData = {
-          time_entry_id: props.entryId || undefined,
-          user_id: userId,
-          entry_date: dateToSave,
-          is_pto: formData.isPTO || false,
-          projects: !formData.isPTO
-            ? formData.projects.map((project) => ({
-                project_id: project.projectId!,
-                hours_reported: project.hours,
-                is_mps: project.isMPS,
-                notes: project.notes || "",
-                role: project.role || formData.role,
-              }))
-            : [],
-        };
-
-        console.log(`Submitting time entry for ${dateToSave}:`, timeEntryData);
-
-        if (props.entryId && dateToSave === formData.date) {
-          // Update existing entry only for the original date
-          await updateTimeEntry(timeEntryData);
+        // If editing multiple entries, update each one separately
+        if (Array.isArray(props.entryId)) {
+          for (const eid of props.entryId) {
+            const timeEntryData = {
+              time_entry_id: eid,
+              user_id: userId,
+              entry_date: dateToSave,
+              is_pto: formData.isPTO || false,
+              projects: !formData.isPTO
+                ? formData.projects
+                    .filter((p) => p.time_entry_id === eid || !p.time_entry_id)
+                    .map((project) => ({
+                      project_id: project.projectId!,
+                      hours_reported: project.hours,
+                      is_mps: project.isMPS,
+                      notes: project.notes || "",
+                      role: project.role || formData.role,
+                    }))
+                : [],
+            };
+            console.log(
+              `Submitting time entry for ${dateToSave} (edit ${eid}):`,
+              timeEntryData,
+            );
+            await updateTimeEntry(timeEntryData);
+          }
         } else {
-          // Create new entry
-          await createTimeEntry(timeEntryData);
+          const timeEntryData = {
+            time_entry_id: props.entryId || undefined,
+            user_id: userId,
+            entry_date: dateToSave,
+            is_pto: formData.isPTO || false,
+            projects: !formData.isPTO
+              ? formData.projects.map((project) => ({
+                  project_id: project.projectId!,
+                  hours_reported: project.hours,
+                  is_mps: project.isMPS,
+                  notes: project.notes || "",
+                  role: project.role || formData.role,
+                }))
+              : [],
+          };
+          console.log(
+            `Submitting time entry for ${dateToSave}:`,
+            timeEntryData,
+          );
+          if (props.entryId && dateToSave === formData.date) {
+            await updateTimeEntry(timeEntryData);
+          } else {
+            await createTimeEntry(timeEntryData);
+          }
         }
       }
 
