@@ -36,7 +36,7 @@ export default component$(() => {
   // Time Entry Modal State
   const showTimeEntryModal = useSignal(false);
   const timeEntryModalDate = useSignal("");
-  const timeEntryModalId = useSignal("");
+  const timeEntryModalId = useSignal<string | string[]>("");
   const timeEntrySelectedDates = useSignal<string[]>([]); // Store all selected dates
   const refreshTrigger = useSignal(0);
 
@@ -298,7 +298,7 @@ export default component$(() => {
     showTimeEntryModal.value = true;
   });
 
-  const handleEditEntry = $((entryId: string) => {
+  const handleEditEntry = $((entryId: string | string[]) => {
     timeEntryModalId.value = entryId;
     timeEntryModalDate.value = "";
     showTimeEntryModal.value = true;
