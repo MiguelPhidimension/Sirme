@@ -23,6 +23,7 @@ export interface ProjectEntry {
   hours: number;
   isMPS: boolean; // MuleSoft Professional Services flag
   notes?: string;
+  role?: string; // Role assigned to this project entry
 }
 
 /**

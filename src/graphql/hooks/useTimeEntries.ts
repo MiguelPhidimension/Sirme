@@ -25,6 +25,7 @@ export interface TimeEntryProject {
   hours_reported: number;
   is_mps: boolean;
   notes?: string;
+  role?: string;
 }
 
 /**
@@ -95,6 +96,7 @@ const CREATE_TIME_ENTRY_PROJECTS_MUTATION = `
         project_id
         hours_reported
         is_mps
+        role
         notes
       }
     }
@@ -140,6 +142,7 @@ const GET_TIME_ENTRY_PROJECTS_QUERY = `
       project_id
       hours_reported
       is_mps
+      role
       notes
     }
   }
@@ -233,6 +236,7 @@ const GET_TIME_ENTRY_PROJECTS_BY_ID_QUERY = `
       project_id
       hours_reported
       is_mps
+      role
       notes
     }
   }
@@ -310,6 +314,7 @@ export const useCreateTimeEntry = () => {
           hours_reported: project.hours_reported,
           is_mps: project.is_mps,
           notes: project.notes || null,
+          role: project.role || null,
         }));
 
         await graphqlClient.request(CREATE_TIME_ENTRY_PROJECTS_MUTATION, {
@@ -359,6 +364,7 @@ export const useUpdateTimeEntry = () => {
           hours_reported: project.hours_reported,
           is_mps: project.is_mps,
           notes: project.notes || null,
+          role: project.role || null,
         }));
 
         if (projects.length > 0) {

@@ -27,9 +27,16 @@ export const DayDetailsModal = component$<DayDetailsModalProps>(
                   <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-200">
                     {DateUtils.formatDisplayDate(day.date)}
                   </h3>
-                  <p class="mt-1 text-slate-600 dark:text-slate-400">
-                    Total: {DataUtils.formatHours(day.totalHours)}
-                  </p>
+                  <div class="mt-3 flex items-center gap-4">
+                    <div class="rounded-lg bg-gradient-to-r from-blue-500/20 to-blue-600/20 px-4 py-2">
+                      <p class="text-xs font-semibold tracking-wide text-blue-700 uppercase dark:text-blue-300">
+                        Total Hours
+                      </p>
+                      <p class="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                        {DataUtils.formatHours(day.totalHours)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 <button
                   class="rounded-xl border border-white/20 bg-white/20 p-3 text-slate-600 backdrop-blur-sm transition-all duration-200 hover:bg-white/30 hover:text-red-500 dark:border-slate-500/20 dark:bg-slate-600/30 dark:text-slate-400 dark:hover:bg-slate-600/40 dark:hover:text-red-400"
@@ -49,8 +56,8 @@ export const DayDetailsModal = component$<DayDetailsModalProps>(
                       <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 blur-sm transition-all duration-300 group-hover:blur-md"></div>
                       <div class="relative rounded-2xl border border-white/20 bg-white/20 p-6 backdrop-blur-sm transition-all duration-300 hover:bg-white/30 dark:border-slate-600/20 dark:bg-slate-700/30 dark:hover:bg-slate-700/40">
                         <div class="mb-4 flex items-start justify-between">
-                          <div>
-                            <div class="mb-2 flex items-center gap-3">
+                          <div class="flex-1">
+                            <div class="mb-3 flex items-center gap-3">
                               <span class="text-lg font-semibold text-slate-800 dark:text-slate-200">
                                 {entry.employeeName}
                               </span>
@@ -58,10 +65,11 @@ export const DayDetailsModal = component$<DayDetailsModalProps>(
                                 {entry.role}
                               </div>
                             </div>
-                            <div class="text-sm text-slate-600 dark:text-slate-400">
-                              {entry.projects.length} project
-                              {entry.projects.length !== 1 ? "s" : ""} • Total:{" "}
-                              {DataUtils.formatHours(entry.totalHours)}
+                            <div class="flex items-center gap-4">
+                              <div class="text-sm text-slate-600 dark:text-slate-400">
+                                {entry.projects.length} project
+                                {entry.projects.length !== 1 ? "s" : ""}
+                              </div>
                             </div>
                           </div>
                           <button
@@ -76,30 +84,66 @@ export const DayDetailsModal = component$<DayDetailsModalProps>(
                           {entry.projects.map((project, index) => (
                             <div
                               key={index}
-                              class="rounded-xl border border-white/20 bg-white/20 p-4 backdrop-blur-sm dark:border-slate-500/20 dark:bg-slate-600/30"
+                              class="rounded-xl border border-white/20 bg-white/10 p-5 backdrop-blur-sm dark:border-slate-500/20 dark:bg-slate-600/20"
                             >
-                              <div class="flex items-start justify-between">
+                              <div class="mb-4 flex items-start justify-between">
                                 <div class="flex-1">
-                                  <div class="font-medium text-slate-800 dark:text-slate-200">
+                                  <h4 class="text-lg font-bold text-slate-800 dark:text-slate-200">
                                     {project.clientName}
-                                  </div>
-                                  <div class="mt-1 flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
-                                    <span class="font-bold text-blue-600 dark:text-blue-400">
-                                      {DataUtils.formatHours(project.hours)}
-                                    </span>
-                                    {project.isMPS && (
-                                      <div class="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-                                        MPS
-                                      </div>
-                                    )}
-                                  </div>
-                                  {project.notes && (
-                                    <p class="mt-2 rounded-lg bg-white/10 p-2 text-sm text-slate-700 dark:bg-slate-700/20 dark:text-slate-300">
-                                      {project.notes}
-                                    </p>
-                                  )}
+                                  </h4>
+                                  <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                                    Project entry #{index + 1}
+                                  </p>
                                 </div>
                               </div>
+
+                              <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                                {/* Hours */}
+                                <div class="rounded-lg bg-blue-500/10 p-3">
+                                  <p class="text-xs font-semibold tracking-wide text-blue-700 uppercase dark:text-blue-300">
+                                    Hours
+                                  </p>
+                                  <p class="mt-1 text-lg font-bold text-blue-600 dark:text-blue-400">
+                                    {DataUtils.formatHours(project.hours)}
+                                  </p>
+                                </div>
+
+                                {/* MPS Badge */}
+                                {project.isMPS && (
+                                  <div class="rounded-lg bg-emerald-500/10 p-3">
+                                    <p class="text-xs font-semibold tracking-wide text-emerald-700 uppercase dark:text-emerald-300">
+                                      Type
+                                    </p>
+                                    <p class="mt-1 inline-block rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                                      MPS
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Role */}
+                              {project.role && (
+                                <div class="mt-3 rounded-lg bg-purple-500/15 p-3">
+                                  <p class="text-xs font-semibold tracking-wide text-purple-700 uppercase dark:text-purple-300">
+                                    Role
+                                  </p>
+                                  <p class="mt-1 text-sm font-medium text-purple-600 dark:text-purple-400">
+                                    {project.role}
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* Notes */}
+                              {project.notes && (
+                                <div class="mt-3">
+                                  <p class="text-xs font-semibold tracking-wide text-slate-700 uppercase dark:text-slate-300">
+                                    Notes
+                                  </p>
+                                  <p class="mt-2 rounded-lg border border-slate-400/30 bg-slate-500/20 p-3 text-sm text-slate-700 dark:border-slate-600/50 dark:bg-slate-700/50 dark:text-slate-200">
+                                    {project.notes}
+                                  </p>
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>

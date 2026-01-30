@@ -154,6 +154,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
               hours: p.hours_reported,
               isMPS: p.is_mps,
               notes: p.notes || "",
+              role: p.role || "",
             }));
           }
         }
@@ -227,14 +228,16 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
         if (props.entryId && dateToSave === formData.date) {
           // Update existing entry only for the original date
           await updateTimeEntry(timeEntryData);
-          toast.success("Time entry updated successfully!");
         } else {
           // Create new entry
           await createTimeEntry(timeEntryData);
         }
       }
 
-      if (datesToSave.length > 1) {
+      // Show success message after all entries are saved
+      if (props.entryId) {
+        toast.success("Time entry updated successfully!");
+      } else if (datesToSave.length > 1) {
         toast.success(`Time entries created for ${datesToSave.length} days!`);
       } else {
         toast.success("Time entry created successfully!");
