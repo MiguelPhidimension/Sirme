@@ -29,6 +29,7 @@ interface LocalProjectData {
   hours: number;
   isMPS: boolean;
   notes: string;
+  role?: string;
 }
 
 interface TimeEntryModalProps {
@@ -337,6 +338,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
               <ProjectList
                 projects={formData.projects}
                 totalHours={totalHours}
+                userRole={formData.role}
                 isEditing={!!props.entryId}
                 disabled={isLoading.value}
                 onAddProject$={addProject}

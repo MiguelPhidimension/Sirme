@@ -11,6 +11,7 @@ import {
   useClients,
   useCreateClient,
 } from "~/graphql/hooks/useProjects";
+import { useRoles } from "~/graphql/hooks/useRoles";
 import { CreateProjectModal } from "../modals/CreateProjectModal";
 
 interface ProjectData {
@@ -20,11 +21,13 @@ interface ProjectData {
   hours: number;
   isMPS: boolean;
   notes: string;
+  role?: string;
 }
 
 interface ProjectEntryProps {
   project: ProjectData;
   index: number;
+  userRole?: string;
   canRemove: boolean;
   isEditing?: boolean;
   onRemove$: QRL<() => void>;
@@ -38,13 +41,22 @@ interface ProjectEntryProps {
  * Displays all fields for one project (client, hours, MPS, notes)
  */
 export const ProjectEntry = component$<ProjectEntryProps>(
-  ({ project, index, canRemove, isEditing = false, onRemove$, onUpdate$ }) => {
+  ({
+    project,
+    index,
+    userRole,
+    canRemove,
+    isEditing = false,
+    onRemove$,
+    onUpdate$,
+  }) => {
     // Add signal to trigger refresh
     const refreshTrigger = useSignal(0);
 
-    // Load clients and projects from database
+    // Load clients, projects, and roles from database
     const clientsResource = useClients(refreshTrigger);
     const projectsResource = useProjects(refreshTrigger);
+    const rolesResource = useRoles();
 
     // State for modal
     const showModal = useSignal(false);
@@ -404,6 +416,50 @@ export const ProjectEntry = component$<ProjectEntryProps>(
                   MPS Project
                 </span>
               </label>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Role for this Project
+              </label>
+              <Resource
+                value={rolesResource}
+                onPending={() => (
+                  <select
+                    disabled
+                    class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                  >
+                    <option>Loading roles...</option>
+                  </select>
+                )}
+                onRejected={(error) => (
+                  <div class="text-sm text-red-600 dark:text-red-400">
+                    Error loading roles: {error.message}
+                  </div>
+                )}
+                onResolved={(rolesData) => (
+                  <select
+                    value={project.role || userRole || ""}
+                    onChange$={(e) => {
+                      const selectedRole = (e.target as HTMLSelectElement)
+                        .value;
+                      onUpdate$("role", selectedRole);
+                    }}
+                    class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                  >
+                    <option value="">Select a role...</option>
+                    {rolesData.roles && rolesData.roles.length > 0 ? (
+                      rolesData.roles.map((role) => (
+                        <option key={role.role_id} value={role.role_name}>
+                          {role.role_name}
+                        </option>
+                      ))
+                    ) : (
+                      <option disabled>No roles found</option>
+                    )}
+                  </select>
+                )}
+              />
             </div>
 
             <div class="md:col-span-2">

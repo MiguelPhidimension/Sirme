@@ -191,6 +191,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
         hours: newProject.hours,
         isMPS: newProject.isMPS,
         notes: newProject.notes,
+        role: formData.role,
       };
 
       // Always append at the end for ascending order (Project 1, 2, 3...)

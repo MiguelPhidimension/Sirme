@@ -15,11 +15,13 @@ interface ProjectData {
   hours: number;
   isMPS: boolean;
   notes: string;
+  role?: string;
 }
 
 interface ProjectListProps {
   projects: ProjectData[];
   totalHours: number;
+  userRole?: string;
   isEditing?: boolean;
   disabled?: boolean;
   onAddProject$: QRL<() => void>;
@@ -41,6 +43,7 @@ export const ProjectList = component$<ProjectListProps>(
   ({
     projects,
     totalHours,
+    userRole,
     isEditing = false,
     disabled = false,
     onAddProject$,
@@ -144,6 +147,7 @@ export const ProjectList = component$<ProjectListProps>(
                   <ProjectEntry
                     project={project}
                     index={index}
+                    userRole={userRole}
                     isEditing={isEditing}
                     canRemove={projects.length > 1}
                     onRemove$={$(() => onRemoveProject$(index))}
