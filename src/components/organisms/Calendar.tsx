@@ -6,7 +6,12 @@ import {
   useVisibleTask$,
   QRL,
 } from "@builder.io/qwik";
-import { LuChevronLeft, LuChevronRight, LuX, LuCalendar } from "@qwikest/icons/lucide";
+import {
+  LuChevronLeft,
+  LuChevronRight,
+  LuX,
+  LuCalendar,
+} from "@qwikest/icons/lucide";
 import { CalendarCell } from "../molecules";
 import { Button, Badge } from "../atoms";
 import { DateUtils, DataUtils } from "~/utils";
@@ -325,11 +330,23 @@ export const Calendar = component$<CalendarProps>(
                               <Badge variant="primary" size="sm">
                                 {entry.role}
                               </Badge>
+                              {entry.isPTO && (
+                                <Badge variant="warning" size="sm">
+                                  PTO
+                                </Badge>
+                              )}
                             </div>
                             <div class="text-base-content/60 text-sm">
-                              {entry.projects.length} project
-                              {entry.projects.length !== 1 ? "s" : ""} • Total:{" "}
-                              {DataUtils.formatHours(entry.totalHours)}
+                              {entry.isPTO ? (
+                                <span>Paid Time Off</span>
+                              ) : (
+                                <>
+                                  {entry.projects.length} project
+                                  {entry.projects.length !== 1 ? "s" : ""} •
+                                  Total:{" "}
+                                  {DataUtils.formatHours(entry.totalHours)}
+                                </>
+                              )}
                             </div>
                           </div>
 
@@ -344,34 +361,36 @@ export const Calendar = component$<CalendarProps>(
                           </Button>
                         </div>
 
-                        <div class="space-y-2">
-                          {entry.projects.map((project, index) => (
-                            <div key={index} class="bg-base-200 rounded p-3">
-                              <div class="flex items-start justify-between">
-                                <div>
-                                  <div class="font-medium">
-                                    {project.clientName}
-                                  </div>
-                                  <div class="text-base-content/60 flex items-center gap-2 text-sm">
-                                    <span>
-                                      {DataUtils.formatHours(project.hours)}
-                                    </span>
-                                    {project.isMPS && (
-                                      <Badge variant="success" size="xs">
-                                        MPS
-                                      </Badge>
-                                    )}
+                        {!entry.isPTO && (
+                          <div class="space-y-2">
+                            {entry.projects.map((project, index) => (
+                              <div key={index} class="bg-base-200 rounded p-3">
+                                <div class="flex items-start justify-between">
+                                  <div>
+                                    <div class="font-medium">
+                                      {project.clientName}
+                                    </div>
+                                    <div class="text-base-content/60 flex items-center gap-2 text-sm">
+                                      <span>
+                                        {DataUtils.formatHours(project.hours)}
+                                      </span>
+                                      {project.isMPS && (
+                                        <Badge variant="success" size="xs">
+                                          MPS
+                                        </Badge>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
+                                {project.notes && (
+                                  <p class="text-base-content/70 mt-2 text-sm">
+                                    {project.notes}
+                                  </p>
+                                )}
                               </div>
-                              {project.notes && (
-                                <p class="text-base-content/70 mt-2 text-sm">
-                                  {project.notes}
-                                </p>
-                              )}
-                            </div>
-                          ))}
-                        </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

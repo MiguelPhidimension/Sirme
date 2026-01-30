@@ -12,6 +12,7 @@ interface EmployeeInfoProps {
   employeeName: string;
   employeeId?: string;
   role: string;
+  disabled?: boolean;
   onNameChange: QRL<(name: string) => void>;
   onEmployeeIdChange: QRL<(userId: string) => void>;
   onRoleChange: QRL<(role: string) => void>;
@@ -32,7 +33,14 @@ const GET_ROLE_BY_ID = `
  * Displays the current session user's name and role
  */
 export const EmployeeInfo = component$<EmployeeInfoProps>(
-  ({ employeeName, role, onNameChange, onEmployeeIdChange, onRoleChange }) => {
+  ({
+    employeeName,
+    role,
+    disabled = false,
+    onNameChange,
+    onEmployeeIdChange,
+    onRoleChange,
+  }) => {
     const isLoading = useSignal(true);
 
     // Load current user from session on component mount
@@ -51,7 +59,11 @@ export const EmployeeInfo = component$<EmployeeInfoProps>(
         if (currentUser.role_id) {
           try {
             const roleResponse = await graphqlClient.request<{
-              roles_by_pk: { role_id: string; role_name: string; description?: string } | null;
+              roles_by_pk: {
+                role_id: string;
+                role_name: string;
+                description?: string;
+              } | null;
             }>(GET_ROLE_BY_ID, {
               role_id: currentUser.role_id,
             });
@@ -76,40 +88,32 @@ export const EmployeeInfo = component$<EmployeeInfoProps>(
     });
 
     return (
-      <div class="rounded-2xl border border-white/20 bg-white/90 p-6 shadow-xl backdrop-blur-sm dark:border-slate-700/20 dark:bg-slate-800/90">
-        <div class="mb-4 flex items-center space-x-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/20">
-            <LuUser class="h-5 w-5 text-purple-600 dark:text-purple-400" />
+      <div
+        class={`rounded-2xl border border-white/20 bg-gradient-to-br from-white/95 to-white/85 p-6 shadow-xl backdrop-blur-sm transition-all duration-200 dark:border-slate-700/20 dark:bg-gradient-to-br dark:from-slate-800/95 dark:to-slate-900/85 ${disabled ? "pointer-events-none opacity-50" : ""}`}
+      >
+        {/* Header with icon */}
+        <div class="mb-6 flex items-center space-x-3">
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500/30 to-purple-600/20">
+            <LuUser class="h-6 w-6 text-purple-600 dark:text-purple-400" />
           </div>
-          <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-            Employee Information
-          </h2>
+          <div>
+            <h2 class="text-sm font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
+              Current User
+            </h2>
+            <p class="text-lg font-bold text-gray-900 dark:text-white">
+              {employeeName || "Loading..."}
+            </p>
+          </div>
         </div>
-        <div class="grid gap-4 md:grid-cols-2">
-          <div>
-            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Employee Name
-            </label>
-            <input
-              type="text"
-              value={employeeName}
-              disabled
-              class="w-full cursor-not-allowed rounded-xl border border-gray-300 bg-gray-100 px-4 py-2.5 text-gray-900 shadow-sm dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-              placeholder="Loading user..."
-            />
-          </div>
-          <div>
-            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Role
-            </label>
-            <input
-              type="text"
-              value={role}
-              disabled
-              class="w-full cursor-not-allowed rounded-xl border border-gray-300 bg-gray-100 px-4 py-2.5 text-gray-700 shadow-sm dark:border-slate-600 dark:bg-slate-800 dark:text-gray-400"
-              placeholder="Loading role..."
-            />
-          </div>
+
+        {/* Role Badge */}
+        <div class="flex items-center space-x-2">
+          <span class="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+            Role:
+          </span>
+          <span class="inline-flex items-center rounded-full bg-gradient-to-r from-purple-100 to-purple-50 px-4 py-1.5 text-sm font-semibold text-purple-700 shadow-sm dark:from-purple-900/30 dark:to-purple-800/20 dark:text-purple-300">
+            {role || "N/A"}
+          </span>
         </div>
       </div>
     );

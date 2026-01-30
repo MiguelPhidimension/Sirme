@@ -1,4 +1,4 @@
-import { component$, type QRL } from "@builder.io/qwik";
+import { component$, useSignal, $, type QRL } from "@builder.io/qwik";
 import { LuChevronLeft, LuChevronRight } from "@qwikest/icons/lucide";
 import { CalendarDay } from "~/components/molecules/calendar/CalendarDay";
 import type { CalendarDayTypes } from "~/types";
@@ -10,6 +10,7 @@ interface CalendarGridProps {
   onPrevMonth$: QRL<() => void>;
   onNextMonth$: QRL<() => void>;
   onDayClick$: QRL<(day: CalendarDayTypes) => void>;
+  onRangeSelect$?: QRL<(startDate: string, endDate: string) => void>;
 }
 
 const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -22,7 +23,13 @@ export const CalendarGrid = component$<CalendarGridProps>(
     onPrevMonth$,
     onNextMonth$,
     onDayClick$,
+    onRangeSelect$,
   }) => {
+    const isSelecting = useSignal(false);
+    const selectionStart = useSignal<string | null>(null);
+    const selectionEnd = useSignal<string | null>(null);
+    const initialStart = useSignal<string | null>(null);
+
     const getCurrentDate = () => {
       return new Date().toISOString().split("T")[0];
     };
@@ -36,6 +43,64 @@ export const CalendarGrid = component$<CalendarGridProps>(
       const monthPart = parseInt(date.split("-")[1], 10);
       return monthPart - 1 === currentMonth;
     };
+
+    // Check if date is in selection range
+    const isInRange = (date: string) => {
+      if (!selectionStart.value || !selectionEnd.value) return false;
+      const start = new Date(selectionStart.value).getTime();
+      const end = new Date(selectionEnd.value).getTime();
+      const current = new Date(date).getTime();
+      return current >= start && current <= end;
+    };
+
+    const isRangeStart = (date: string) => {
+      if (!selectionStart.value) return false;
+      return date === selectionStart.value;
+    };
+
+    const isRangeEnd = (date: string) => {
+      if (!selectionEnd.value) return false;
+      return date === selectionEnd.value;
+    };
+
+    const handleMouseDown = $((date: string) => {
+      isSelecting.value = true;
+      selectionStart.value = date;
+      selectionEnd.value = date;
+      initialStart.value = date;
+    });
+
+    const handleMouseEnter = $((date: string) => {
+      if (!isSelecting.value || !initialStart.value) return;
+
+      const start = new Date(initialStart.value).getTime();
+      const current = new Date(date).getTime();
+
+      if (current < start) {
+        selectionStart.value = date;
+        selectionEnd.value = initialStart.value;
+      } else {
+        selectionStart.value = initialStart.value;
+        selectionEnd.value = date;
+      }
+    });
+
+    const handleMouseUp = $(() => {
+      isSelecting.value = false;
+
+      if (
+        selectionStart.value &&
+        selectionEnd.value &&
+        onRangeSelect$ &&
+        selectionStart.value !== selectionEnd.value
+      ) {
+        onRangeSelect$(selectionStart.value, selectionEnd.value);
+      }
+
+      selectionStart.value = null;
+      selectionEnd.value = null;
+      initialStart.value = null;
+    });
 
     return (
       <div class="group relative">
@@ -79,14 +144,23 @@ export const CalendarGrid = component$<CalendarGridProps>(
           </div>
 
           {/* Calendar grid */}
-          <div class="grid grid-cols-7">
+          <div
+            class="grid grid-cols-7"
+            onMouseUp$={handleMouseUp}
+            onMouseLeave$={handleMouseUp}
+          >
             {days.map((day) => (
               <CalendarDay
                 key={day.date}
                 day={day}
                 isCurrentMonth={isCurrentMonth(day.date)}
                 isToday={isToday(day.date)}
+                isSelected={isInRange(day.date)}
+                isSelectionStart={isRangeStart(day.date)}
+                isSelectionEnd={isRangeEnd(day.date)}
                 onClick$={onDayClick$}
+                onMouseDown$={handleMouseDown}
+                onMouseEnter$={handleMouseEnter}
               />
             ))}
           </div>

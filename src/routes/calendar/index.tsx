@@ -37,6 +37,7 @@ export default component$(() => {
   const showTimeEntryModal = useSignal(false);
   const timeEntryModalDate = useSignal("");
   const timeEntryModalId = useSignal("");
+  const timeEntrySelectedDates = useSignal<string[]>([]); // Store all selected dates
   const refreshTrigger = useSignal(0);
 
   const userId = useSignal<string>("");
@@ -251,6 +252,7 @@ export default component$(() => {
                 notes: p.notes || "",
               })),
               totalHours,
+              isPTO: entry.is_pto,
               createdAt: entry.created_at,
               updatedAt: entry.updated_at,
             });
@@ -306,6 +308,8 @@ export default component$(() => {
   // Day interaction handlers
   const handleDayClick = $((day: CalendarDayTypes) => {
     console.log("📅 Day clicked:", day);
+    // Reset selected dates on single click
+    timeEntrySelectedDates.value = [];
     if (day.hasEntries) {
       console.log("✅ Day has entries, opening modal");
       selectedDay.value = day;
@@ -317,6 +321,30 @@ export default component$(() => {
       timeEntryModalId.value = "";
       showTimeEntryModal.value = true;
     }
+  });
+
+  // Handle range selection (drag to select multiple days)
+  const handleRangeSelect = $((startDate: string, endDate: string) => {
+    console.log(`📅 Range selected: ${startDate} to ${endDate}`);
+
+    // Generate array of all dates in range
+    const dates: string[] = [];
+    const current = new Date(startDate);
+    const end = new Date(endDate);
+
+    while (current <= end) {
+      const dateStr = current.toISOString().split("T")[0];
+      dates.push(dateStr);
+      current.setDate(current.getDate() + 1);
+    }
+
+    console.log(`📅 Selected dates: ${dates.join(", ")}`);
+
+    // Store all selected dates and open modal for first date
+    timeEntrySelectedDates.value = dates;
+    timeEntryModalDate.value = startDate;
+    timeEntryModalId.value = "";
+    showTimeEntryModal.value = true;
   });
 
   // Helper functions
@@ -354,6 +382,7 @@ export default component$(() => {
           onPrevMonth$={() => navigateMonth("prev")}
           onNextMonth$={() => navigateMonth("next")}
           onDayClick$={handleDayClick}
+          onRangeSelect$={handleRangeSelect}
         />
 
         {/* Day Details Modal */}
@@ -373,10 +402,15 @@ export default component$(() => {
             isOpen={showTimeEntryModal.value}
             date={timeEntryModalDate.value}
             entryId={timeEntryModalId.value}
-            onClose$={$(() => (showTimeEntryModal.value = false))}
+            selectedDates={timeEntrySelectedDates.value}
+            onClose$={$(() => {
+              showTimeEntryModal.value = false;
+              timeEntrySelectedDates.value = [];
+            })}
             onSuccess$={$(() => {
               console.log("🔄 Time entry saved, refreshing calendar...");
               refreshTrigger.value++;
+              timeEntrySelectedDates.value = [];
             })}
           />
         )}

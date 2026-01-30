@@ -94,6 +94,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
 
     // New project form state
     const newProject = useStore({
+      clientId: "",
       clientName: "",
       hours: 0,
       isMPS: false,
@@ -185,15 +186,19 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
       }
 
       const project: Omit<ProjectEntry, "id"> = {
+        clientId: newProject.clientId,
         clientName: newProject.clientName,
         hours: newProject.hours,
         isMPS: newProject.isMPS,
         notes: newProject.notes,
+        role: formData.role,
       };
 
+      // Always append at the end for ascending order (Project 1, 2, 3...)
       formData.projects.push(project);
 
       // Reset new project form
+      newProject.clientId = "";
       newProject.clientName = "";
       newProject.hours = 0;
       newProject.isMPS = false;

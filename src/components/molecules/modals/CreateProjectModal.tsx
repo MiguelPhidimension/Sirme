@@ -5,6 +5,7 @@ import {
   type QRL,
   useResource$,
   Resource,
+  useVisibleTask$,
 } from "@builder.io/qwik";
 import { graphqlClient } from "~/graphql/client";
 import { useToast } from "~/components/providers/ToastProvider";
@@ -17,7 +18,11 @@ interface ClientData {
 interface CreateProjectModalProps {
   isOpen: boolean;
   onClose$: QRL<() => void>;
-  onProjectCreated$: QRL<(projectId: string, projectName: string) => void>;
+  onProjectCreated$: QRL<
+    (projectId: string, projectName: string, clientId?: string) => void
+  >;
+  preselectedClientId?: string;
+  refreshTrigger?: any;
 }
 
 /**
@@ -25,9 +30,20 @@ interface CreateProjectModalProps {
  * Includes all project fields: name, client, description, dates
  */
 export const CreateProjectModal = component$<CreateProjectModalProps>(
-  ({ isOpen, onClose$, onProjectCreated$ }) => {
+  ({
+    isOpen,
+    onClose$,
+    onProjectCreated$,
+    preselectedClientId,
+    refreshTrigger,
+  }) => {
     // Load clients directly using graphqlClient
-    const clientsResource = useResource$<ClientData[]>(async () => {
+    const clientsResource = useResource$<ClientData[]>(async (ctx) => {
+      // Track the refresh trigger to reload clients when it changes
+      if (refreshTrigger) {
+        ctx.track(refreshTrigger);
+      }
+
       try {
         const GET_CLIENTS_QUERY = `
           query GetClients {
@@ -52,7 +68,7 @@ export const CreateProjectModal = component$<CreateProjectModalProps>(
     // Form state
     const formData = useSignal({
       name: "",
-      client_id: "",
+      client_id: preselectedClientId || "",
       description: "",
       start_date: "",
       end_date: "",
@@ -60,6 +76,27 @@ export const CreateProjectModal = component$<CreateProjectModalProps>(
 
     const isSubmitting = useSignal(false);
     const toast = useToast();
+
+    // Sync form data when modal opens or preselectedClientId changes
+    useVisibleTask$(({ track }) => {
+      track(() => isOpen);
+      track(() => preselectedClientId);
+
+      if (isOpen) {
+        // Update form data with preselected client
+        formData.value = {
+          name: "",
+          client_id: preselectedClientId || "",
+          description: "",
+          start_date: "",
+          end_date: "",
+        };
+        console.log(
+          "📌 Form initialized with preselected client:",
+          preselectedClientId,
+        );
+      }
+    });
 
     // Handle form submission
     const handleSubmit = $(async () => {
@@ -123,14 +160,18 @@ export const CreateProjectModal = component$<CreateProjectModalProps>(
           // Reset form
           formData.value = {
             name: "",
-            client_id: "",
+            client_id: preselectedClientId || "",
             description: "",
             start_date: "",
             end_date: "",
           };
 
-          // Notify parent component
-          await onProjectCreated$(newProject.project_id, newProject.name);
+          // Notify parent component with projectId, projectName, and clientId
+          await onProjectCreated$(
+            newProject.project_id,
+            newProject.name,
+            newProject.client_id,
+          );
 
           toast.success("Project created successfully");
 

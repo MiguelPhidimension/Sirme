@@ -18,10 +18,12 @@ export type EmployeeRole =
  */
 export interface ProjectEntry {
   id: string;
+  clientId?: string;
   clientName: string;
   hours: number;
   isMPS: boolean; // MuleSoft Professional Services flag
   notes?: string;
+  role?: string; // Role assigned to this project entry
 }
 
 /**
@@ -35,6 +37,7 @@ export interface DailyTimeEntry {
   role: EmployeeRole;
   projects: ProjectEntry[];
   totalHours: number;
+  isPTO?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -61,6 +64,7 @@ export interface TimeEntryFormData {
   date: string;
   role: EmployeeRole;
   projects: Omit<ProjectEntry, "id">[];
+  isPTO?: boolean;
 }
 
 /**

@@ -6,7 +6,13 @@ interface CalendarDayProps {
   day: CalendarDayTypes;
   isCurrentMonth: boolean;
   isToday: boolean;
+  isSelected?: boolean;
+  isSelectionStart?: boolean;
+  isSelectionEnd?: boolean;
   onClick$: QRL<(day: CalendarDayTypes) => void>;
+  onMouseDown$: QRL<(date: string) => void>;
+  onMouseEnter$: QRL<(date: string) => void>;
+  onMouseUp$?: QRL<() => void>;
 }
 
 const getHoursColorClass = (hours: number) => {
@@ -21,7 +27,10 @@ const getBackgroundColorClass = (
   hours: number,
   isCurrentMonth: boolean,
   isToday: boolean,
+  isPTO?: boolean,
 ) => {
+  if (isPTO)
+    return "bg-purple-500/20 ring-1 ring-purple-500/50 dark:bg-fuchsia-900/30 dark:ring-fuchsia-500/50 dark:hover:bg-fuchsia-900/40";
   if (isToday)
     return "bg-blue-500/20 ring-2 ring-blue-400/50 dark:ring-blue-500/50";
   if (!isCurrentMonth) return "";
@@ -37,15 +46,44 @@ const getBackgroundColorClass = (
 };
 
 export const CalendarDay = component$<CalendarDayProps>(
-  ({ day, isCurrentMonth, isToday, onClick$ }) => {
+  ({
+    day,
+    isCurrentMonth,
+    isToday,
+    isSelected = false,
+    isSelectionStart = false,
+    isSelectionEnd = false,
+    onClick$,
+    onMouseDown$,
+    onMouseEnter$,
+  }) => {
     // Safely extract day number from YYYY-MM-DD string to avoid timezone shifts
     // caused by new Date("YYYY-MM-DD") being interpreted as UTC
     const dayNumber = parseInt(day.date.split("-")[2], 10);
+    const isPTO = day.entries?.some((e) => e.isPTO);
+
+    const getSelectionClass = () => {
+      if (isSelectionStart && isSelectionEnd) {
+        return "bg-indigo-600/60 ring-2 ring-indigo-400";
+      }
+      if (isSelectionStart) {
+        return "bg-indigo-600/60 ring-2 ring-indigo-400 rounded-l-lg";
+      }
+      if (isSelectionEnd) {
+        return "bg-indigo-600/60 ring-2 ring-indigo-400 rounded-r-lg";
+      }
+      if (isSelected) {
+        return "bg-indigo-600/50";
+      }
+      return "";
+    };
 
     return (
       <div
-        class={`group relative h-28 cursor-pointer border-r border-b border-white/10 p-3 transition-all duration-300 md:h-36 dark:border-slate-600/20 ${getBackgroundColorClass(day.totalHours, isCurrentMonth, isToday)} ${day.hasEntries ? "border-l-4 border-l-emerald-400 dark:border-l-emerald-500" : ""} hover:scale-105 hover:shadow-lg`}
+        class={`group relative h-28 cursor-pointer border-r border-b border-white/10 p-3 transition-all duration-300 select-none md:h-36 dark:border-slate-600/20 ${getSelectionClass() ? getSelectionClass() : getBackgroundColorClass(day.totalHours, isCurrentMonth, isToday, isPTO)} ${day.hasEntries ? "border-l-4 border-l-emerald-400 dark:border-l-emerald-500" : ""} hover:scale-105 hover:shadow-lg`}
         onClick$={() => onClick$(day)}
+        onMouseDown$={() => onMouseDown$(day.date)}
+        onMouseEnter$={() => onMouseEnter$(day.date)}
       >
         {/* Day number */}
         <div class="mb-2 flex items-start justify-between">
@@ -66,7 +104,7 @@ export const CalendarDay = component$<CalendarDayProps>(
         </div>
 
         {/* Hours display */}
-        {day.totalHours > 0 && (
+        {!isPTO && day.totalHours > 0 && (
           <div class="flex flex-1 flex-col items-center justify-center">
             <div
               class={`text-xl font-bold ${getHoursColorClass(day.totalHours)}`}
@@ -99,6 +137,11 @@ export const CalendarDay = component$<CalendarDayProps>(
         {/* Entry indicators */}
         {day.entries && day.entries.length > 0 && (
           <div class="absolute right-2 bottom-2 left-2 flex justify-center gap-1">
+            {isPTO && (
+              <div class="rounded-full bg-fuchsia-600 px-2 py-1 text-xs font-medium text-white shadow-sm backdrop-blur-sm">
+                PTO
+              </div>
+            )}
             {day.entries.some((entry) =>
               entry.projects.some((project) => project.isMPS),
             ) && (
