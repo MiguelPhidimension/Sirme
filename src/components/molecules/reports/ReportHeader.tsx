@@ -8,7 +8,7 @@ interface ReportHeaderProps {
 
 /**
  * ReportHeader - Molecule component for reports page header
- * Displays title, description and action buttons (Print, Export PDF, Export CSV)
+ * Displays title, description and action buttons (Export Excel)
  */
 export const ReportHeader = component$<ReportHeaderProps>(
   ({ isLoading, onExportCSV$ }) => {
@@ -24,12 +24,12 @@ export const ReportHeader = component$<ReportHeaderProps>(
         </div>
         <div class="no-print flex gap-2">
           <button
-            class="rounded-xl border border-blue-500 bg-transparent px-4 py-2 text-sm font-medium text-blue-600 shadow-sm transition-all duration-200 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20"
+            class="rounded-xl border border-emerald-500 bg-transparent px-4 py-2 text-sm font-medium text-emerald-600 shadow-sm transition-all duration-200 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-emerald-400 dark:text-emerald-400 dark:hover:bg-emerald-900/20"
             onClick$={onExportCSV$}
             disabled={isLoading}
           >
             <LuFileText class="mr-2 inline-block h-4 w-4" />
-            {isLoading ? "Exporting..." : "Export CSV"}
+            {isLoading ? "Exporting..." : "Export Excel"}
           </button>
         </div>
       </div>

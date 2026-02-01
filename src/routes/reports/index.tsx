@@ -17,8 +17,16 @@ import { UserCalendarModal } from "~/components/organisms/reports/UserCalendarMo
 import { TimeEntryDetailsModal } from "~/components/organisms/reports/TimeEntryDetailsModal";
 import type { UserDetailsParams } from "~/components/organisms/reports/ProjectBreakdownTable";
 import type { EmployeeRole } from "~/types";
-import { useReportsData, type ReportFilter } from "~/graphql/hooks/useReports";
-import { DateUtils } from "~/utils";
+import {
+  useReportsData,
+  type ReportFilter,
+  type ReportData,
+} from "~/graphql/hooks/useReports";
+import {
+  DateUtils,
+  exportReportToExcel,
+  generateReportFilename,
+} from "~/utils";
 import { graphqlClient } from "~/graphql/client";
 
 /**
@@ -44,6 +52,9 @@ export default component$(() => {
   // Time Entry Details Modal state
   const entryDetailsModalOpen = useSignal(false);
   const selectedEntry = useSignal<any>(null);
+
+  // Store current report data for export
+  const currentReportData = useSignal<ReportData | null>(null);
 
   // Computed filter for fetching data
   const filter = useComputed$(() => {
@@ -128,15 +139,33 @@ export default component$(() => {
   });
 
   const handleExportCSV = $(async () => {
+    // Access the current report data from signal
+    const reportData = currentReportData.value;
+
+    // Check if data is loaded
+    if (!reportData) {
+      alert(
+        "No hay datos para exportar. Por favor, espera a que carguen los datos.",
+      );
+      return;
+    }
+
     isLoading.value = true;
     try {
-      console.log("Exporting CSV report...");
-      // Simulate export delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // TODO: Implement actual CSV export
-      alert("CSV export would download here");
+      console.log("Exporting Excel report...");
+
+      // Generate filename with date range
+      const filename = generateReportFilename(startDate.value, endDate.value);
+
+      // Export to Excel
+      exportReportToExcel(reportData, startDate.value, endDate.value, filename);
+
+      console.log("✅ Excel exported successfully");
     } catch (error) {
-      console.error("CSV export failed:", error);
+      console.error("Excel export failed:", error);
+      alert(
+        "Error al exportar el reporte a Excel. Por favor, intenta de nuevo.",
+      );
     } finally {
       isLoading.value = false;
     }
@@ -270,6 +299,9 @@ export default component$(() => {
             </div>
           )}
           onResolved={(reportData) => {
+            // Store the report data for export
+            currentReportData.value = reportData;
+
             // When an employee is selected, the backend already filters the data
             // So we just use the returned projects directly
             const filteredProjects = reportData.projectBreakdown;
