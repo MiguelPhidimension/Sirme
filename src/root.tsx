@@ -27,7 +27,7 @@ export default component$(() => {
         )}
         <RouterHead />
       </head>
-      <body lang="en">
+      <body lang="en" translate="no">
         <AuthProvider>
           <GraphQLProvider>
             <ToastProvider>

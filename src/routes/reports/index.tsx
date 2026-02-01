@@ -14,6 +14,7 @@ import {
   RecentEntriesList,
 } from "~/components/organisms";
 import { UserCalendarModal } from "~/components/organisms/reports/UserCalendarModal";
+import { TimeEntryDetailsModal } from "~/components/organisms/reports/TimeEntryDetailsModal";
 import type { UserDetailsParams } from "~/components/organisms/reports/ProjectBreakdownTable";
 import type { EmployeeRole } from "~/types";
 import { useReportsData, type ReportFilter } from "~/graphql/hooks/useReports";
@@ -39,6 +40,10 @@ export default component$(() => {
   // Modal state
   const modalOpen = useSignal(false);
   const modalUserDetails = useSignal<UserDetailsParams | null>(null);
+
+  // Time Entry Details Modal state
+  const entryDetailsModalOpen = useSignal(false);
+  const selectedEntry = useSignal<any>(null);
 
   // Computed filter for fetching data
   const filter = useComputed$(() => {
@@ -141,8 +146,9 @@ export default component$(() => {
     window.print();
   });
 
-  const handleViewEntry = $((id: string) => {
-    console.log("View entry:", id);
+  const handleCloseEntryDetailsModal = $(() => {
+    entryDetailsModalOpen.value = false;
+    selectedEntry.value = null;
   });
 
   const handleUserDetailsClick = $((params: UserDetailsParams) => {
@@ -153,6 +159,13 @@ export default component$(() => {
   const handleCloseModal = $(() => {
     modalOpen.value = false;
     modalUserDetails.value = null;
+  });
+
+  const handleClearFilters = $(() => {
+    startDate.value = DateUtils.getMonthStart();
+    endDate.value = DateUtils.getMonthEnd();
+    selectedEmployee.value = "all";
+    selectedProject.value = "all";
   });
 
   return (
@@ -184,6 +197,7 @@ export default component$(() => {
                       selectedProject={selectedProject}
                       employeeOptions={employees}
                       projectOptions={projects}
+                      onClearFilters$={handleClearFilters}
                     />
                   )}
                 />
@@ -204,6 +218,7 @@ export default component$(() => {
                       selectedProject={selectedProject}
                       employeeOptions={employees}
                       projectOptions={projects}
+                      onClearFilters$={handleClearFilters}
                     />
                   )}
                 />
@@ -235,6 +250,7 @@ export default component$(() => {
                         selectedProject={selectedProject}
                         employeeOptions={employees}
                         projectOptions={projectOptions}
+                        onClearFilters$={handleClearFilters}
                       />
                     );
                   }}
@@ -318,7 +334,15 @@ export default component$(() => {
                       notes: p.notes || "",
                     })),
                   }))}
-                  onViewEntry$={handleViewEntry}
+                  onViewEntry$={$((id: string) => {
+                    const entry = reportData.timeEntries.find(
+                      (e: any) => e.id === id,
+                    );
+                    if (entry) {
+                      selectedEntry.value = entry;
+                      entryDetailsModalOpen.value = true;
+                    }
+                  })}
                 />
               </>
             );
@@ -361,6 +385,19 @@ export default component$(() => {
           );
         }}
       />
+
+      {/* Time Entry Details Modal - Rendered at root level */}
+      {entryDetailsModalOpen.value && selectedEntry.value && (
+        <TimeEntryDetailsModal
+          isOpen={entryDetailsModalOpen.value}
+          employeeName={selectedEntry.value.employeeName}
+          date={selectedEntry.value.date}
+          role={selectedEntry.value.role}
+          projects={selectedEntry.value.projects}
+          totalHours={selectedEntry.value.totalHours}
+          onClose={handleCloseEntryDetailsModal}
+        />
+      )}
     </div>
   );
 });

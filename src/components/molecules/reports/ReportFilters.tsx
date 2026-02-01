@@ -1,5 +1,5 @@
-import { component$, type Signal } from "@builder.io/qwik";
-import { LuSliders } from "@qwikest/icons/lucide";
+import { component$, type Signal, type QRL } from "@builder.io/qwik";
+import { LuSliders, LuX } from "@qwikest/icons/lucide";
 
 interface ReportFiltersProps {
   startDate: Signal<string>;
@@ -8,6 +8,7 @@ interface ReportFiltersProps {
   selectedProject: Signal<string>;
   employeeOptions?: { value: string; label: string }[];
   projectOptions?: { value: string; label: string }[];
+  onClearFilters$?: QRL<() => void>;
 }
 
 /**
@@ -22,16 +23,28 @@ export const ReportFilters = component$<ReportFiltersProps>(
     selectedProject,
     employeeOptions = [],
     projectOptions = [],
+    onClearFilters$,
   }) => {
     return (
       <div class="no-print rounded-2xl border border-white/20 bg-white/90 p-6 shadow-xl backdrop-blur-sm dark:border-slate-700/20 dark:bg-slate-800/90">
-        <div class="mb-4 flex items-center space-x-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/20">
-            <LuSliders class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <div class="mb-4 flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/20">
+              <LuSliders class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+              Report Filters
+            </h2>
           </div>
-          <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-            Report Filters
-          </h2>
+          {onClearFilters$ && (
+            <button
+              onClick$={onClearFilters$}
+              class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition-all duration-200 hover:border-red-300 hover:bg-red-100 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
+            >
+              <LuX class="h-4 w-4" />
+              Clear Filters
+            </button>
+          )}
         </div>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
           {/* Start Date */}
