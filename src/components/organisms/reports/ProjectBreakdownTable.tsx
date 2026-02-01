@@ -127,77 +127,146 @@ export const ProjectBreakdownTable = component$<ProjectBreakdownTableProps>(
                     project.users &&
                     project.users.length > 0 && (
                       <tr key={`${project.projectCode}-details`}>
-                        <td
-                          colSpan={4}
-                          class="bg-gray-50 p-0 dark:bg-slate-700/30"
-                        >
-                          <div class="px-8 py-4">
-                            <h4 class="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                              Team Members
-                            </h4>
-                            <table class="w-full">
-                              <thead>
-                                <tr class="border-b border-gray-200 dark:border-slate-600">
-                                  <th class="pb-2 text-left text-xs font-medium text-gray-600 dark:text-gray-400">
-                                    Name
-                                  </th>
-                                  <th class="pb-2 text-left text-xs font-medium text-gray-600 dark:text-gray-400">
-                                    Hours
-                                  </th>
-                                  <th class="pb-2 text-left text-xs font-medium text-gray-600 dark:text-gray-400">
-                                    Percentage
-                                  </th>
-                                  <th class="no-print pb-2 text-left text-xs font-medium text-gray-600 dark:text-gray-400">
-                                    Actions
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {project.users.map((user) => (
-                                  <tr
-                                    key={user.userId}
-                                    class="border-b border-gray-100 last:border-0 dark:border-slate-600/50"
+                        <td colSpan={4} class="p-0">
+                          <div class="animate-[slideDown_0.3s_ease-out] bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-indigo-50/50 dark:from-slate-800/40 dark:via-slate-700/30 dark:to-slate-800/40">
+                            <div class="px-8 py-6">
+                              <div class="mb-4 flex items-center gap-3">
+                                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg">
+                                  <svg
+                                    class="h-4 w-4 text-white"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
                                   >
-                                    <td class="py-2 text-sm text-gray-800 dark:text-gray-200">
-                                      {user.userName}
-                                    </td>
-                                    <td class="py-2 font-mono text-sm text-gray-800 dark:text-gray-200">
-                                      {user.hours.toFixed(1)}h
-                                    </td>
-                                    <td class="py-2">
-                                      <div class="flex items-center gap-2">
-                                        <div class="h-1.5 w-16 overflow-hidden rounded-full bg-gray-200 dark:bg-slate-600">
+                                    <path
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                                    />
+                                  </svg>
+                                </div>
+                                <h4 class="text-base font-bold text-gray-900 dark:text-white">
+                                  Team Members
+                                </h4>
+                                <span class="ml-auto rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                                  {project.users.length}{" "}
+                                  {project.users.length === 1
+                                    ? "member"
+                                    : "members"}
+                                </span>
+                              </div>
+
+                              <div class="grid gap-3">
+                                {project.users.map((user, idx) => (
+                                  <div
+                                    key={user.userId}
+                                    class="group relative overflow-hidden rounded-xl border border-white/60 bg-white/80 p-4 shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-lg dark:border-slate-600/40 dark:bg-slate-700/50"
+                                    style={`animation: fadeInUp 0.3s ease-out ${idx * 0.05}s both`}
+                                  >
+                                    {/* Gradient accent line */}
+                                    <div class="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-blue-500 via-purple-500 to-indigo-500 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+
+                                    <div class="grid grid-cols-[1fr_auto_1fr_auto] items-center gap-4">
+                                      {/* Name */}
+                                      <div class="flex items-center gap-3">
+                                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-bold text-white shadow-md">
+                                          {user.userName
+                                            .split(" ")
+                                            .map((n) => n[0])
+                                            .join("")
+                                            .toUpperCase()
+                                            .slice(0, 2)}
+                                        </div>
+                                        <div>
+                                          <p class="font-semibold text-gray-900 dark:text-white">
+                                            {user.userName}
+                                          </p>
+                                          <p class="text-xs text-gray-500 dark:text-gray-400">
+                                            Team Member
+                                          </p>
+                                        </div>
+                                      </div>
+
+                                      {/* Hours */}
+                                      <div class="rounded-lg bg-gradient-to-br from-emerald-50 to-teal-50 px-4 py-2 dark:from-emerald-900/20 dark:to-teal-900/20">
+                                        <div class="text-center">
+                                          <p class="font-mono text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                                            {user.hours.toFixed(1)}
+                                          </p>
+                                          <p class="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                            hours
+                                          </p>
+                                        </div>
+                                      </div>
+
+                                      {/* Percentage bar */}
+                                      <div class="flex flex-col gap-1">
+                                        <div class="flex items-center justify-between">
+                                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                            Contribution
+                                          </span>
+                                          <span class="text-sm font-bold text-gray-900 dark:text-white">
+                                            {user.percentage.toFixed(1)}%
+                                          </span>
+                                        </div>
+                                        <div class="h-2.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-slate-600">
                                           <div
-                                            class="h-full rounded-full bg-blue-500 transition-all duration-300"
+                                            class="h-full rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600 transition-all duration-500 ease-out"
                                             style={`width: ${user.percentage}%`}
                                           ></div>
                                         </div>
-                                        <span class="text-xs text-gray-700 dark:text-gray-300">
-                                          {user.percentage.toFixed(1)}%
-                                        </span>
                                       </div>
-                                    </td>
-                                    <td class="no-print py-2">
-                                      <button
-                                        onClick$={() => {
-                                          if (onUserDetailsClick$) {
-                                            onUserDetailsClick$({
-                                              userId: user.userId,
-                                              userName: user.userName,
-                                              projectId: project.projectCode,
-                                              projectName: project.projectName,
-                                            });
-                                          }
-                                        }}
-                                        class="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                                      >
-                                        View Details →
-                                      </button>
-                                    </td>
-                                  </tr>
+
+                                      {/* Action button */}
+                                      <div class="no-print">
+                                        <button
+                                          onClick$={() => {
+                                            if (onUserDetailsClick$) {
+                                              onUserDetailsClick$({
+                                                userId: user.userId,
+                                                userName: user.userName,
+                                                projectId: project.projectCode,
+                                                projectName: project.projectName,
+                                              });
+                                            }
+                                          }}
+                                          class="group/btn flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                                        >
+                                          <svg
+                                            class="h-4 w-4"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                          >
+                                            <path
+                                              stroke-linecap="round"
+                                              stroke-linejoin="round"
+                                              stroke-width="2"
+                                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                            />
+                                          </svg>
+                                          <span>View Calendar</span>
+                                          <svg
+                                            class="h-4 w-4 transition-transform group-hover/btn:translate-x-1"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                          >
+                                            <path
+                                              stroke-linecap="round"
+                                              stroke-linejoin="round"
+                                              stroke-width="2"
+                                              d="M9 5l7 7-7 7"
+                                            />
+                                          </svg>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
                                 ))}
-                              </tbody>
-                            </table>
+                              </div>
+                            </div>
                           </div>
                         </td>
                       </tr>
