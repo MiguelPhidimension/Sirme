@@ -25,9 +25,12 @@ import { graphqlClient } from "~/graphql/client";
 export default component$(() => {
   // State management
   const isLoading = useSignal(false);
-  const selectedPeriod = useSignal<"week" | "month" | "quarter" | "year">(
-    "month",
-  );
+  
+  // Initialize with current month in GMT
+  const now = new Date();
+  const startDate = useSignal(DateUtils.getMonthStart());
+  const endDate = useSignal(DateUtils.getMonthEnd());
+  
   const selectedEmployee = useSignal("all");
   const selectedProject = useSignal("all");
 
@@ -61,43 +64,9 @@ export default component$(() => {
 
   // Computed filter for fetching data
   const filter = useComputed$(() => {
-    const period = selectedPeriod.value;
-    const now = new Date();
-    let start = "",
-      end = "";
-
-    try {
-      if (period === "week") {
-        start = DateUtils.getWeekStart();
-        end = DateUtils.getWeekEnd();
-      } else if (period === "month") {
-        start = DateUtils.getMonthStart();
-        end = DateUtils.getMonthEnd();
-      } else if (period === "quarter") {
-        // Calculate quarter
-        const currentMonth = now.getMonth();
-        const quarterStartMonth = Math.floor(currentMonth / 3) * 3;
-        start = new Date(Date.UTC(now.getFullYear(), quarterStartMonth, 1))
-          .toISOString()
-          .split("T")[0];
-        end = new Date(Date.UTC(now.getFullYear(), quarterStartMonth + 3, 0))
-          .toISOString()
-          .split("T")[0];
-      } else {
-        // year
-        const y = now.getFullYear();
-        start = `${y}-01-01`;
-        end = `${y}-12-31`;
-      }
-    } catch (e) {
-      // Fallback
-      start = new Date().toISOString().split("T")[0];
-      end = start;
-    }
-
     return {
-      startDate: start,
-      endDate: end,
+      startDate: startDate.value,
+      endDate: endDate.value,
       userId:
         selectedEmployee.value === "all" ? undefined : selectedEmployee.value,
       projectId:
@@ -107,21 +76,7 @@ export default component$(() => {
 
   const reportsResource = useReportsData(filter);
 
-  // Filter options
-  const periodOptions = [
-    { value: "week", label: "This Week" },
-    { value: "month", label: "This Month" },
-    { value: "quarter", label: "This Quarter" },
-    { value: "year", label: "This Year" },
-  ];
-
   // Handler functions
-  const handlePeriodChange = $(
-    (period: "week" | "month" | "quarter" | "year") => {
-      selectedPeriod.value = period;
-    },
-  );
-
   const handleExportPDF = $(async () => {
     isLoading.value = true;
     try {
@@ -177,33 +132,30 @@ export default component$(() => {
           value={filterOptionsResource}
           onPending={() => (
             <ReportFilters
-              selectedPeriod={selectedPeriod}
+              startDate={startDate}
+              endDate={endDate}
               selectedEmployee={selectedEmployee}
               selectedProject={selectedProject}
-              periodOptions={periodOptions}
-              onPeriodChange$={handlePeriodChange}
               employeeOptions={[]}
               projectOptions={[]}
             />
           )}
           onRejected={() => (
             <ReportFilters
-              selectedPeriod={selectedPeriod}
+              startDate={startDate}
+              endDate={endDate}
               selectedEmployee={selectedEmployee}
               selectedProject={selectedProject}
-              periodOptions={periodOptions}
-              onPeriodChange$={handlePeriodChange}
               employeeOptions={[]}
               projectOptions={[]}
             />
           )}
           onResolved={(options) => (
             <ReportFilters
-              selectedPeriod={selectedPeriod}
+              startDate={startDate}
+              endDate={endDate}
               selectedEmployee={selectedEmployee}
               selectedProject={selectedProject}
-              periodOptions={periodOptions}
-              onPeriodChange$={handlePeriodChange}
               employeeOptions={options.employees}
               projectOptions={options.projects}
             />

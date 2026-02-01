@@ -1,34 +1,27 @@
-import { component$, type QRL, type Signal } from "@builder.io/qwik";
+import { component$, type Signal } from "@builder.io/qwik";
 import { LuSliders } from "@qwikest/icons/lucide";
 
-interface PeriodOption {
-  value: string;
-  label: string;
-}
-
 interface ReportFiltersProps {
-  selectedPeriod: Signal<"week" | "month" | "quarter" | "year">;
+  startDate: Signal<string>;
+  endDate: Signal<string>;
   selectedEmployee: Signal<string>;
   selectedProject: Signal<string>;
-  periodOptions: PeriodOption[];
   employeeOptions?: { value: string; label: string }[];
   projectOptions?: { value: string; label: string }[];
-  onPeriodChange$: QRL<(period: "week" | "month" | "quarter" | "year") => void>;
 }
 
 /**
  * ReportFilters - Molecule component for report filter controls
- * Displays period, employee, and project selectors
+ * Displays date range, employee, and project selectors
  */
 export const ReportFilters = component$<ReportFiltersProps>(
   ({
-    selectedPeriod,
+    startDate,
+    endDate,
     selectedEmployee,
     selectedProject,
-    periodOptions,
     employeeOptions = [],
     projectOptions = [],
-    onPeriodChange$,
   }) => {
     return (
       <div class="no-print rounded-2xl border border-white/20 bg-white/90 p-6 shadow-xl backdrop-blur-sm dark:border-slate-700/20 dark:bg-slate-800/90">
@@ -40,25 +33,35 @@ export const ReportFilters = component$<ReportFiltersProps>(
             Report Filters
           </h2>
         </div>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {/* Period selector */}
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
+          {/* Start Date */}
           <div>
             <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Time Period
+              Start Date
             </label>
-            <select
+            <input
+              type="date"
               class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-              value={selectedPeriod.value}
+              value={startDate.value}
               onChange$={(e) =>
-                onPeriodChange$((e.target as HTMLSelectElement).value as any)
+                (startDate.value = (e.target as HTMLInputElement).value)
               }
-            >
-              {periodOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            />
+          </div>
+
+          {/* End Date */}
+          <div>
+            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              End Date
+            </label>
+            <input
+              type="date"
+              class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+              value={endDate.value}
+              onChange$={(e) =>
+                (endDate.value = (e.target as HTMLInputElement).value)
+              }
+            />
           </div>
 
           {/* Employee selector */}
