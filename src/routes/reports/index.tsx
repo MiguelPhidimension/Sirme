@@ -142,10 +142,6 @@ export default component$(() => {
     }
   });
 
-  const handlePrintReport = $(() => {
-    window.print();
-  });
-
   const handleCloseEntryDetailsModal = $(() => {
     entryDetailsModalOpen.value = false;
     selectedEntry.value = null;
@@ -173,8 +169,6 @@ export default component$(() => {
       {/* Page header */}
       <ReportHeader
         isLoading={isLoading.value}
-        onPrint$={handlePrintReport}
-        onExportPDF$={handleExportPDF}
         onExportCSV$={handleExportCSV}
       />
 
