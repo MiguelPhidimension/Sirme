@@ -13,6 +13,8 @@ import {
   ProjectBreakdownTable,
   RecentEntriesList,
 } from "~/components/organisms";
+import { UserCalendarModal } from "~/components/organisms/reports/UserCalendarModal";
+import type { UserDetailsParams } from "~/components/organisms/reports/ProjectBreakdownTable";
 import type { EmployeeRole } from "~/types";
 import { useReportsData, type ReportFilter } from "~/graphql/hooks/useReports";
 import { DateUtils } from "~/utils";
@@ -33,6 +35,10 @@ export default component$(() => {
   
   const selectedEmployee = useSignal("all");
   const selectedProject = useSignal("all");
+
+  // Modal state
+  const modalOpen = useSignal(false);
+  const modalUserDetails = useSignal<UserDetailsParams | null>(null);
 
   // Fetch filter options (Employees & Projects)
   const filterOptionsResource = useResource$(async () => {
@@ -113,6 +119,16 @@ export default component$(() => {
 
   const handleViewEntry = $((id: string) => {
     console.log("View entry:", id);
+  });
+
+  const handleUserDetailsClick = $((params: UserDetailsParams) => {
+    modalUserDetails.value = params;
+    modalOpen.value = true;
+  });
+
+  const handleCloseModal = $(() => {
+    modalOpen.value = false;
+    modalUserDetails.value = null;
   });
 
   return (
@@ -208,7 +224,10 @@ export default component$(() => {
               </div>
 
               {/* Project Breakdown - Ensure mapping is correct if needed but component expects matching keys */}
-              <ProjectBreakdownTable projects={reportData.projectBreakdown} />
+              <ProjectBreakdownTable 
+                projects={reportData.projectBreakdown} 
+                onUserDetailsClick$={handleUserDetailsClick}
+              />
 
               {/* Recent Entries - Ensure types match */}
               <RecentEntriesList
@@ -227,6 +246,44 @@ export default component$(() => {
           )}
         />
       </div>
+
+      {/* User Calendar Modal - Rendered at root level */}
+      <Resource
+        value={reportsResource}
+        onResolved={(reportData) => {
+          if (!modalOpen.value || !modalUserDetails.value) return null;
+
+          // Filter time entries for selected user and project
+          const userEntries = reportData.timeEntries
+            .filter(
+              (entry: any) =>
+                entry.id &&
+                entry.employeeName === modalUserDetails.value?.userName,
+            )
+            .flatMap((entry: any) =>
+              entry.projects
+                ?.filter(
+                  (p: any) => p.id === modalUserDetails.value?.projectId,
+                )
+                .map((p: any) => ({
+                  date: entry.date,
+                  hours: p.hours,
+                  notes: p.notes,
+                })),
+            )
+            .filter(Boolean);
+
+          return (
+            <UserCalendarModal
+              isOpen={modalOpen.value}
+              userName={modalUserDetails.value?.userName || ""}
+              projectName={modalUserDetails.value?.projectName || ""}
+              timeEntries={userEntries}
+              onClose={handleCloseModal}
+            />
+          );
+        }}
+      />
     </div>
   );
 });

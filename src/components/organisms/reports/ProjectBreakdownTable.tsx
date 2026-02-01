@@ -1,4 +1,4 @@
-import { $, component$, useSignal } from "@builder.io/qwik";
+import { $, component$, useSignal, type QRL } from "@builder.io/qwik";
 import {
   LuBarChart3,
   LuChevronDown,
@@ -21,8 +21,16 @@ interface ProjectBreakdown {
   users?: UserInProject[];
 }
 
+export interface UserDetailsParams {
+  userId: string;
+  userName: string;
+  projectId: string;
+  projectName: string;
+}
+
 interface ProjectBreakdownTableProps {
   projects: ProjectBreakdown[];
+  onUserDetailsClick$?: QRL<(params: UserDetailsParams) => void>;
 }
 
 /**
@@ -30,7 +38,7 @@ interface ProjectBreakdownTableProps {
  * Displays detailed breakdown of hours per project with percentages and status
  */
 export const ProjectBreakdownTable = component$<ProjectBreakdownTableProps>(
-  ({ projects }) => {
+  ({ projects, onUserDetailsClick$ }) => {
     const expandedProject = useSignal<string | null>(null);
 
     const toggleProject = $((projectCode: string) => {
@@ -170,7 +178,19 @@ export const ProjectBreakdownTable = component$<ProjectBreakdownTableProps>(
                                       </div>
                                     </td>
                                     <td class="no-print py-2">
-                                      <button class="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                                      <button
+                                        onClick$={() => {
+                                          if (onUserDetailsClick$) {
+                                            onUserDetailsClick$({
+                                              userId: user.userId,
+                                              userName: user.userName,
+                                              projectId: project.projectCode,
+                                              projectName: project.projectName,
+                                            });
+                                          }
+                                        }}
+                                        class="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                      >
                                         View Details →
                                       </button>
                                     </td>
