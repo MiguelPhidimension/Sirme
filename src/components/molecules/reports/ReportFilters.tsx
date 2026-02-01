@@ -11,6 +11,8 @@ interface ReportFiltersProps {
   selectedEmployee: Signal<string>;
   selectedProject: Signal<string>;
   periodOptions: PeriodOption[];
+  employeeOptions?: { value: string; label: string }[];
+  projectOptions?: { value: string; label: string }[];
   onPeriodChange$: QRL<(period: "week" | "month" | "quarter" | "year") => void>;
 }
 
@@ -24,6 +26,8 @@ export const ReportFilters = component$<ReportFiltersProps>(
     selectedEmployee,
     selectedProject,
     periodOptions,
+    employeeOptions = [],
+    projectOptions = [],
     onPeriodChange$,
   }) => {
     return (
@@ -70,8 +74,11 @@ export const ReportFilters = component$<ReportFiltersProps>(
               }
             >
               <option value="all">All Employees</option>
-              <option value="emp-001">John Doe</option>
-              <option value="emp-002">Jane Smith</option>
+              {employeeOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -88,9 +95,11 @@ export const ReportFilters = component$<ReportFiltersProps>(
               }
             >
               <option value="all">All Projects</option>
-              <option value="PROJ-001">Website Development</option>
-              <option value="PROJ-002">Client Meetings</option>
-              <option value="PROJ-003">Database Design</option>
+              {projectOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
