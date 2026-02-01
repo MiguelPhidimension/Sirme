@@ -165,7 +165,7 @@ export const ProjectBreakdownTable = component$<ProjectBreakdownTableProps>(
                                     style={`animation: fadeInUp 0.3s ease-out ${idx * 0.05}s both`}
                                   >
                                     {/* Gradient accent line */}
-                                    <div class="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-blue-500 via-purple-500 to-indigo-500 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                                    <div class="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-blue-500 via-purple-500 to-indigo-500 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
 
                                     <div class="grid grid-cols-[1fr_auto_1fr_auto] items-center gap-4">
                                       {/* Name */}
@@ -227,7 +227,8 @@ export const ProjectBreakdownTable = component$<ProjectBreakdownTableProps>(
                                                 userId: user.userId,
                                                 userName: user.userName,
                                                 projectId: project.projectCode,
-                                                projectName: project.projectName,
+                                                projectName:
+                                                  project.projectName,
                                               });
                                             }
                                           }}

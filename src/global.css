@@ -142,7 +142,11 @@ textarea:focus-visible {
 
 /* Grid pattern background for hero sections */
 .bg-grid-pattern {
-  background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0);
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(255, 255, 255, 0.15) 1px,
+    transparent 0
+  );
   background-size: 20px 20px;
 }
 
@@ -157,7 +161,9 @@ textarea:focus-visible {
 
 .card-hover:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 10px 10px -5px rgb(0 0 0 / 0.04);
 }
 
 /* Enhanced stat card styling */
@@ -189,19 +195,28 @@ textarea:focus-visible {
 }
 
 .progress::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
   animation: progressShine 2s infinite;
 }
 
 @keyframes progressShine {
-  0% { left: -100%; }
-  100% { left: 100%; }
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
 }
 
 /* Badge enhancements */
@@ -224,7 +239,9 @@ textarea:focus-visible {
 }
 
 .tabs .tab-active {
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
 /* Alert enhancements */
@@ -239,12 +256,12 @@ textarea:focus-visible {
   .mobile-stack > * {
     width: 100% !important;
   }
-  
+
   /* Better mobile spacing */
   .fade-in {
     animation-duration: 0.4s;
   }
-  
+
   .card-hover:hover {
     transform: translateY(-2px);
   }
@@ -299,7 +316,9 @@ textarea:focus-visible {
 
 .form-control:focus-within {
   transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
 /* Print styles for time reports */
@@ -307,17 +326,17 @@ textarea:focus-visible {
   .no-print {
     display: none !important;
   }
-  
+
   .card {
     break-inside: avoid;
     box-shadow: none;
     border: 1px solid hsl(var(--b3));
   }
-  
+
   .btn {
     display: none;
   }
-  
+
   /* Print-friendly animations off */
   * {
     animation-duration: 0s !important;
@@ -330,9 +349,13 @@ textarea:focus-visible {
 /* Dark mode enhancements */
 @media (prefers-color-scheme: dark) {
   .bg-grid-pattern {
-    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.08) 1px, transparent 0);
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      rgba(255, 255, 255, 0.08) 1px,
+      transparent 0
+    );
   }
-  
+
   .backdrop-blur-glass {
     background-color: rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -347,15 +370,15 @@ textarea:focus-visible {
   .float-in {
     animation: none;
   }
-  
+
   .card-hover:hover {
     transform: none;
   }
-  
+
   .btn:hover {
     transform: none;
   }
-  
+
   .progress::before {
     animation: none;
   }
@@ -380,8 +403,10 @@ textarea:focus-visible {
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
-
-
