@@ -1,11 +1,33 @@
-import { component$, useSignal, useStore, $ } from "@builder.io/qwik";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import {
+  component$,
+  useSignal,
+  $,
+  useComputed$,
+  Resource,
+  useResource$,
+} from "@builder.io/qwik";
 import type { DocumentHead } from "@builder.io/qwik-city";
 import { StatCard, ReportHeader, ReportFilters } from "~/components/molecules";
 import {
   ProjectBreakdownTable,
   RecentEntriesList,
 } from "~/components/organisms";
+import { UserCalendarModal } from "~/components/organisms/reports/UserCalendarModal";
+import { TimeEntryDetailsModal } from "~/components/organisms/reports/TimeEntryDetailsModal";
+import type { UserDetailsParams } from "~/components/organisms/reports/ProjectBreakdownTable";
 import type { EmployeeRole } from "~/types";
+import {
+  useReportsData,
+  type ReportFilter,
+  type ReportData,
+} from "~/graphql/hooks/useReports";
+import {
+  DateUtils,
+  exportReportToExcel,
+  generateReportFilename,
+} from "~/utils";
+import { graphqlClient } from "~/graphql/client";
 
 /**
  * Reports page component - Refactored with modular components
@@ -14,89 +36,93 @@ import type { EmployeeRole } from "~/types";
 export default component$(() => {
   // State management
   const isLoading = useSignal(false);
-  const selectedPeriod = useSignal<"week" | "month" | "quarter" | "year">(
-    "month",
-  );
+
+  // Initialize with current month in GMT
+  const now = new Date();
+  const startDate = useSignal(DateUtils.getMonthStart());
+  const endDate = useSignal(DateUtils.getMonthEnd());
+
   const selectedEmployee = useSignal("all");
   const selectedProject = useSignal("all");
 
-  // Sample reports data (would come from API in real app)
-  const reportData = useStore({
-    summary: {
-      totalHours: 184.5,
-      billableHours: 156.0,
-      projects: 8,
-      avgDaily: 7.4,
-    },
-    projectBreakdown: [
-      {
-        projectCode: "PROJ-001",
-        projectName: "Website Development",
-        totalHours: 85.5,
-        percentage: 46.3,
-        status: "active",
-      },
-      {
-        projectCode: "PROJ-002",
-        projectName: "Client Meetings",
-        totalHours: 42.0,
-        percentage: 22.8,
-        status: "active",
-      },
-      {
-        projectCode: "PROJ-003",
-        projectName: "Database Design",
-        totalHours: 35.0,
-        percentage: 19.0,
-        status: "completed",
-      },
-      {
-        projectCode: "PROJ-004",
-        projectName: "Documentation",
-        totalHours: 22.0,
-        percentage: 11.9,
-        status: "active",
-      },
-    ],
-    timeEntries: [
-      {
-        id: "1",
-        employeeName: "John Doe",
-        date: new Date().toISOString().split("T")[0],
-        role: "MuleSoft Developer" as EmployeeRole,
-        projects: [
-          {
-            id: "proj-r-1",
-            clientName: "Acme Corp",
-            hours: 6.5,
-            isMPS: true,
-            notes: "Frontend component development",
-          },
-        ],
-        totalHours: 6.5,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ],
+  // Modal state
+  const modalOpen = useSignal(false);
+  const modalUserDetails = useSignal<UserDetailsParams | null>(null);
+
+  // Time Entry Details Modal state
+  const entryDetailsModalOpen = useSignal(false);
+  const selectedEntry = useSignal<any>(null);
+
+  // Store current report data for export
+  const currentReportData = useSignal<ReportData | null>(null);
+
+  // Computed filter for fetching data
+  const filter = useComputed$(() => {
+    return {
+      startDate: startDate.value,
+      endDate: endDate.value,
+      userId:
+        selectedEmployee.value === "all" ? undefined : selectedEmployee.value,
+      projectId:
+        selectedProject.value === "all" ? undefined : selectedProject.value,
+    } as ReportFilter;
   });
 
-  // Filter options
-  const periodOptions = [
-    { value: "week", label: "This Week" },
-    { value: "month", label: "This Month" },
-    { value: "quarter", label: "This Quarter" },
-    { value: "year", label: "This Year" },
-  ];
+  // Separate filter for getting employee projects (without project filter)
+  const employeeProjectsFilter = useComputed$(() => {
+    return {
+      startDate: startDate.value,
+      endDate: endDate.value,
+      userId:
+        selectedEmployee.value === "all" ? undefined : selectedEmployee.value,
+      projectId: undefined, // Don't filter by project here
+    } as ReportFilter;
+  });
+
+  const reportsResource = useReportsData(filter);
+  const employeeProjectsResource = useReportsData(employeeProjectsFilter);
+
+  // Fetch all employees (static list)
+  const employeesResource = useResource$(async () => {
+    try {
+      const data = await graphqlClient.request<{ users: any[] }>(`
+        query GetEmployees {
+          users(order_by: {first_name: asc}) { 
+            user_id 
+            first_name 
+            last_name 
+          }
+        }
+      `);
+      return data.users.map((u) => ({
+        value: u.user_id,
+        label: `${u.first_name} ${u.last_name}`,
+      }));
+    } catch (e) {
+      console.error("Failed to load employees", e);
+      return [];
+    }
+  });
+
+  // Fetch all projects (for when no employee is selected)
+  const allProjectsResource = useResource$(async () => {
+    try {
+      const data = await graphqlClient.request<{ projects: any[] }>(`
+        query GetAllProjects {
+          projects(order_by: {name: asc}) { project_id name }
+        }
+      `);
+      return data.projects.map((p) => ({
+        value: p.project_id,
+        label: p.name,
+      }));
+    } catch (e) {
+      console.error("Failed to load projects", e);
+      return [];
+    }
+  });
 
   // Handler functions
-  const handlePeriodChange = $(
-    (period: "week" | "month" | "quarter" | "year") => {
-      selectedPeriod.value = period;
-      console.log("Period changed to:", period);
-      // TODO: Fetch data for selected period
-    },
-  );
-
   const handleExportPDF = $(async () => {
     isLoading.value = true;
     try {
@@ -113,26 +139,58 @@ export default component$(() => {
   });
 
   const handleExportCSV = $(async () => {
+    // Access the current report data from signal
+    const reportData = currentReportData.value;
+
+    // Check if data is loaded
+    if (!reportData) {
+      alert(
+        "No hay datos para exportar. Por favor, espera a que carguen los datos.",
+      );
+      return;
+    }
+
     isLoading.value = true;
     try {
-      console.log("Exporting CSV report...");
-      // Simulate export delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // TODO: Implement actual CSV export
-      alert("CSV export would download here");
+      console.log("Exporting Excel report...");
+
+      // Generate filename with date range
+      const filename = generateReportFilename(startDate.value, endDate.value);
+
+      // Export to Excel
+      exportReportToExcel(reportData, startDate.value, endDate.value, filename);
+
+      console.log("✅ Excel exported successfully");
     } catch (error) {
-      console.error("CSV export failed:", error);
+      console.error("Excel export failed:", error);
+      alert(
+        "Error al exportar el reporte a Excel. Por favor, intenta de nuevo.",
+      );
     } finally {
       isLoading.value = false;
     }
   });
 
-  const handlePrintReport = $(() => {
-    window.print();
+  const handleCloseEntryDetailsModal = $(() => {
+    entryDetailsModalOpen.value = false;
+    selectedEntry.value = null;
   });
 
-  const handleViewEntry = $((id: string) => {
-    console.log("View entry:", id);
+  const handleUserDetailsClick = $((params: UserDetailsParams) => {
+    modalUserDetails.value = params;
+    modalOpen.value = true;
+  });
+
+  const handleCloseModal = $(() => {
+    modalOpen.value = false;
+    modalUserDetails.value = null;
+  });
+
+  const handleClearFilters = $(() => {
+    startDate.value = DateUtils.getMonthStart();
+    endDate.value = DateUtils.getMonthEnd();
+    selectedEmployee.value = "all";
+    selectedProject.value = "all";
   });
 
   return (
@@ -140,59 +198,232 @@ export default component$(() => {
       {/* Page header */}
       <ReportHeader
         isLoading={isLoading.value}
-        onPrint$={handlePrintReport}
-        onExportPDF$={handleExportPDF}
         onExportCSV$={handleExportCSV}
       />
 
       {/* Main content */}
       <div class="mx-auto max-w-7xl space-y-6">
         {/* Filters */}
-        <ReportFilters
-          selectedPeriod={selectedPeriod}
-          selectedEmployee={selectedEmployee}
-          selectedProject={selectedProject}
-          periodOptions={periodOptions}
-          onPeriodChange$={handlePeriodChange}
+        <Resource
+          value={employeeProjectsResource}
+          onPending={() => (
+            <Resource
+              value={employeesResource}
+              onResolved={(employees) => (
+                <Resource
+                  value={allProjectsResource}
+                  onResolved={(projects) => (
+                    <ReportFilters
+                      startDate={startDate}
+                      endDate={endDate}
+                      selectedEmployee={selectedEmployee}
+                      selectedProject={selectedProject}
+                      employeeOptions={employees}
+                      projectOptions={projects}
+                      onClearFilters$={handleClearFilters}
+                    />
+                  )}
+                />
+              )}
+            />
+          )}
+          onRejected={() => (
+            <Resource
+              value={employeesResource}
+              onResolved={(employees) => (
+                <Resource
+                  value={allProjectsResource}
+                  onResolved={(projects) => (
+                    <ReportFilters
+                      startDate={startDate}
+                      endDate={endDate}
+                      selectedEmployee={selectedEmployee}
+                      selectedProject={selectedProject}
+                      employeeOptions={employees}
+                      projectOptions={projects}
+                      onClearFilters$={handleClearFilters}
+                    />
+                  )}
+                />
+              )}
+            />
+          )}
+          onResolved={(employeeProjectsData) => (
+            <Resource
+              value={employeesResource}
+              onResolved={(employees) => (
+                <Resource
+                  value={allProjectsResource}
+                  onResolved={(allProjects) => {
+                    // Filter projects based on selected employee
+                    // Use employeeProjectsData which doesn't have project filter applied
+                    const projectOptions =
+                      selectedEmployee.value === "all"
+                        ? allProjects
+                        : employeeProjectsData.projectBreakdown.map((p) => ({
+                            value: p.projectCode,
+                            label: p.projectName,
+                          }));
+
+                    return (
+                      <ReportFilters
+                        startDate={startDate}
+                        endDate={endDate}
+                        selectedEmployee={selectedEmployee}
+                        selectedProject={selectedProject}
+                        employeeOptions={employees}
+                        projectOptions={projectOptions}
+                        onClearFilters$={handleClearFilters}
+                      />
+                    );
+                  }}
+                />
+              )}
+            />
+          )}
         />
 
-        {/* Summary Statistics */}
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="Total Hours"
-            value={`${reportData.summary.totalHours}h`}
-            color="primary"
-            icon="clock"
-          />
-          <StatCard
-            title="Billable Hours"
-            value={`${reportData.summary.billableHours}h`}
-            color="success"
-            icon="chart"
-          />
-          <StatCard
-            title="Active Projects"
-            value={reportData.summary.projects.toString()}
-            color="info"
-            icon="calendar"
-          />
-          <StatCard
-            title="Daily Average"
-            value={`${reportData.summary.avgDaily}h`}
-            color="warning"
-            icon="clock"
-          />
-        </div>
+        <Resource
+          value={reportsResource}
+          onPending={() => (
+            <div class="flex h-64 w-full items-center justify-center rounded-lg border border-dashed border-gray-700 bg-gray-800/50 p-12 text-center text-gray-400">
+              <div class="flex flex-col items-center gap-4">
+                <div class="border-t-brand-purple h-8 w-8 animate-spin rounded-full border-4 border-gray-600"></div>
+                <p>Loading report data...</p>
+              </div>
+            </div>
+          )}
+          onRejected={(error) => (
+            <div class="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-red-400">
+              Error loading reports: {error.message}
+            </div>
+          )}
+          onResolved={(reportData) => {
+            // Store the report data for export
+            currentReportData.value = reportData;
 
-        {/* Project Breakdown */}
-        <ProjectBreakdownTable projects={reportData.projectBreakdown} />
+            // When an employee is selected, the backend already filters the data
+            // So we just use the returned projects directly
+            const filteredProjects = reportData.projectBreakdown;
 
-        {/* Recent Entries */}
-        <RecentEntriesList
-          entries={reportData.timeEntries}
-          onViewEntry$={handleViewEntry}
+            console.log(
+              "Filtered projects:",
+              filteredProjects.length,
+              "of",
+              reportData.projectBreakdown.length,
+            );
+
+            return (
+              <>
+                {/* Summary Statistics */}
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <StatCard
+                    title="Total Hours"
+                    value={`${reportData.summary.totalHours}h`}
+                    color="primary"
+                    icon="clock"
+                  />
+                  <StatCard
+                    title="Billable Hours"
+                    value={`${reportData.summary.billableHours}h`}
+                    color="success"
+                    icon="chart"
+                  />
+                  <StatCard
+                    title="Active Projects"
+                    value={reportData.summary.activeProjects.toString()}
+                    color="info"
+                    icon="calendar"
+                  />
+                  <StatCard
+                    title="Daily Average"
+                    value={`${reportData.summary.avgDaily}h`}
+                    color="warning"
+                    icon="clock"
+                  />
+                </div>
+
+                {/* Project Breakdown - Ensure mapping is correct if needed but component expects matching keys */}
+                <ProjectBreakdownTable
+                  projects={filteredProjects}
+                  onUserDetailsClick$={handleUserDetailsClick}
+                />
+
+                {/* Recent Entries - Ensure types match */}
+                <RecentEntriesList
+                  entries={reportData.timeEntries.map((e) => ({
+                    ...e,
+                    role: e.role as EmployeeRole, // Cast string to union type
+                    // Projects already mapped?
+                    projects: e.projects.map((p) => ({
+                      ...p,
+                      notes: p.notes || "",
+                    })),
+                  }))}
+                  onViewEntry$={$((id: string) => {
+                    const entry = reportData.timeEntries.find(
+                      (e: any) => e.id === id,
+                    );
+                    if (entry) {
+                      selectedEntry.value = entry;
+                      entryDetailsModalOpen.value = true;
+                    }
+                  })}
+                />
+              </>
+            );
+          }}
         />
       </div>
+
+      {/* User Calendar Modal - Rendered at root level */}
+      <Resource
+        value={reportsResource}
+        onResolved={(reportData) => {
+          if (!modalOpen.value || !modalUserDetails.value) return null;
+
+          // Filter time entries for selected user and project
+          const userEntries = reportData.timeEntries
+            .filter(
+              (entry: any) =>
+                entry.id &&
+                entry.employeeName === modalUserDetails.value?.userName,
+            )
+            .flatMap((entry: any) =>
+              entry.projects
+                ?.filter((p: any) => p.id === modalUserDetails.value?.projectId)
+                .map((p: any) => ({
+                  date: entry.date,
+                  hours: p.hours,
+                  notes: p.notes,
+                })),
+            )
+            .filter(Boolean);
+
+          return (
+            <UserCalendarModal
+              isOpen={modalOpen.value}
+              userName={modalUserDetails.value?.userName || ""}
+              projectName={modalUserDetails.value?.projectName || ""}
+              timeEntries={userEntries}
+              onClose={handleCloseModal}
+            />
+          );
+        }}
+      />
+
+      {/* Time Entry Details Modal - Rendered at root level */}
+      {entryDetailsModalOpen.value && selectedEntry.value && (
+        <TimeEntryDetailsModal
+          isOpen={entryDetailsModalOpen.value}
+          employeeName={selectedEntry.value.employeeName}
+          date={selectedEntry.value.date}
+          role={selectedEntry.value.role}
+          projects={selectedEntry.value.projects}
+          totalHours={selectedEntry.value.totalHours}
+          onClose={handleCloseEntryDetailsModal}
+        />
+      )}
     </div>
   );
 });

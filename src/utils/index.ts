@@ -9,6 +9,9 @@ import type {
 export * from "./auth";
 export * from "./jwt";
 
+// Export Excel utilities
+export * from "./excelExport";
+
 /**
  * Date utility functions
  */

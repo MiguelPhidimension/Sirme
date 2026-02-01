@@ -1,60 +1,80 @@
-import { component$, type QRL, type Signal } from "@builder.io/qwik";
-import { LuSliders } from "@qwikest/icons/lucide";
-
-interface PeriodOption {
-  value: string;
-  label: string;
-}
+import { component$, type Signal, type QRL } from "@builder.io/qwik";
+import { LuSliders, LuX } from "@qwikest/icons/lucide";
 
 interface ReportFiltersProps {
-  selectedPeriod: Signal<"week" | "month" | "quarter" | "year">;
+  startDate: Signal<string>;
+  endDate: Signal<string>;
   selectedEmployee: Signal<string>;
   selectedProject: Signal<string>;
-  periodOptions: PeriodOption[];
-  onPeriodChange$: QRL<(period: "week" | "month" | "quarter" | "year") => void>;
+  employeeOptions?: { value: string; label: string }[];
+  projectOptions?: { value: string; label: string }[];
+  onClearFilters$?: QRL<() => void>;
 }
 
 /**
  * ReportFilters - Molecule component for report filter controls
- * Displays period, employee, and project selectors
+ * Displays date range, employee, and project selectors
  */
 export const ReportFilters = component$<ReportFiltersProps>(
   ({
-    selectedPeriod,
+    startDate,
+    endDate,
     selectedEmployee,
     selectedProject,
-    periodOptions,
-    onPeriodChange$,
+    employeeOptions = [],
+    projectOptions = [],
+    onClearFilters$,
   }) => {
     return (
       <div class="no-print rounded-2xl border border-white/20 bg-white/90 p-6 shadow-xl backdrop-blur-sm dark:border-slate-700/20 dark:bg-slate-800/90">
-        <div class="mb-4 flex items-center space-x-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/20">
-            <LuSliders class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <div class="mb-4 flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/20">
+              <LuSliders class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+              Report Filters
+            </h2>
           </div>
-          <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-            Report Filters
-          </h2>
+          {onClearFilters$ && (
+            <button
+              onClick$={onClearFilters$}
+              class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition-all duration-200 hover:border-red-300 hover:bg-red-100 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
+            >
+              <LuX class="h-4 w-4" />
+              Clear Filters
+            </button>
+          )}
         </div>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {/* Period selector */}
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
+          {/* Start Date */}
           <div>
             <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Time Period
+              Start Date
             </label>
-            <select
+            <input
+              type="date"
               class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-              value={selectedPeriod.value}
+              value={startDate.value}
               onChange$={(e) =>
-                onPeriodChange$((e.target as HTMLSelectElement).value as any)
+                (startDate.value = (e.target as HTMLInputElement).value)
               }
-            >
-              {periodOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            />
+          </div>
+
+          {/* End Date */}
+          <div>
+            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              End Date
+            </label>
+            <input
+              type="date"
+              class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+              value={endDate.value}
+              onChange$={(e) =>
+                (endDate.value = (e.target as HTMLInputElement).value)
+              }
+            />
           </div>
 
           {/* Employee selector */}
@@ -70,8 +90,11 @@ export const ReportFilters = component$<ReportFiltersProps>(
               }
             >
               <option value="all">All Employees</option>
-              <option value="emp-001">John Doe</option>
-              <option value="emp-002">Jane Smith</option>
+              {employeeOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -88,9 +111,11 @@ export const ReportFilters = component$<ReportFiltersProps>(
               }
             >
               <option value="all">All Projects</option>
-              <option value="PROJ-001">Website Development</option>
-              <option value="PROJ-002">Client Meetings</option>
-              <option value="PROJ-003">Database Design</option>
+              {projectOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
