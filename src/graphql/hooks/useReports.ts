@@ -51,12 +51,20 @@ export interface ReportSummary {
   avgDaily: number;
 }
 
+export interface UserInProject {
+  userId: string;
+  userName: string;
+  hours: number;
+  percentage: number;
+}
+
 export interface ProjectBreakdown {
   projectCode: string;
   projectName: string;
   totalHours: number;
   percentage: number;
   status: string; // 'active' | 'completed'
+  users?: UserInProject[];
 }
 
 export interface ReportData {
@@ -329,7 +337,12 @@ function buildReportData(
 
   const projectStats = new Map<
     string,
-    { name: string; hours: number; status: string }
+    {
+      name: string;
+      hours: number;
+      status: string;
+      users: Map<string, { name: string; hours: number }>;
+    }
   >();
 
   for (const entry of relevantTimeEntries) {
@@ -342,6 +355,11 @@ function buildReportData(
 
       // Aggregate project stats
       const projectId = tep.project_id;
+      const user = userMap.get(entry.user_id);
+      const userName = user
+        ? `${user.first_name || ""} ${user.last_name || ""}`.trim()
+        : "Unknown User";
+
       if (!projectStats.has(projectId)) {
         let status = "active";
         if (tep.project?.end_date) {
@@ -353,9 +371,18 @@ function buildReportData(
           name: tep.project?.name || "Unknown Project",
           hours: 0,
           status,
+          users: new Map(),
         });
       }
-      projectStats.get(projectId)!.hours += hours;
+
+      const projectStat = projectStats.get(projectId)!;
+      projectStat.hours += hours;
+
+      // Track user hours per project
+      if (!projectStat.users.has(entry.user_id)) {
+        projectStat.users.set(entry.user_id, { name: userName, hours: 0 });
+      }
+      projectStat.users.get(entry.user_id)!.hours += hours;
 
       return {
         id: tep.project_id,
@@ -394,14 +421,28 @@ function buildReportData(
 
   // Calculate breakdown
   const breakdown: ProjectBreakdown[] = Array.from(projectStats.entries())
-    .map(([code, stats]) => ({
-      projectCode: code,
-      projectName: stats.name,
-      totalHours: stats.hours,
-      percentage:
-        grandTotalHours > 0 ? (stats.hours / grandTotalHours) * 100 : 0,
-      status: stats.status,
-    }))
+    .map(([code, stats]) => {
+      // Calculate user percentages for this project
+      const users: UserInProject[] = Array.from(stats.users.entries())
+        .map(([userId, userData]) => ({
+          userId,
+          userName: userData.name,
+          hours: userData.hours,
+          percentage:
+            stats.hours > 0 ? (userData.hours / stats.hours) * 100 : 0,
+        }))
+        .sort((a, b) => b.hours - a.hours);
+
+      return {
+        projectCode: code,
+        projectName: stats.name,
+        totalHours: stats.hours,
+        percentage:
+          grandTotalHours > 0 ? (stats.hours / grandTotalHours) * 100 : 0,
+        status: stats.status,
+        users,
+      };
+    })
     .sort((a, b) => b.totalHours - a.totalHours);
 
   return {
