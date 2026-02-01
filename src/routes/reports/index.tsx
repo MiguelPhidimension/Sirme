@@ -27,46 +27,18 @@ import { graphqlClient } from "~/graphql/client";
 export default component$(() => {
   // State management
   const isLoading = useSignal(false);
-  
+
   // Initialize with current month in GMT
   const now = new Date();
   const startDate = useSignal(DateUtils.getMonthStart());
   const endDate = useSignal(DateUtils.getMonthEnd());
-  
+
   const selectedEmployee = useSignal("all");
   const selectedProject = useSignal("all");
 
   // Modal state
   const modalOpen = useSignal(false);
   const modalUserDetails = useSignal<UserDetailsParams | null>(null);
-
-  // Fetch filter options (Employees & Projects)
-  const filterOptionsResource = useResource$(async () => {
-    try {
-      const data = await graphqlClient.request<{
-        users: any[];
-        projects: any[];
-      }>(`
-            query GetOptions {
-                users(order_by: {first_name: asc}) { user_id first_name last_name }
-                projects(order_by: {name: asc}) { project_id name }
-            }
-        `);
-      return {
-        employees: data.users.map((u) => ({
-          value: u.user_id,
-          label: `${u.first_name} ${u.last_name}`,
-        })),
-        projects: data.projects.map((p) => ({
-          value: p.project_id,
-          label: p.name,
-        })),
-      };
-    } catch (e) {
-      console.error("Failed to load filter options", e);
-      return { employees: [], projects: [] };
-    }
-  });
 
   // Computed filter for fetching data
   const filter = useComputed$(() => {
@@ -80,7 +52,59 @@ export default component$(() => {
     } as ReportFilter;
   });
 
+  // Separate filter for getting employee projects (without project filter)
+  const employeeProjectsFilter = useComputed$(() => {
+    return {
+      startDate: startDate.value,
+      endDate: endDate.value,
+      userId:
+        selectedEmployee.value === "all" ? undefined : selectedEmployee.value,
+      projectId: undefined, // Don't filter by project here
+    } as ReportFilter;
+  });
+
   const reportsResource = useReportsData(filter);
+  const employeeProjectsResource = useReportsData(employeeProjectsFilter);
+
+  // Fetch all employees (static list)
+  const employeesResource = useResource$(async () => {
+    try {
+      const data = await graphqlClient.request<{ users: any[] }>(`
+        query GetEmployees {
+          users(order_by: {first_name: asc}) { 
+            user_id 
+            first_name 
+            last_name 
+          }
+        }
+      `);
+      return data.users.map((u) => ({
+        value: u.user_id,
+        label: `${u.first_name} ${u.last_name}`,
+      }));
+    } catch (e) {
+      console.error("Failed to load employees", e);
+      return [];
+    }
+  });
+
+  // Fetch all projects (for when no employee is selected)
+  const allProjectsResource = useResource$(async () => {
+    try {
+      const data = await graphqlClient.request<{ projects: any[] }>(`
+        query GetAllProjects {
+          projects(order_by: {name: asc}) { project_id name }
+        }
+      `);
+      return data.projects.map((p) => ({
+        value: p.project_id,
+        label: p.name,
+      }));
+    } catch (e) {
+      console.error("Failed to load projects", e);
+      return [];
+    }
+  });
 
   // Handler functions
   const handleExportPDF = $(async () => {
@@ -145,35 +169,77 @@ export default component$(() => {
       <div class="mx-auto max-w-7xl space-y-6">
         {/* Filters */}
         <Resource
-          value={filterOptionsResource}
+          value={employeeProjectsResource}
           onPending={() => (
-            <ReportFilters
-              startDate={startDate}
-              endDate={endDate}
-              selectedEmployee={selectedEmployee}
-              selectedProject={selectedProject}
-              employeeOptions={[]}
-              projectOptions={[]}
+            <Resource
+              value={employeesResource}
+              onResolved={(employees) => (
+                <Resource
+                  value={allProjectsResource}
+                  onResolved={(projects) => (
+                    <ReportFilters
+                      startDate={startDate}
+                      endDate={endDate}
+                      selectedEmployee={selectedEmployee}
+                      selectedProject={selectedProject}
+                      employeeOptions={employees}
+                      projectOptions={projects}
+                    />
+                  )}
+                />
+              )}
             />
           )}
           onRejected={() => (
-            <ReportFilters
-              startDate={startDate}
-              endDate={endDate}
-              selectedEmployee={selectedEmployee}
-              selectedProject={selectedProject}
-              employeeOptions={[]}
-              projectOptions={[]}
+            <Resource
+              value={employeesResource}
+              onResolved={(employees) => (
+                <Resource
+                  value={allProjectsResource}
+                  onResolved={(projects) => (
+                    <ReportFilters
+                      startDate={startDate}
+                      endDate={endDate}
+                      selectedEmployee={selectedEmployee}
+                      selectedProject={selectedProject}
+                      employeeOptions={employees}
+                      projectOptions={projects}
+                    />
+                  )}
+                />
+              )}
             />
           )}
-          onResolved={(options) => (
-            <ReportFilters
-              startDate={startDate}
-              endDate={endDate}
-              selectedEmployee={selectedEmployee}
-              selectedProject={selectedProject}
-              employeeOptions={options.employees}
-              projectOptions={options.projects}
+          onResolved={(employeeProjectsData) => (
+            <Resource
+              value={employeesResource}
+              onResolved={(employees) => (
+                <Resource
+                  value={allProjectsResource}
+                  onResolved={(allProjects) => {
+                    // Filter projects based on selected employee
+                    // Use employeeProjectsData which doesn't have project filter applied
+                    const projectOptions =
+                      selectedEmployee.value === "all"
+                        ? allProjects
+                        : employeeProjectsData.projectBreakdown.map((p) => ({
+                            value: p.projectCode,
+                            label: p.projectName,
+                          }));
+
+                    return (
+                      <ReportFilters
+                        startDate={startDate}
+                        endDate={endDate}
+                        selectedEmployee={selectedEmployee}
+                        selectedProject={selectedProject}
+                        employeeOptions={employees}
+                        projectOptions={projectOptions}
+                      />
+                    );
+                  }}
+                />
+              )}
             />
           )}
         />
@@ -193,57 +259,70 @@ export default component$(() => {
               Error loading reports: {error.message}
             </div>
           )}
-          onResolved={(reportData) => (
-            <>
-              {/* Summary Statistics */}
-              <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <StatCard
-                  title="Total Hours"
-                  value={`${reportData.summary.totalHours}h`}
-                  color="primary"
-                  icon="clock"
-                />
-                <StatCard
-                  title="Billable Hours"
-                  value={`${reportData.summary.billableHours}h`}
-                  color="success"
-                  icon="chart"
-                />
-                <StatCard
-                  title="Active Projects"
-                  value={reportData.summary.activeProjects.toString()}
-                  color="info"
-                  icon="calendar"
-                />
-                <StatCard
-                  title="Daily Average"
-                  value={`${reportData.summary.avgDaily}h`}
-                  color="warning"
-                  icon="clock"
-                />
-              </div>
+          onResolved={(reportData) => {
+            // When an employee is selected, the backend already filters the data
+            // So we just use the returned projects directly
+            const filteredProjects = reportData.projectBreakdown;
 
-              {/* Project Breakdown - Ensure mapping is correct if needed but component expects matching keys */}
-              <ProjectBreakdownTable 
-                projects={reportData.projectBreakdown} 
-                onUserDetailsClick$={handleUserDetailsClick}
-              />
+            console.log(
+              "Filtered projects:",
+              filteredProjects.length,
+              "of",
+              reportData.projectBreakdown.length,
+            );
 
-              {/* Recent Entries - Ensure types match */}
-              <RecentEntriesList
-                entries={reportData.timeEntries.map((e) => ({
-                  ...e,
-                  role: e.role as EmployeeRole, // Cast string to union type
-                  // Projects already mapped?
-                  projects: e.projects.map((p) => ({
-                    ...p,
-                    notes: p.notes || "",
-                  })),
-                }))}
-                onViewEntry$={handleViewEntry}
-              />
-            </>
-          )}
+            return (
+              <>
+                {/* Summary Statistics */}
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <StatCard
+                    title="Total Hours"
+                    value={`${reportData.summary.totalHours}h`}
+                    color="primary"
+                    icon="clock"
+                  />
+                  <StatCard
+                    title="Billable Hours"
+                    value={`${reportData.summary.billableHours}h`}
+                    color="success"
+                    icon="chart"
+                  />
+                  <StatCard
+                    title="Active Projects"
+                    value={reportData.summary.activeProjects.toString()}
+                    color="info"
+                    icon="calendar"
+                  />
+                  <StatCard
+                    title="Daily Average"
+                    value={`${reportData.summary.avgDaily}h`}
+                    color="warning"
+                    icon="clock"
+                  />
+                </div>
+
+                {/* Project Breakdown - Ensure mapping is correct if needed but component expects matching keys */}
+                <ProjectBreakdownTable
+                  projects={filteredProjects}
+                  onUserDetailsClick$={handleUserDetailsClick}
+                />
+
+                {/* Recent Entries - Ensure types match */}
+                <RecentEntriesList
+                  entries={reportData.timeEntries.map((e) => ({
+                    ...e,
+                    role: e.role as EmployeeRole, // Cast string to union type
+                    // Projects already mapped?
+                    projects: e.projects.map((p) => ({
+                      ...p,
+                      notes: p.notes || "",
+                    })),
+                  }))}
+                  onViewEntry$={handleViewEntry}
+                />
+              </>
+            );
+          }}
         />
       </div>
 
@@ -262,9 +341,7 @@ export default component$(() => {
             )
             .flatMap((entry: any) =>
               entry.projects
-                ?.filter(
-                  (p: any) => p.id === modalUserDetails.value?.projectId,
-                )
+                ?.filter((p: any) => p.id === modalUserDetails.value?.projectId)
                 .map((p: any) => ({
                   date: entry.date,
                   hours: p.hours,
