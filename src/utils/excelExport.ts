@@ -34,24 +34,24 @@ interface SummaryReportRow {
 }
 
 /**
- * Generate month name abbreviation in Spanish (e.g., "ago" for August)
+ * Generate month name abbreviation in English (e.g., "Aug" for August)
  * Uses GMT to avoid timezone issues
  */
 function getMonthAbbreviation(dateString: string): string {
   const date = new Date(dateString + "T00:00:00Z"); // Force GMT
   const months = [
-    "ene",
-    "feb",
-    "mar",
-    "abr",
-    "may",
-    "jun",
-    "jul",
-    "ago",
-    "sep",
-    "oct",
-    "nov",
-    "dic",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
   return months[date.getUTCMonth()]; // Use UTC methods
 }
@@ -369,15 +369,15 @@ export async function exportReportToExcel(
     const dayColumns = generateDayColumns(startDate, endDate);
 
     // Create detailed worksheet
-    const detailedSheet = workbook.addWorksheet("Detallado", {
+    const detailedSheet = workbook.addWorksheet("Detailed", {
       properties: { tabColor: { argb: "FF1F4788" } },
     });
 
     // Add headers
     const detailedHeaders = [
-      "Recurso",
-      "Proyecto",
-      "Cliente",
+      "Resource",
+      "Project",
+      "Customer",
       ...dayColumns,
       "Total",
     ];
@@ -407,12 +407,12 @@ export async function exportReportToExcel(
     const summaryData = buildSummaryReportData(reportData);
 
     // Create summary worksheet
-    const summarySheet = workbook.addWorksheet("Resumido", {
+    const summarySheet = workbook.addWorksheet("Summary", {
       properties: { tabColor: { argb: "FF10B981" } },
     });
 
     // Add headers
-    const summaryHeaders = ["Recurso", "Proyecto", "Cliente", "TOTAL"];
+    const summaryHeaders = ["Resource", "Project", "Customer", "TOTAL"];
     summarySheet.addRow(summaryHeaders);
 
     // Add data rows
