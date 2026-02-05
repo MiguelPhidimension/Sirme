@@ -8,9 +8,8 @@
 import { GraphQLClient } from "graphql-request";
 
 // GraphQL endpoint configuration
-const GRAPHQL_ENDPOINT = "https://easy-bison-49.hasura.app/v1/graphql";
-const ADMIN_SECRET =
-  "QeNCmNFN5d4PuAOhg6QLX5Hq0UfdTR48249BE6ivRPZmxrNAMWVP39yOvMYwvjr2";
+const GRAPHQL_ENDPOINT = import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT;
+const ADMIN_SECRET = import.meta.env.VITE_HASURA_ADMIN_SECRET;
 
 /**
  * Create GraphQL client instance with admin secret
