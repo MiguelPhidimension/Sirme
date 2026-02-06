@@ -466,7 +466,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
                     class="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500/20"
                   />
                   <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    PTO (Paid Time Off)
+                    PTO (Personal Time Off)
                   </span>
                 </label>
               </div>
