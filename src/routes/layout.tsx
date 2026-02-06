@@ -65,13 +65,12 @@ export default component$(() => {
             const userData = JSON.parse(user);
             // Admin only routes
             if (
-              currentPath.startsWith("/reports") &&
+              (currentPath.startsWith("/reports") ||
+                currentPath.startsWith("/admin")) &&
               userData.role_application !== "administrador"
             ) {
               // User not authorized to view reports
-              console.warn(
-                "Access denied: Admin role required for reports page",
-              );
+              console.warn("Access denied: Admin role required for page");
               window.location.replace("/calendar");
               // setIsChecking to false not needed as we are redirecting
               return;

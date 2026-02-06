@@ -225,7 +225,7 @@ export default component$(() => {
             ? `${authContext.user.first_name} ${authContext.user.last_name}`
             : "";
 
-          const userRole = (authContext.user?.role?.role_name ||
+          const userRole = (authContext.user?.role_application ||
             "Employee") as EmployeeRole;
 
           timeEntriesData.forEach((entry: any, index: number) => {
