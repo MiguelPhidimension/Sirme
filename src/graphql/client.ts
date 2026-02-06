@@ -7,21 +7,80 @@
 
 import { GraphQLClient } from "graphql-request";
 
-// GraphQL endpoint configuration
-const GRAPHQL_ENDPOINT = "https://easy-bison-49.hasura.app/v1/graphql";
-const ADMIN_SECRET =
-  "QeNCmNFN5d4PuAOhg6QLX5Hq0UfdTR48249BE6ivRPZmxrNAMWVP39yOvMYwvjr2";
+// Determine if we are running on the server
+const isServer = typeof window === "undefined";
+
+// Helper to safely get server env vars
+const getServerEnv = (key: string) => {
+  if (isServer && typeof process !== "undefined" && process.env) {
+    return process.env[key];
+  }
+  return undefined;
+};
+
+// Determine the endpoint dynamically
+const getEndpoint = () => {
+  if (isServer) {
+    // SSR/Server: Connect directly to Hasura using server env vars
+    // Check both process.env and import.meta.env for robust variable access
+    const serverUrl =
+      getServerEnv("HASURA_GRAPHQL_ENDPOINT") ||
+      import.meta.env["HASURA_GRAPHQL_ENDPOINT"];
+
+    if (serverUrl) return serverUrl;
+
+    // Fallback: If we can't find Hasura URL, try to construct a self-reference to the proxy
+    // (This works on Vercel)
+    const vercelUrl = getServerEnv("VERCEL_URL");
+    if (vercelUrl) return `https://${vercelUrl}/api/graphql`;
+  }
+
+  // Client/Browser: Use proxy in PROD, or VITE var in DEV
+  const endpointPath = import.meta.env.PROD
+    ? "/api/graphql"
+    : import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT || "/api/graphql";
+
+  // Ensure we return an absolute URL in the browser to satisfy strict parsers
+  if (typeof window !== "undefined" && endpointPath.startsWith("/")) {
+    return `${window.location.origin}${endpointPath}`;
+  }
+
+  return endpointPath;
+};
+
+// Helper to get admin secret
+const getAdminSecret = () => {
+  if (isServer) {
+    return (
+      getServerEnv("HASURA_ADMIN_SECRET") ||
+      import.meta.env.VITE_HASURA_ADMIN_SECRET
+    );
+  }
+  // On client, only use VITE_ var (which should only work in dev)
+  // In PROD client, this should return undefined (handled by proxy)
+  return !import.meta.env.PROD
+    ? import.meta.env.VITE_HASURA_ADMIN_SECRET
+    : undefined;
+};
 
 /**
- * Create GraphQL client instance with admin secret
- * Used for operations that require admin access (like registration, login)
+ * Create GraphQL client instance
+ * Uses the proxy endpoint in production client.
+ * Uses direct connection in server/dev.
  */
 export const createGraphQLClient = () => {
-  return new GraphQLClient(GRAPHQL_ENDPOINT, {
-    headers: {
-      "x-hasura-admin-secret": ADMIN_SECRET,
-      "Content-Type": "application/json",
-    },
+  const endpoint = getEndpoint();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  const secret = getAdminSecret();
+  if (secret) {
+    headers["x-hasura-admin-secret"] = secret;
+  }
+
+  return new GraphQLClient(endpoint, {
+    headers,
   });
 };
 
@@ -30,7 +89,7 @@ export const createGraphQLClient = () => {
  * Used for user-authenticated operations
  */
 export const createAuthenticatedClient = (token: string) => {
-  return new GraphQLClient(GRAPHQL_ENDPOINT, {
+  return new GraphQLClient(getEndpoint(), {
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
@@ -38,7 +97,7 @@ export const createAuthenticatedClient = (token: string) => {
   });
 };
 
-// Default client instance (with admin secret for auth operations)
+// Default client instance (with admin secret context if available)
 export const graphqlClient = createGraphQLClient();
 
 /**

@@ -18,6 +18,7 @@ import type { ProjectEntry, EmployeeRole } from "~/types";
 interface ProjectEntryCardProps {
   project: ProjectEntry;
   role?: EmployeeRole;
+  roleApplication?: string;
   date?: string;
   isEditing?: boolean;
   onSave$?: QRL<(project: ProjectEntry) => void>;
@@ -45,6 +46,7 @@ export const ProjectEntryCard = component$<ProjectEntryCardProps>(
   ({
     project,
     role,
+    roleApplication,
     date,
     isEditing = false,
     onSave$,
@@ -57,6 +59,7 @@ export const ProjectEntryCard = component$<ProjectEntryCardProps>(
       clientName: project.clientName,
       hours: project.hours,
       isMPS: project.isMPS,
+      isPTO: project.isPTO || false,
       notes: project.notes || "",
     });
 
@@ -68,6 +71,7 @@ export const ProjectEntryCard = component$<ProjectEntryCardProps>(
           clientName: editData.value.clientName,
           hours: editData.value.hours,
           isMPS: editData.value.isMPS,
+          isPTO: editData.value.isPTO,
           notes: editData.value.notes,
         };
         onSave$(updatedProject);
@@ -81,6 +85,7 @@ export const ProjectEntryCard = component$<ProjectEntryCardProps>(
         clientName: project.clientName,
         hours: project.hours,
         isMPS: project.isMPS,
+        isPTO: project.isPTO || false,
         notes: project.notes || "",
       };
       if (onCancel$) {
@@ -165,7 +170,8 @@ export const ProjectEntryCard = component$<ProjectEntryCardProps>(
                   step="0.25"
                   min="0.25"
                   max="24"
-                  class="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                  disabled={editData.value.isPTO}
+                  class="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:disabled:bg-slate-800 dark:disabled:text-gray-400"
                   placeholder="Enter hours"
                   value={editData.value.hours.toString()}
                   onInput$={(e) => {
@@ -197,6 +203,31 @@ export const ProjectEntryCard = component$<ProjectEntryCardProps>(
                   class="cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
                   MuleSoft Professional Services
+                </label>
+              </div>
+
+              {/* PTO Toggle */}
+              <div class="flex items-center space-x-3 rounded-xl bg-white/50 p-4 dark:bg-slate-600/50">
+                <input
+                  type="checkbox"
+                  id={`pto-checkbox-${project.id}`}
+                  class="h-5 w-5 rounded border-gray-300 bg-gray-100 text-purple-600 focus:ring-2 focus:ring-purple-500"
+                  checked={editData.value.isPTO}
+                  onChange$={(e) => {
+                    const isChecked = (e.target as HTMLInputElement).checked;
+                    editData.value = {
+                      ...editData.value,
+                      isPTO: isChecked,
+                      // Si se marca PTO, establecer horas en 0
+                      hours: isChecked ? 0 : editData.value.hours,
+                    };
+                  }}
+                />
+                <label
+                  for={`pto-checkbox-${project.id}`}
+                  class="cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  PTO / 0 Hours
                 </label>
               </div>
 
@@ -247,6 +278,13 @@ export const ProjectEntryCard = component$<ProjectEntryCardProps>(
         <div class="border-b border-gray-200 bg-gradient-to-r from-slate-50 to-gray-100 px-6 py-4 dark:border-slate-600 dark:from-slate-700 dark:to-slate-600">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
+              {roleApplication && (
+                <div class="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800 dark:bg-sky-900 dark:text-sky-200">
+                  <LuUser class="mr-1 h-3 w-3" />
+                  {roleApplication}
+                </div>
+              )}
+
               {role && (
                 <div
                   class={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-white ${getRoleColor(role)}`}

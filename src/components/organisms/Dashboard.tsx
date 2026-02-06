@@ -10,7 +10,6 @@ import { TimeEntryForm } from "../organisms";
 import type {
   DashboardSummary,
   DailyTimeEntry,
-  TimeEntryFormData,
 } from "~/types";
 import { LuPlus, LuX } from "@qwikest/icons/lucide";
 
@@ -96,19 +95,17 @@ export const Dashboard = component$<DashboardProps>(
     // Handler for calendar day clicks
     const handleDayClick = $((day: any) => {
       // Handle calendar day click - could show day details or navigate to entry form
-      console.log("Day clicked:", day);
       if (day.date) {
         handleNewEntryForDate(day.date);
       }
     });
 
     // Handle time entry form submission
-    const handleTimeEntrySubmit = $(async (formData: TimeEntryFormData) => {
+    const handleTimeEntrySubmit = $(async () => {
       isSubmittingEntry.value = true;
 
       try {
         // Simulate API call - replace with actual API integration
-        console.log("Submitting time entry:", formData);
 
         // TODO: Replace with actual API call
         await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -117,7 +114,6 @@ export const Dashboard = component$<DashboardProps>(
         showTimeEntryForm.value = false;
 
         // Success feedback could be added here
-        console.log("Time entry submitted successfully");
       } catch (error) {
         console.error("Failed to submit time entry:", error);
         // TODO: Show error message to user

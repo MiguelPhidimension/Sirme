@@ -22,6 +22,7 @@ export interface ProjectEntry {
   clientName: string;
   hours: number;
   isMPS: boolean; // MuleSoft Professional Services flag
+  isPTO?: boolean; // Paid Time Off / 0 hours flag
   notes?: string;
   role?: string; // Role assigned to this project entry
 }
@@ -35,6 +36,7 @@ export interface DailyTimeEntry {
   employeeName: string;
   date: string; // ISO date string (YYYY-MM-DD)
   role: EmployeeRole;
+  roleApplication?: string;
   projects: ProjectEntry[];
   totalHours: number;
   isPTO?: boolean;
@@ -170,6 +172,7 @@ export interface User {
   first_name: string;
   last_name: string;
   email: string;
+  role_application?: string;
   created_at: string;
   updated_at?: string;
   role?: {

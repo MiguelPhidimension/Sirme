@@ -98,6 +98,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
       clientName: "",
       hours: 0,
       isMPS: false,
+      isPTO: false,
       notes: "",
     });
 
@@ -151,10 +152,13 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
 
         // Validate individual projects
         formData.projects.forEach((project, index) => {
-          const hoursError = ValidationUtils.validateProjectHours(
-            project.hours,
-          );
-          if (hoursError) newErrors[`project_${index}_hours`] = hoursError;
+          // Skip hours validation if project is marked as PTO (0 hours allowed)
+          if (!project.isPTO) {
+            const hoursError = ValidationUtils.validateProjectHours(
+              project.hours,
+            );
+            if (hoursError) newErrors[`project_${index}_hours`] = hoursError;
+          }
 
           const clientError = ValidationUtils.validateClientName(
             project.clientName,
@@ -181,7 +185,11 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
 
     // Handle adding a new project
     const handleAddProject = $(() => {
-      if (!newProject.clientName.trim() || newProject.hours <= 0) {
+      // If not PTO project, validate hours > 0
+      if (
+        !newProject.clientName.trim() ||
+        (!newProject.isPTO && newProject.hours <= 0)
+      ) {
         return;
       }
 
@@ -190,6 +198,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
         clientName: newProject.clientName,
         hours: newProject.hours,
         isMPS: newProject.isMPS,
+        isPTO: newProject.isPTO,
         notes: newProject.notes,
         role: formData.role,
       };
@@ -202,6 +211,7 @@ export const TimeEntryForm = component$<TimeEntryFormProps>(
       newProject.clientName = "";
       newProject.hours = 0;
       newProject.isMPS = false;
+      newProject.isPTO = false;
       newProject.notes = "";
       isAddingProject.value = false;
     });

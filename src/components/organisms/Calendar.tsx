@@ -338,7 +338,7 @@ export const Calendar = component$<CalendarProps>(
                             </div>
                             <div class="text-base-content/60 text-sm">
                               {entry.isPTO ? (
-                                <span>Paid Time Off</span>
+                                <span>Personal Time Off</span>
                               ) : (
                                 <>
                                   {entry.projects.length} project

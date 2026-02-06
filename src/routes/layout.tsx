@@ -60,6 +60,25 @@ export default component$(() => {
           // Usar replace para que no se pueda volver atrás con el botón back
           window.location.replace("/");
         } else {
+          // Autenticado check role permissions
+          try {
+            const userData = JSON.parse(user);
+            // Admin only routes
+            if (
+              (currentPath.startsWith("/reports") ||
+                currentPath.startsWith("/admin")) &&
+              userData.role_application !== "administrador"
+            ) {
+              // User not authorized to view reports
+              console.warn("Access denied: Admin role required for page");
+              window.location.replace("/calendar");
+              // setIsChecking to false not needed as we are redirecting
+              return;
+            }
+          } catch (e) {
+            console.error("Error parsing user data for role check", e);
+          }
+
           // Autenticado: permitir acceso
           isAuthenticated.value = true;
           isChecking.value = false;

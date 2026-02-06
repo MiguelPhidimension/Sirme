@@ -57,7 +57,6 @@ export const CreateProjectModal = component$<CreateProjectModalProps>(
         const data = await graphqlClient.request<{ clients: ClientData[] }>(
           GET_CLIENTS_QUERY,
         );
-        console.log("✅ Clients loaded:", data.clients);
         return data.clients || [];
       } catch (error) {
         console.error("❌ Error loading clients:", error);
@@ -91,10 +90,7 @@ export const CreateProjectModal = component$<CreateProjectModalProps>(
           start_date: "",
           end_date: "",
         };
-        console.log(
-          "📌 Form initialized with preselected client:",
-          preselectedClientId,
-        );
+        
       }
     });
 

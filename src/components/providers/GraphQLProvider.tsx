@@ -68,7 +68,6 @@ export const GraphQLProvider = component$(() => {
 
   // Initialize client on mount
   useVisibleTask$(() => {
-    console.log('🔧 Initializing GraphQL client...');
     // Create client instance with noSerialize to prevent serialization issues
     const graphqlClient = new GraphQLClient(endpoint, {
       headers: {
@@ -78,14 +77,12 @@ export const GraphQLProvider = component$(() => {
     });
     
     client.value = noSerialize(graphqlClient);
-    console.log('✅ GraphQL client initialized:', client.value ? 'success' : 'failed');
   });
 
   // Test connection when client is ready
   useVisibleTask$(async ({ track }) => {
     const currentClient = track(() => client.value);
     
-    console.log('🔍 Testing GraphQL connection, client available:', currentClient ? 'yes' : 'no');
     
     if (!currentClient) return;
     
@@ -99,7 +96,6 @@ export const GraphQLProvider = component$(() => {
       
       isConnected.value = true;
       connectionError.value = null;
-      console.log('✅ GraphQL connection successful');
     } catch (error) {
       isConnected.value = false;
       connectionError.value = error instanceof Error ? error.message : 'Connection failed';
@@ -113,22 +109,14 @@ export const GraphQLProvider = component$(() => {
     const currentConnected = track(() => isConnected.value);
     const currentError = track(() => connectionError.value);
     
-    console.log('🔄 GraphQL context value updating:', {
-      hasClient: !!currentClient,
-      isConnected: currentConnected,
-      error: currentError
-    });
+  ;
     
     // Update the store properties directly
     contextValue.client = currentClient;
     contextValue.isConnected = currentConnected;
     contextValue.connectionError = currentError;
     
-    console.log('🔄 GraphQL context value updated:', {
-      hasClient: !!contextValue.client,
-      isConnected: contextValue.isConnected,
-      error: contextValue.connectionError
-    });
+    
   });
 
   // Provide context to children
@@ -158,11 +146,7 @@ export const useGraphQLClient = (): GraphQLContextValue => {
   }
   
   // Add debugging to see what context consumers are getting
-  console.log('🔍 useGraphQLClient called, context:', {
-    hasClient: !!context.client,
-    isConnected: context.isConnected,
-    error: context.connectionError
-  });
+
   
   return context;
 };

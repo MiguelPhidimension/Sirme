@@ -20,6 +20,7 @@ interface ProjectData {
   projectId?: string;
   hours: number;
   isMPS: boolean;
+  isPTO?: boolean;
   notes: string;
   role?: string;
 }
@@ -72,7 +73,6 @@ export const ProjectEntry = component$<ProjectEntryProps>(
     // Handle project created from modal
     const handleProjectCreated = $(
       async (projectId: string, projectName: string, clientId?: string) => {
-        console.log("✅ Project created:", projectId, projectName, clientId);
 
         // Update the form with the new project
         onUpdate$("projectId", projectId);
@@ -89,17 +89,14 @@ export const ProjectEntry = component$<ProjectEntryProps>(
     // Handle creating new client
     const handleCreateClient = $(async () => {
       if (!newClientName.value.trim()) {
-        console.log("⚠️ Client name is empty");
         return;
       }
 
       isCreatingClient.value = true;
       try {
-        console.log("📝 Creating new client:", newClientName.value);
         const newClient = await createClient({ name: newClientName.value });
 
         if (newClient) {
-          console.log("✅ Client created:", newClient);
           // Update form with new client
           onUpdate$("clientId", newClient.client_id);
           onUpdate$("clientName", newClient.name);
@@ -124,7 +121,6 @@ export const ProjectEntry = component$<ProjectEntryProps>(
 
       // If we have a projectId but no clientId, search for the client
       if (project.projectId && !project.clientId) {
-        console.log("🔍 Searching for client of project:", project.projectId);
         // The client will be populated when projectsResource loads
       }
     });
@@ -181,10 +177,7 @@ export const ProjectEntry = component$<ProjectEntryProps>(
                     </div>
                   )}
                   onResolved={(clientsData) => {
-                    console.log(
-                      "👥 ProjectEntry: Clients loaded:",
-                      clientsData,
-                    );
+                   
                     return (
                       <select
                         value={project.clientId || ""}
@@ -294,7 +287,6 @@ export const ProjectEntry = component$<ProjectEntryProps>(
                   </div>
                 )}
                 onResolved={(data) => {
-                  console.log("📋 ProjectEntry: Projects loaded:", data);
 
                   // If we have a projectId but no clientId, find and set the client
                   if (project.projectId && !project.clientId) {
@@ -302,10 +294,7 @@ export const ProjectEntry = component$<ProjectEntryProps>(
                       (p) => p.project_id === project.projectId,
                     );
                     if (foundProject && foundProject.client_id) {
-                      console.log(
-                        "📌 Auto-setting clientId from existing project:",
-                        foundProject.client_id,
-                      );
+                     
                       onUpdate$("clientId", foundProject.client_id);
                     }
                   }
@@ -392,17 +381,18 @@ export const ProjectEntry = component$<ProjectEntryProps>(
                 min="0"
                 max="24"
                 value={project.hours}
+                disabled={project.isPTO}
                 onInput$={(e) =>
                   onUpdate$(
                     "hours",
                     parseFloat((e.target as HTMLInputElement).value) || 0,
                   )
                 }
-                class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:disabled:bg-slate-800 dark:disabled:text-gray-400"
               />
             </div>
 
-            <div class="flex items-end">
+            <div class="flex flex-col gap-3">
               <label class="flex cursor-pointer items-center space-x-2">
                 <input
                   type="checkbox"
@@ -414,6 +404,25 @@ export const ProjectEntry = component$<ProjectEntryProps>(
                 />
                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
                   MPS Project
+                </span>
+              </label>
+
+              <label class="flex cursor-pointer items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={project.isPTO}
+                  onChange$={(e) => {
+                    const isChecked = (e.target as HTMLInputElement).checked;
+                    onUpdate$("isPTO", isChecked);
+                    // Si se marca como PTO, establecer horas en 0
+                    if (isChecked) {
+                      onUpdate$("hours", 0);
+                    }
+                  }}
+                  class="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500/20"
+                />
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  PTO / 0 Hours
                 </span>
               </label>
             </div>

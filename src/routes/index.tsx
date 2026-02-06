@@ -38,9 +38,6 @@ export default component$(() => {
         // Save session
         await saveUserSession(response.user, response.token);
 
-        // Log success
-        console.log("✅ Login exitoso:", response.user.email);
-
         // Redirect to calendar
         await nav("/calendar");
       } else {

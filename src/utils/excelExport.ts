@@ -441,8 +441,6 @@ export async function exportReportToExcel(
 
     // Cleanup
     window.URL.revokeObjectURL(url);
-
-    console.log(`✅ Excel report exported successfully: ${filename}`);
   } catch (error) {
     console.error("❌ Error exporting report to Excel:", error);
     throw error;

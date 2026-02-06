@@ -30,6 +30,7 @@ interface LocalProjectData {
   isMPS: boolean;
   notes: string;
   role?: string;
+  isPTO?: boolean;
   time_entry_id?: string;
 }
 
@@ -148,7 +149,8 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
               entryUser = entry.user;
               // Some user objects returned from the API don't include the user_id field,
               // but the parent `entry` always has `user_id`. Prefer the explicit id when available.
-              const resolvedUserId = (entry.user as any).user_id || entry.user_id;
+              const resolvedUserId =
+                (entry.user as any).user_id || entry.user_id;
               if (resolvedUserId) userIds.add(resolvedUserId);
               // Ensure entryUser has the id for downstream use
               (entryUser as any).user_id = resolvedUserId;
@@ -167,6 +169,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
                   projectId: p.project_id,
                   hours: p.hours_reported,
                   isMPS: p.is_mps,
+                  isPTO: p.is_pto || false,
                   notes: p.notes || "",
                   role: p.role || "",
                   time_entry_id: p.time_entry_id,
@@ -207,11 +210,9 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
   // Handle form submission
   const handleSubmit = $(async () => {
     // Use the selected employee ID, or fall back to authenticated user
-    console.log(authContext.user);
     const userId = formData.employeeId || authContext.user?.user_id;
 
     // Validate user is selected
-    console.log({userId});
     if (!userId) {
       toast.error("You must select an employee to log hours");
       return;
@@ -219,12 +220,13 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
 
     // Validate projects or PTO
     if (!formData.isPTO) {
+      // Filter projects that are invalid: missing projectId OR (hours <= 0 AND not isPTO)
       const invalidProjects = formData.projects.filter(
-        (p) => !p.projectId || p.hours <= 0,
+        (p) => !p.projectId || (!p.isPTO && p.hours <= 0),
       );
       if (invalidProjects.length > 0) {
         toast.error(
-          "All projects must have a client/project selected and hours greater than 0",
+          "All projects must have a client/project selected and hours greater than 0 (unless marked as PTO)",
         );
         return;
       }
@@ -238,11 +240,6 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
         props.selectedDates && props.selectedDates.length > 0
           ? props.selectedDates
           : [formData.date];
-
-      console.log(
-        `📅 Saving time entry to ${datesToSave.length} date(s):`,
-        datesToSave,
-      );
 
       // Save entry for each date in the range
       for (const dateToSave of datesToSave) {
@@ -261,15 +258,13 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
                       project_id: project.projectId!,
                       hours_reported: project.hours,
                       is_mps: project.isMPS,
+                      is_pto: project.isPTO || false,
                       notes: project.notes || "",
                       role: project.role || formData.role,
                     }))
                 : [],
             };
-            console.log(
-              `Submitting time entry for ${dateToSave} (edit ${eid}):`,
-              timeEntryData,
-            );
+
             await updateTimeEntry(timeEntryData);
           }
         } else {
@@ -283,15 +278,13 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
                   project_id: project.projectId!,
                   hours_reported: project.hours,
                   is_mps: project.isMPS,
+                  is_pto: project.isPTO || false,
                   notes: project.notes || "",
                   role: project.role || formData.role,
                 }))
               : [],
           };
-          console.log(
-            `Submitting time entry for ${dateToSave}:`,
-            timeEntryData,
-          );
+
           if (props.entryId && dateToSave === formData.date) {
             await updateTimeEntry(timeEntryData);
           } else {
@@ -363,6 +356,11 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
   const totalHours = formData.projects.reduce(
     (sum, project) => sum + (Number(project.hours) || 0),
     0,
+  );
+
+  // Check if there are valid projects (either has hours > 0 OR is marked as PTO)
+  const hasValidProjects = formData.projects.some(
+    (p) => p.projectId && (p.hours > 0 || p.isPTO),
   );
 
   if (!props.isOpen) return null;
@@ -466,7 +464,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
                     class="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500/20"
                   />
                   <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    PTO (Paid Time Off)
+                    PTO (Personal Time Off)
                   </span>
                 </label>
               </div>
@@ -492,7 +490,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
           <TimeEntryActions
             isLoading={isLoading.value}
             isDisabled={
-              !formData.employeeName || (!formData.isPTO && totalHours === 0)
+              !formData.employeeName || (!formData.isPTO && !hasValidProjects)
             }
             onCancel$={closeModal}
             onSubmit$={handleSubmit}

@@ -63,7 +63,6 @@ export default component$(() => {
         await saveUserSession(response.user, response.token);
 
         // Show success message briefly before redirecting
-        console.log("✅ Usuario registrado exitosamente:", response.user.email);
 
         // Redirect to calendar
         await nav("/calendar");

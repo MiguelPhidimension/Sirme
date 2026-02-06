@@ -11,7 +11,7 @@ import { useLocation } from "@builder.io/qwik-city";
 import { SidebarContext } from "~/contexts/sidebar-context";
 import { MobileTopBar } from "~/components/molecules";
 import { DesktopSidebar, MobileSidebar } from "~/components/organisms";
-import { LuBarChart3, LuCalendar } from "@qwikest/icons/lucide";
+import { LuBarChart3, LuCalendar, LuUserCog } from "@qwikest/icons/lucide";
 
 /**
  * MainLayout Template Component
@@ -72,12 +72,22 @@ export const MainLayout = component$(() => {
 
   // Navigation items with modern icons
   const navItems = [
-    {
-      path: "/reports",
-      label: "Reports",
-      icon: <LuBarChart3 class="h-6 w-6" />,
-      description: "Analytics and exports",
-    },
+    ...(sidebarState.userData?.role_application === "administrador"
+      ? [
+          {
+            path: "/reports",
+            label: "Reports",
+            icon: <LuBarChart3 class="h-6 w-6" />,
+            description: "Analytics and exports",
+          },
+          {
+            path: "/admin/users",
+            label: "Users",
+            icon: <LuUserCog class="h-6 w-6" />, // Using LuUserCog icon, need to import if not present or fallback
+            description: "Manage users",
+          },
+        ]
+      : []),
     {
       path: "/calendar",
       label: "Calendar",

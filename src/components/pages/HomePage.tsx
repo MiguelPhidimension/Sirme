@@ -78,19 +78,16 @@ export const HomePage = component$(() => {
 
   const handleViewCalendar = $(() => {
     // Navigate to calendar view
-    console.log("Navigate to calendar");
     window.location.href = "/calendar";
   });
 
   // const handleExportData = $(() => {
   //   // Export time tracking data functionality
-  //   console.log("Export data requested");
   //   // TODO: Implement export functionality in future iteration
   // });
 
   // const handlePeriodChange = $((period: "today" | "week" | "month") => {
   //   // Handle time period selection for data filtering
-  //   console.log("Period changed to:", period);
   //   // TODO: Update data based on selected period in future iteration
   // });
 
