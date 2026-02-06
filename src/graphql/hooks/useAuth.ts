@@ -20,6 +20,7 @@ const GET_USER_BY_EMAIL_QUERY = `
       first_name
       last_name
       email
+      role_application
       password
       created_at
       updated_at
@@ -47,6 +48,7 @@ const CREATE_USER_MUTATION = `
       first_name
       last_name
       email
+      role_application
       created_at
     }
   }
@@ -138,7 +140,10 @@ export const loginUser = $(
       const { password: _, ...userWithoutPassword } = user;
 
       // Generate JWT token with Hasura claims
-      const token = await generateHasuraToken(userWithoutPassword, "user");
+      const token = await generateHasuraToken(
+        userWithoutPassword,
+        userWithoutPassword.role_application || "colaborador",
+      );
 
       return {
         success: true,
@@ -248,7 +253,10 @@ export const registerUser = $(
       }
 
       // Generate JWT token with Hasura claims
-      const token = await generateHasuraToken(user, "user");
+      const token = await generateHasuraToken(
+        user,
+        user.role_application || "colaborador",
+      );
 
       return {
         success: true,

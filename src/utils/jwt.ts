@@ -35,7 +35,12 @@ export const generateHasuraToken = async (
   const token = await new SignJWT({
     // Hasura JWT claims structure
     "https://hasura.io/jwt/claims": {
-      "x-hasura-allowed-roles": ["user", "admin"],
+      "x-hasura-allowed-roles": [
+        "user",
+        "admin",
+        "colaborador",
+        "administrador",
+      ],
       "x-hasura-default-role": roleName,
       "x-hasura-user-id": user.user_id,
       "x-hasura-role-id": user.role_id,
