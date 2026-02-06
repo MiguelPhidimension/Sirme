@@ -7,34 +7,64 @@
 
 import { GraphQLClient } from "graphql-request";
 
-// GraphQL endpoint configuration
-// Use the serverless proxy in production to avoid exposing secrets.
-const GRAPHQL_ENDPOINT = import.meta.env.PROD
-  ? "/api/graphql"
-  : import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT || "/api/graphql";
+// Determine if we are running on the server
+const isServer = typeof window === "undefined";
 
-// Get admin secret for development/preview environments (direct connection)
-// In production, the proxy adds this header, so we don't need it here.
-const DEV_ADMIN_SECRET = import.meta.env.VITE_HASURA_ADMIN_SECRET;
+// Helper to safely get server env vars
+const getServerEnv = (key: string) => {
+  if (isServer && typeof process !== "undefined" && process.env) {
+    return process.env[key];
+  }
+  return undefined;
+};
+
+// Determine the endpoint dynamically
+const getEndpoint = () => {
+  if (isServer) {
+    // SSR/Server: Connect directly to Hasura using server env vars
+    // This avoids "Invalid URL" errors with relative paths in Node
+    const serverUrl = getServerEnv("HASURA_GRAPHQL_ENDPOINT");
+    if (serverUrl) return serverUrl;
+  }
+
+  // Client/Browser: Use proxy in PROD, or VITE var in DEV
+  return import.meta.env.PROD
+    ? "/api/graphql"
+    : import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT || "/api/graphql";
+};
+
+// Helper to get admin secret
+const getAdminSecret = () => {
+  if (isServer) {
+    return (
+      getServerEnv("HASURA_ADMIN_SECRET") ||
+      import.meta.env.VITE_HASURA_ADMIN_SECRET
+    );
+  }
+  // On client, only use VITE_ var (which should only work in dev)
+  // In PROD client, this should return undefined (handled by proxy)
+  return !import.meta.env.PROD
+    ? import.meta.env.VITE_HASURA_ADMIN_SECRET
+    : undefined;
+};
 
 /**
  * Create GraphQL client instance
- * Uses the proxy endpoint in production.
- * In development, injects admin secret if available for direct connection.
+ * Uses the proxy endpoint in production client.
+ * Uses direct connection in server/dev.
  */
 export const createGraphQLClient = () => {
+  const endpoint = getEndpoint();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 
-  // Only add admin secret if we are NOT using the proxy (i.e., we have a dev secret)
-  // or if we want to force it in dev.
-  // In PROD, DEV_ADMIN_SECRET should be undefined/empty to avoid leaking.
-  if (DEV_ADMIN_SECRET && !import.meta.env.PROD) {
-    headers["x-hasura-admin-secret"] = DEV_ADMIN_SECRET;
+  const secret = getAdminSecret();
+  if (secret) {
+    headers["x-hasura-admin-secret"] = secret;
   }
 
-  return new GraphQLClient(GRAPHQL_ENDPOINT, {
+  return new GraphQLClient(endpoint, {
     headers,
   });
 };
@@ -44,7 +74,7 @@ export const createGraphQLClient = () => {
  * Used for user-authenticated operations
  */
 export const createAuthenticatedClient = (token: string) => {
-  return new GraphQLClient(GRAPHQL_ENDPOINT, {
+  return new GraphQLClient(getEndpoint(), {
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
@@ -52,7 +82,7 @@ export const createAuthenticatedClient = (token: string) => {
   });
 };
 
-// Default client instance (with admin secret for auth operations)
+// Default client instance (with admin secret context if available)
 export const graphqlClient = createGraphQLClient();
 
 /**
