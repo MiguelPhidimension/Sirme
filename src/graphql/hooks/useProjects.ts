@@ -189,25 +189,15 @@ const CREATE_PROJECT_MUTATION = `
  * @returns Resource containing clients array and total count
  */
 export const useClients = (trackSignal?: any) => {
-  console.log("🔧 useClients hook called");
-
   return useResource$<{ clients: ClientData[]; total: number }>(async (ctx) => {
     if (trackSignal) {
       ctx.track(trackSignal);
     }
-    console.log("🚀 useClients resource executing with direct graphqlClient");
 
     try {
-      console.log("📝 Making GraphQL request to fetch all clients");
-
       // Make direct GraphQL request
       const data =
         await graphqlClient.request<ClientsResponse>(GET_CLIENTS_QUERY);
-
-      console.log(
-        "✅ GraphQL request successful, clients count:",
-        data.clients?.length || 0,
-      );
 
       return {
         clients: data.clients || [],
@@ -227,32 +217,16 @@ export const useClients = (trackSignal?: any) => {
  * @returns Resource containing projects array and total count
  */
 export const useProjects = (trackSignal?: any) => {
-  console.log("🔧 useProjects hook called");
-
   return useResource$<{ projects: ProjectData[]; total: number }>(
     async (ctx) => {
       if (trackSignal) {
         ctx.track(trackSignal);
       }
-      console.log(
-        "🚀 useProjects resource executing with direct graphqlClient",
-      );
 
       try {
-        console.log("📝 Making GraphQL request to fetch all projects");
-
         // Make direct GraphQL request
         const data =
           await graphqlClient.request<ProjectsResponse>(GET_PROJECTS_QUERY);
-
-        console.log(
-          "✅ GraphQL request successful, projects count:",
-          data.projects?.length || 0,
-        );
-        console.log(
-          "📋 Projects data:",
-          JSON.stringify(data.projects, null, 2),
-        );
 
         return {
           projects: data.projects || [],
@@ -275,30 +249,17 @@ export const useProjects = (trackSignal?: any) => {
 export const useClientProjectOptions = () => {
   const { client } = useGraphQLClient();
 
-  console.log(
-    "🔧 useClientProjectOptions hook called, client:",
-    client ? "available" : "not available",
-  );
-
   return useResource$<{ options: ClientProjectOption[]; total: number }>(
     async ({ track }) => {
       // Track the GraphQL client to make resource reactive to client changes
       const currentClient = track(() => client);
 
-      console.log(
-        "🚀 useClientProjectOptions resource executing, client:",
-        currentClient ? "available" : "not available",
-      );
-
       // Handle client unavailability gracefully with loading state
       if (!currentClient) {
-        console.log("⏳ Waiting for GraphQL client to be initialized...");
         return { options: [], total: 0 };
       }
 
       try {
-        console.log("📝 Making GraphQL request to fetch clients and projects");
-
         // Fetch both clients and projects in parallel for better performance
         const [clientsData, projectsData] = await Promise.all([
           makeGraphQLRequest<ClientsResponse>(currentClient, GET_CLIENTS_QUERY),
@@ -307,13 +268,6 @@ export const useClientProjectOptions = () => {
             GET_PROJECTS_QUERY,
           ),
         ]);
-
-        console.log(
-          "✅ GraphQL requests successful, clients:",
-          clientsData.clients?.length || 0,
-          "projects:",
-          projectsData.projects?.length || 0,
-        );
 
         // Combine clients and projects into a unified options array
         const options: ClientProjectOption[] = [];
@@ -382,16 +336,9 @@ export const useCreateClient = () => {
         name: clientData.name,
       };
 
-      console.log("📝 Creating client with variables:", variables);
-
       const response: any = await graphqlClient.request(
         CREATE_CLIENT_MUTATION,
         variables,
-      );
-
-      console.log(
-        "✅ Client created successfully:",
-        response.insert_clients_one,
       );
 
       return response.insert_clients_one;
@@ -438,16 +385,9 @@ export const useCreateProject = () => {
           end_date: projectData.end_date || null,
         };
 
-        console.log("📝 Creating project with variables:", variables);
-
         const response: any = await graphqlClient.request(
           CREATE_PROJECT_MUTATION,
           variables,
-        );
-
-        console.log(
-          "✅ Project created successfully:",
-          response.insert_projects_one,
         );
 
         return response.insert_projects_one;

@@ -49,7 +49,6 @@ export const EmployeeInfo = component$<EmployeeInfoProps>(
       const currentUser = getCurrentUser();
 
       if (currentUser) {
-        console.log("👤 Current session user:", currentUser);
 
         // Set user information from session
         const fullName = `${currentUser.first_name} ${currentUser.last_name}`;
@@ -71,10 +70,8 @@ export const EmployeeInfo = component$<EmployeeInfoProps>(
             });
 
             if (roleResponse.roles_by_pk) {
-              console.log("🎭 User role:", roleResponse.roles_by_pk.role_name);
               await onRoleChange(roleResponse.roles_by_pk.role_name);
             } else {
-              console.log("❌ No role found for role_id:", currentUser.role_id);
               await onRoleChange("N/A");
             }
           } catch (error) {

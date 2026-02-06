@@ -126,7 +126,6 @@ export default component$(() => {
   const handleExportPDF = $(async () => {
     isLoading.value = true;
     try {
-      console.log("Exporting PDF report...");
       // Simulate export delay
       await new Promise((resolve) => setTimeout(resolve, 2000));
       // TODO: Implement actual PDF export
@@ -152,7 +151,6 @@ export default component$(() => {
 
     isLoading.value = true;
     try {
-      console.log("Exporting Excel report...");
 
       // Generate filename with date range
       const filename = generateReportFilename(startDate.value, endDate.value);
@@ -160,7 +158,6 @@ export default component$(() => {
       // Export to Excel
       exportReportToExcel(reportData, startDate.value, endDate.value, filename);
 
-      console.log("✅ Excel exported successfully");
     } catch (error) {
       console.error("Excel export failed:", error);
       alert(
@@ -306,12 +303,7 @@ export default component$(() => {
             // So we just use the returned projects directly
             const filteredProjects = reportData.projectBreakdown;
 
-            console.log(
-              "Filtered projects:",
-              filteredProjects.length,
-              "of",
-              reportData.projectBreakdown.length,
-            );
+           
 
             return (
               <>
@@ -350,7 +342,7 @@ export default component$(() => {
                 />
 
                 {/* Recent Entries - Ensure types match */}
-                <RecentEntriesList
+                {/* <RecentEntriesList
                   entries={reportData.timeEntries.map((e) => ({
                     ...e,
                     role: e.role as EmployeeRole, // Cast string to union type
@@ -369,7 +361,7 @@ export default component$(() => {
                       entryDetailsModalOpen.value = true;
                     }
                   })}
-                />
+                /> */}
               </>
             );
           }}

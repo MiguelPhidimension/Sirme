@@ -210,11 +210,9 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
   // Handle form submission
   const handleSubmit = $(async () => {
     // Use the selected employee ID, or fall back to authenticated user
-    console.log(authContext.user);
     const userId = formData.employeeId || authContext.user?.user_id;
 
     // Validate user is selected
-    console.log({ userId });
     if (!userId) {
       toast.error("You must select an employee to log hours");
       return;
@@ -243,11 +241,6 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
           ? props.selectedDates
           : [formData.date];
 
-      console.log(
-        `📅 Saving time entry to ${datesToSave.length} date(s):`,
-        datesToSave,
-      );
-
       // Save entry for each date in the range
       for (const dateToSave of datesToSave) {
         // If editing multiple entries, update each one separately
@@ -271,10 +264,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
                     }))
                 : [],
             };
-            console.log(
-              `Submitting time entry for ${dateToSave} (edit ${eid}):`,
-              timeEntryData,
-            );
+
             await updateTimeEntry(timeEntryData);
           }
         } else {
@@ -294,10 +284,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
                 }))
               : [],
           };
-          console.log(
-            `Submitting time entry for ${dateToSave}:`,
-            timeEntryData,
-          );
+
           if (props.entryId && dateToSave === formData.date) {
             await updateTimeEntry(timeEntryData);
           } else {

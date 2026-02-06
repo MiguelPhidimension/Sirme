@@ -415,7 +415,6 @@ export const useGetTimeEntries = () => {
       end_date: string;
     }) => {
       try {
-        console.log("📝 Fetching time entries...");
 
         // First: Get the time entries
         const entriesResponse: any = await graphqlClient.request(
@@ -424,7 +423,6 @@ export const useGetTimeEntries = () => {
         );
 
         const timeEntries = entriesResponse.time_entries || [];
-        console.log(`✅ Found ${timeEntries.length} time entries`);
 
         if (timeEntries.length === 0) {
           return [];
@@ -435,9 +433,7 @@ export const useGetTimeEntries = () => {
           (entry: any) => entry.time_entry_id,
         );
 
-        console.log(
-          `📝 Fetching projects for ${timeEntryIds.length} entries...`,
-        );
+        
 
         const projectsResponse: any = await graphqlClient.request(
           GET_TIME_ENTRY_PROJECTS_QUERY,
@@ -447,7 +443,6 @@ export const useGetTimeEntries = () => {
         );
 
         const allProjects = projectsResponse.time_entry_projects || [];
-        console.log(`✅ Found ${allProjects.length} project entries`);
 
         // Get unique project IDs
         const uniqueProjectIds = [
@@ -463,9 +458,7 @@ export const useGetTimeEntries = () => {
         }
 
         // Third: Get project details
-        console.log(
-          `📝 Fetching details for ${uniqueProjectIds.length} projects...`,
-        );
+        
 
         const projectDetailsResponse: any = await graphqlClient.request(
           GET_PROJECTS_BY_IDS_QUERY,
@@ -475,7 +468,6 @@ export const useGetTimeEntries = () => {
         );
 
         const projectsDetails = projectDetailsResponse.projects || [];
-        console.log(`✅ Found ${projectsDetails.length} project details`);
 
         // Get unique client IDs
         const uniqueClientIds = [
@@ -487,9 +479,7 @@ export const useGetTimeEntries = () => {
         // Fourth: Get client details
         let clientsMap = new Map();
         if (uniqueClientIds.length > 0) {
-          console.log(
-            `📝 Fetching details for ${uniqueClientIds.length} clients...`,
-          );
+         
 
           const clientsResponse: any = await graphqlClient.request(
             GET_CLIENTS_BY_IDS_QUERY,

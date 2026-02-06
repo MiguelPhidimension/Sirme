@@ -63,17 +63,7 @@ export default component$(() => {
       const response = await graphqlClient.request<{ users: User[] }>(
         GET_ALL_USERS,
       );
-      console.log(
-        "Admin Users Fetch:",
-        JSON.stringify(
-          response.users.map((u) => ({
-            id: u.user_id,
-            role: u.role_application,
-          })),
-          null,
-          2,
-        ),
-      );
+
       return response.users;
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -84,7 +74,6 @@ export default component$(() => {
   const handleRoleChange = $(async (userId: string, newRole: string) => {
     updatingUserId.value = userId;
     try {
-      console.log(`Updating user ${userId} to role ${newRole}`);
       const response = await graphqlClient.request<{
         update_users: {
           affected_rows: number;
@@ -94,8 +83,6 @@ export default component$(() => {
         user_id: userId,
         role_application: newRole,
       });
-
-      console.log("Update response:", JSON.stringify(response));
 
       if (response.update_users && response.update_users.affected_rows > 0) {
         toast.addToast(

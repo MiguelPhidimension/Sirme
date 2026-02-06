@@ -91,7 +91,6 @@ const GET_USERS_QUERY = `
 export const useUsers = () => {
   return useResource$<{ users: UserData[]; total: number }>(async () => {
     try {
-      console.log("📝 useUsers: Making GraphQL request...");
 
       const data = await graphqlClient.request<UsersResponse>(GET_USERS_QUERY);
 
@@ -101,12 +100,7 @@ export const useUsers = () => {
         role: data.roles.find((role) => role.role_id === user.role_id),
       }));
 
-      console.log("✅ useUsers: Data received:", {
-        usersCount: usersWithRoles?.length || 0,
-        total: data.users_aggregate?.aggregate?.count || 0,
-        users: usersWithRoles,
-        roles: data.roles,
-      });
+     
 
       return {
         users: usersWithRoles || [],

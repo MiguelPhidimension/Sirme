@@ -73,7 +73,6 @@ export const ProjectEntry = component$<ProjectEntryProps>(
     // Handle project created from modal
     const handleProjectCreated = $(
       async (projectId: string, projectName: string, clientId?: string) => {
-        console.log("✅ Project created:", projectId, projectName, clientId);
 
         // Update the form with the new project
         onUpdate$("projectId", projectId);
@@ -90,17 +89,14 @@ export const ProjectEntry = component$<ProjectEntryProps>(
     // Handle creating new client
     const handleCreateClient = $(async () => {
       if (!newClientName.value.trim()) {
-        console.log("⚠️ Client name is empty");
         return;
       }
 
       isCreatingClient.value = true;
       try {
-        console.log("📝 Creating new client:", newClientName.value);
         const newClient = await createClient({ name: newClientName.value });
 
         if (newClient) {
-          console.log("✅ Client created:", newClient);
           // Update form with new client
           onUpdate$("clientId", newClient.client_id);
           onUpdate$("clientName", newClient.name);
@@ -125,7 +121,6 @@ export const ProjectEntry = component$<ProjectEntryProps>(
 
       // If we have a projectId but no clientId, search for the client
       if (project.projectId && !project.clientId) {
-        console.log("🔍 Searching for client of project:", project.projectId);
         // The client will be populated when projectsResource loads
       }
     });
@@ -182,10 +177,7 @@ export const ProjectEntry = component$<ProjectEntryProps>(
                     </div>
                   )}
                   onResolved={(clientsData) => {
-                    console.log(
-                      "👥 ProjectEntry: Clients loaded:",
-                      clientsData,
-                    );
+                   
                     return (
                       <select
                         value={project.clientId || ""}
@@ -295,7 +287,6 @@ export const ProjectEntry = component$<ProjectEntryProps>(
                   </div>
                 )}
                 onResolved={(data) => {
-                  console.log("📋 ProjectEntry: Projects loaded:", data);
 
                   // If we have a projectId but no clientId, find and set the client
                   if (project.projectId && !project.clientId) {
@@ -303,10 +294,7 @@ export const ProjectEntry = component$<ProjectEntryProps>(
                       (p) => p.project_id === project.projectId,
                     );
                     if (foundProject && foundProject.client_id) {
-                      console.log(
-                        "📌 Auto-setting clientId from existing project:",
-                        foundProject.client_id,
-                      );
+                     
                       onUpdate$("clientId", foundProject.client_id);
                     }
                   }

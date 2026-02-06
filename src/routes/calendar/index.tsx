@@ -163,9 +163,6 @@ export default component$(() => {
             userData.id ||
             userData.userId ||
             userData["user-id"];
-
-          console.log("👤 User data from storage:", userData);
-          console.log("✅ User ID extracted:", userId.value);
         } catch (e) {
           console.error("❌ Failed to parse user data:", e);
         }
@@ -194,20 +191,11 @@ export default component$(() => {
         const startDate = firstDay.toISOString().split("T")[0];
         const endDate = lastDay.toISOString().split("T")[0];
 
-        console.log(
-          `📅 Fetching entries from ${startDate} to ${endDate} for user: ${userId.value}`,
-        );
-
         const timeEntriesData = await getTimeEntries({
           user_id: userId.value,
           start_date: startDate,
           end_date: endDate,
         });
-
-        console.log(`📊 Response from GraphQL:`, timeEntriesData);
-        console.log(`📊 Response type:`, typeof timeEntriesData);
-        console.log(`📊 Is array:`, Array.isArray(timeEntriesData));
-        console.log(`📊 Length:`, timeEntriesData?.length);
 
         // Transform GraphQL data to DailyTimeEntry format
         if (
@@ -215,10 +203,6 @@ export default component$(() => {
           Array.isArray(timeEntriesData) &&
           timeEntriesData.length > 0
         ) {
-          console.log(
-            `✅ Processing ${timeEntriesData.length} entries for user ${userId.value}`,
-          );
-
           entries.length = 0;
 
           const userName = authContext.user
@@ -228,15 +212,11 @@ export default component$(() => {
           const userRole = (authContext.user?.role_application ||
             "Employee") as EmployeeRole;
 
-          timeEntriesData.forEach((entry: any, index: number) => {
+          timeEntriesData.forEach((entry: any) => {
             const projects = entry.time_entry_projects || [];
             const totalHours = projects.reduce(
               (sum: number, p: any) => sum + (p.hours_reported || 0),
               0,
-            );
-
-            console.log(
-              `📌 [${index + 1}/${timeEntriesData.length}] Date: ${entry.entry_date}, Hours: ${totalHours}, Projects: ${projects.length}`,
             );
 
             entries.push({
@@ -260,9 +240,6 @@ export default component$(() => {
             });
           });
 
-          console.log(
-            `✅ Successfully loaded ${entries.length} entries into calendar for user ${userId.value}`,
-          );
           showSeedButton.value = false;
         } else {
           console.warn("❌ No entries found or empty response");
@@ -309,15 +286,12 @@ export default component$(() => {
 
   // Day interaction handlers
   const handleDayClick = $((day: CalendarDayTypes) => {
-    console.log("📅 Day clicked:", day);
     // Reset selected dates on single click
     timeEntrySelectedDates.value = [];
     if (day.hasEntries) {
-      console.log("✅ Day has entries, opening modal");
       selectedDay.value = day;
       showDayModal.value = true;
     } else {
-      console.log("➡️ Day has no entries, opening time entry modal");
       // Directly set signals instead of calling the other QRL to avoid scoping issues
       timeEntryModalDate.value = day.date;
       timeEntryModalId.value = "";
@@ -327,7 +301,6 @@ export default component$(() => {
 
   // Handle range selection (drag to select multiple days)
   const handleRangeSelect = $((startDate: string, endDate: string) => {
-    console.log(`📅 Range selected: ${startDate} to ${endDate}`);
 
     // Generate array of all dates in range
     const dates: string[] = [];
@@ -340,7 +313,6 @@ export default component$(() => {
       current.setDate(current.getDate() + 1);
     }
 
-    console.log(`📅 Selected dates: ${dates.join(", ")}`);
 
     // Store all selected dates and open modal for first date
     timeEntrySelectedDates.value = dates;
@@ -410,7 +382,6 @@ export default component$(() => {
               timeEntrySelectedDates.value = [];
             })}
             onSuccess$={$(() => {
-              console.log("🔄 Time entry saved, refreshing calendar...");
               refreshTrigger.value++;
               timeEntrySelectedDates.value = [];
             })}
