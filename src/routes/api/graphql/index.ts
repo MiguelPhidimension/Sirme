@@ -8,16 +8,17 @@ import type { RequestHandler } from "@builder.io/qwik-city";
  * so it never reaches the client/browser.
  */
 export const onPost: RequestHandler = async ({ request, send, env }) => {
-  // Try multiple env var names for maximum compatibility
   const hasuraUrl =
     env.get("HASURA_GRAPHQL_ENDPOINT") ||
-    env.get("VITE_HASURA_GRAPHQL_ENDPOINT") ||
-    import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT;
+    (typeof process !== "undefined"
+      ? process.env?.HASURA_GRAPHQL_ENDPOINT
+      : undefined);
 
   const hasuraSecret =
     env.get("HASURA_ADMIN_SECRET") ||
-    env.get("VITE_HASURA_ADMIN_SECRET") ||
-    import.meta.env.VITE_HASURA_ADMIN_SECRET;
+    (typeof process !== "undefined"
+      ? process.env?.HASURA_ADMIN_SECRET
+      : undefined);
 
   if (!hasuraUrl) {
     send(
@@ -112,13 +113,15 @@ export const onPost: RequestHandler = async ({ request, send, env }) => {
 export const onGet: RequestHandler = async ({ send, env }) => {
   const hasuraUrl =
     env.get("HASURA_GRAPHQL_ENDPOINT") ||
-    env.get("VITE_HASURA_GRAPHQL_ENDPOINT") ||
-    import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT;
+    (typeof process !== "undefined"
+      ? process.env?.HASURA_GRAPHQL_ENDPOINT
+      : undefined);
 
   const hasuraSecret =
     env.get("HASURA_ADMIN_SECRET") ||
-    env.get("VITE_HASURA_ADMIN_SECRET") ||
-    import.meta.env.VITE_HASURA_ADMIN_SECRET;
+    (typeof process !== "undefined"
+      ? process.env?.HASURA_ADMIN_SECRET
+      : undefined);
 
   send(
     new Response(

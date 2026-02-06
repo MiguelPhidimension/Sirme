@@ -9,27 +9,19 @@ import { GraphQLClient } from "graphql-request";
 
 /**
  * Determine the GraphQL endpoint dynamically on each call.
- * - DEV: Direct Hasura connection via VITE_ env var
- * - PROD browser: /api/graphql proxy (Qwik City route handles secrets)
- * - PROD server (SSR): Direct Hasura if env var available, else VITE_ fallback
+ * - Browser: /api/graphql proxy (Qwik City route handles secrets)
+ * - Server (SSR / Edge): Direct Hasura if env var available, else proxy
  */
 const getEndpoint = (): string => {
   const isBrowser = typeof window !== "undefined";
 
-  // DEV mode: always use VITE_ var
-  if (!import.meta.env.PROD) {
-    return import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT || "/api/graphql";
-  }
-
-  // PROD browser: always go through proxy
+  // Browser: always go through proxy
   if (isBrowser) {
     return `${window.location.origin}/api/graphql`;
   }
 
-  // PROD server (SSR / Edge): try server env, then VITE_ fallback
-  // In Vercel Edge, import.meta.env.VITE_* may still be available from build time
+  // Server (SSR / Edge): try server env, then proxy
   return (
-    import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT ||
     (typeof process !== "undefined" && process.env?.HASURA_GRAPHQL_ENDPOINT) ||
     "/api/graphql"
   );
@@ -42,23 +34,15 @@ const getEndpoint = (): string => {
 const getAdminSecret = (): string | undefined => {
   const isBrowser = typeof window !== "undefined";
 
-  // DEV: use VITE_ var for direct Hasura connection
-  if (!import.meta.env.PROD) {
-    return import.meta.env.VITE_HASURA_ADMIN_SECRET;
-  }
-
-  // PROD browser: proxy handles auth, no secret needed
+  // Browser: proxy handles auth, no secret needed
   if (isBrowser) {
     return undefined;
   }
 
-  // PROD server (SSR): use build-time VITE_ var or process.env
-  return (
-    import.meta.env.VITE_HASURA_ADMIN_SECRET ||
-    (typeof process !== "undefined"
-      ? process.env?.HASURA_ADMIN_SECRET
-      : undefined)
-  );
+  // Server (SSR / Edge): use server env
+  return typeof process !== "undefined"
+    ? process.env?.HASURA_ADMIN_SECRET
+    : undefined;
 };
 
 /**
