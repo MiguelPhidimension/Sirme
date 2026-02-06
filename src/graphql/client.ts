@@ -8,56 +8,64 @@
 import { GraphQLClient } from "graphql-request";
 
 /**
- * Determine the GraphQL endpoint:
- * - DEV: Connect directly to Hasura via VITE_ env var
- * - PROD (browser): Use /api/graphql proxy (Qwik City route)
- * - PROD (server/SSR): Also use Hasura directly if env var available
+ * Determine the GraphQL endpoint dynamically on each call.
+ * - DEV: Direct Hasura connection via VITE_ env var
+ * - PROD browser: /api/graphql proxy (Qwik City route handles secrets)
+ * - PROD server (SSR): Direct Hasura if env var available, else VITE_ fallback
  */
-const getEndpoint = () => {
-  // In development, always use VITE_ var for direct Hasura connection
+const getEndpoint = (): string => {
+  const isBrowser = typeof window !== "undefined";
+
+  // DEV mode: always use VITE_ var
   if (!import.meta.env.PROD) {
     return import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT || "/api/graphql";
   }
 
-  // In production browser: use the proxy route
-  if (typeof window !== "undefined") {
+  // PROD browser: always go through proxy
+  if (isBrowser) {
     return `${window.location.origin}/api/graphql`;
   }
 
-  // In production server (SSR): try direct Hasura, fallback to proxy
-  if (typeof process !== "undefined" && process.env?.HASURA_GRAPHQL_ENDPOINT) {
-    return process.env.HASURA_GRAPHQL_ENDPOINT;
-  }
-
-  // Final fallback
-  return "/api/graphql";
+  // PROD server (SSR / Edge): try server env, then VITE_ fallback
+  // In Vercel Edge, import.meta.env.VITE_* may still be available from build time
+  return (
+    import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT ||
+    (typeof process !== "undefined" && process.env?.HASURA_GRAPHQL_ENDPOINT) ||
+    "/api/graphql"
+  );
 };
 
 /**
- * Get admin secret (only in dev or server-side).
- * In production browser, the proxy handles auth — no secret needed here.
+ * Get admin secret. Only needed when NOT going through the proxy.
+ * The proxy already injects the secret server-side.
  */
-const getAdminSecret = () => {
-  // Dev: use VITE_ var
+const getAdminSecret = (): string | undefined => {
+  const isBrowser = typeof window !== "undefined";
+
+  // DEV: use VITE_ var for direct Hasura connection
   if (!import.meta.env.PROD) {
     return import.meta.env.VITE_HASURA_ADMIN_SECRET;
   }
 
-  // Production server (SSR): use server env var
-  if (typeof window === "undefined" && typeof process !== "undefined") {
-    return process.env?.HASURA_ADMIN_SECRET;
+  // PROD browser: proxy handles auth, no secret needed
+  if (isBrowser) {
+    return undefined;
   }
 
-  // Production browser: proxy handles it, no secret needed
-  return undefined;
+  // PROD server (SSR): use build-time VITE_ var or process.env
+  return (
+    import.meta.env.VITE_HASURA_ADMIN_SECRET ||
+    (typeof process !== "undefined"
+      ? process.env?.HASURA_ADMIN_SECRET
+      : undefined)
+  );
 };
 
 /**
- * Create GraphQL client instance
- * Uses the proxy endpoint in production client.
- * Uses direct connection in server/dev.
+ * Create a fresh GraphQL client instance.
+ * Called dynamically to ensure correct endpoint resolution.
  */
-export const createGraphQLClient = () => {
+export const createGraphQLClient = (): GraphQLClient => {
   const endpoint = getEndpoint();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -68,16 +76,13 @@ export const createGraphQLClient = () => {
     headers["x-hasura-admin-secret"] = secret;
   }
 
-  return new GraphQLClient(endpoint, {
-    headers,
-  });
+  return new GraphQLClient(endpoint, { headers });
 };
 
 /**
- * Create GraphQL client instance with JWT authentication
- * Used for user-authenticated operations
+ * Create GraphQL client with JWT authentication
  */
-export const createAuthenticatedClient = (token: string) => {
+export const createAuthenticatedClient = (token: string): GraphQLClient => {
   return new GraphQLClient(getEndpoint(), {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -86,20 +91,31 @@ export const createAuthenticatedClient = (token: string) => {
   });
 };
 
-// Default client instance (with admin secret context if available)
-export const graphqlClient = createGraphQLClient();
+/**
+ * Dynamic client proxy — creates a fresh client on every `.request()` call.
+ * This ensures the endpoint is always resolved in the correct context
+ * (browser vs server), avoiding stale singleton issues in Edge Runtime.
+ */
+export const graphqlClient: GraphQLClient = new Proxy({} as GraphQLClient, {
+  get(_target, prop) {
+    const client = createGraphQLClient();
+    const value = (client as any)[prop];
+    if (typeof value === "function") {
+      return value.bind(client);
+    }
+    return value;
+  },
+});
 
 /**
  * GraphQL request wrapper with error handling
- * Provides consistent error handling across the application
  */
 export const graphqlRequest = async <T = any>(
   query: string,
   variables?: Record<string, any>,
 ): Promise<T> => {
   try {
-    const data = await graphqlClient.request<T>(query, variables);
-    return data;
+    return await graphqlClient.request<T>(query, variables);
   } catch (error) {
     console.error("GraphQL request failed:", error);
     throw error;
@@ -108,7 +124,6 @@ export const graphqlRequest = async <T = any>(
 
 /**
  * Batch GraphQL requests
- * Useful for fetching multiple queries at once
  */
 export const graphqlBatchRequest = async <T = any>(
   queries: Array<{ query: string; variables?: Record<string, any> }>,
