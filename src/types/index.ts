@@ -22,6 +22,7 @@ export interface ProjectEntry {
   clientName: string;
   hours: number;
   isMPS: boolean; // MuleSoft Professional Services flag
+  isPTO?: boolean; // Paid Time Off / 0 hours flag
   notes?: string;
   role?: string; // Role assigned to this project entry
 }

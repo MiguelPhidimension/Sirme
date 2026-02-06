@@ -24,6 +24,7 @@ export interface TimeEntryProject {
   project_id: string;
   hours_reported: number;
   is_mps: boolean;
+  is_pto?: boolean;
   notes?: string;
   role?: string;
 }
@@ -96,6 +97,7 @@ const CREATE_TIME_ENTRY_PROJECTS_MUTATION = `
         project_id
         hours_reported
         is_mps
+        is_pto
         role
         notes
       }
@@ -142,6 +144,7 @@ const GET_TIME_ENTRY_PROJECTS_QUERY = `
       project_id
       hours_reported
       is_mps
+      is_pto
       role
       notes
     }
@@ -236,6 +239,7 @@ const GET_TIME_ENTRY_PROJECTS_BY_ID_QUERY = `
       project_id
       hours_reported
       is_mps
+      is_pto
       role
       notes
     }
@@ -313,6 +317,7 @@ export const useCreateTimeEntry = () => {
           project_id: project.project_id,
           hours_reported: project.hours_reported,
           is_mps: project.is_mps,
+          is_pto: project.is_pto || false,
           notes: project.notes || null,
           role: project.role || null,
         }));
@@ -363,6 +368,7 @@ export const useUpdateTimeEntry = () => {
           project_id: project.project_id,
           hours_reported: project.hours_reported,
           is_mps: project.is_mps,
+          is_pto: project.is_pto || false,
           notes: project.notes || null,
           role: project.role || null,
         }));

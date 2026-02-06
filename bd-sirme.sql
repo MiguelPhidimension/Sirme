@@ -66,6 +66,8 @@ CREATE TABLE time_entry_projects (
     project_id     UUID NOT NULL,
     hours_reported DECIMAL(4,2) NOT NULL,
     is_mps         BOOLEAN DEFAULT FALSE,
+    is_pto         BOOLEAN DEFAULT FALSE,
+    role           VARCHAR(100),
     notes          TEXT,
     CONSTRAINT fk_tep_te
         FOREIGN KEY (time_entry_id)

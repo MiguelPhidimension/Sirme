@@ -249,6 +249,7 @@ export default component$(() => {
                 clientName: p.project?.client?.name || "Unknown",
                 hours: p.hours_reported,
                 isMPS: p.is_mps,
+                isPTO: p.is_pto || false,
                 notes: p.notes || "",
               })),
               totalHours,

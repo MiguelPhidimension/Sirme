@@ -16,6 +16,7 @@ interface ProjectData {
   isMPS: boolean;
   notes: string;
   role?: string;
+  isPTO?: boolean;
 }
 
 interface ProjectListProps {
