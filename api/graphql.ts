@@ -12,60 +12,96 @@ type GraphQLRequestBody = {
 };
 
 export default async function handler(req: Request): Promise<Response> {
+  // GET = health/debug check (remove later)
+  if (req.method === "GET") {
+    return new Response(
+      JSON.stringify({
+        status: "ok",
+        hasEndpoint: !!HASURA_GRAPHQL_ENDPOINT,
+        endpointPreview: HASURA_GRAPHQL_ENDPOINT
+          ? HASURA_GRAPHQL_ENDPOINT.substring(0, 30) + "..."
+          : "NOT SET",
+        hasSecret: !!HASURA_ADMIN_SECRET,
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
   if (req.method !== "POST") {
     return new Response("Method Not Allowed", { status: 405 });
   }
 
   if (!HASURA_GRAPHQL_ENDPOINT) {
-    return new Response("Server env vars not configured", { status: 500 });
+    return new Response(
+      JSON.stringify({
+        errors: [{ message: "HASURA_GRAPHQL_ENDPOINT not configured" }],
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
+    );
   }
 
   let body: GraphQLRequestBody | null = null;
   try {
     body = (await req.json()) as GraphQLRequestBody;
   } catch {
-    return new Response("Invalid JSON body", { status: 400 });
+    return new Response(
+      JSON.stringify({ errors: [{ message: "Invalid JSON body" }] }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
+    );
   }
 
   if (!body?.query) {
-    return new Response("Missing GraphQL query", { status: 400 });
+    return new Response(
+      JSON.stringify({ errors: [{ message: "Missing GraphQL query" }] }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
+    );
   }
 
-  const authHeader = req.headers.get("authorization");
-  const cookieHeader = req.headers.get("cookie");
-
+  // Build headers for Hasura
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 
-  if (authHeader) {
-    headers.Authorization = authHeader;
-  }
-
-  if (cookieHeader) {
-    headers.Cookie = cookieHeader;
-  }
-
+  // Always send admin secret if available (overrides JWT auth)
   if (HASURA_ADMIN_SECRET) {
     headers["x-hasura-admin-secret"] = HASURA_ADMIN_SECRET;
   }
 
-  const hasuraResponse = await fetch(HASURA_GRAPHQL_ENDPOINT, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      query: body.query,
-      variables: body.variables,
-      operationName: body.operationName,
-    }),
-  });
+  // Also forward Authorization if present (for JWT-based queries)
+  const authHeader = req.headers.get("authorization");
+  if (authHeader) {
+    headers["Authorization"] = authHeader;
+  }
 
-  const responseText = await hasuraResponse.text();
+  try {
+    const hasuraResponse = await fetch(HASURA_GRAPHQL_ENDPOINT, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        query: body.query,
+        variables: body.variables,
+        operationName: body.operationName,
+      }),
+    });
 
-  return new Response(responseText, {
-    status: hasuraResponse.status,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+    const responseText = await hasuraResponse.text();
+
+    return new Response(responseText, {
+      status: hasuraResponse.status,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  } catch (error: any) {
+    return new Response(
+      JSON.stringify({
+        errors: [
+          {
+            message: `Proxy fetch failed: ${error?.message || "unknown error"}`,
+          },
+        ],
+      }),
+      { status: 502, headers: { "Content-Type": "application/json" } },
+    );
+  }
 }
