@@ -7,60 +7,49 @@
 
 import { GraphQLClient } from "graphql-request";
 
-// Determine if we are running on the server
-const isServer = typeof window === "undefined";
-
-// Helper to safely get server env vars
-const getServerEnv = (key: string) => {
-  if (isServer && typeof process !== "undefined" && process.env) {
-    return process.env[key];
-  }
-  return undefined;
-};
-
-// Determine the endpoint dynamically
+/**
+ * Determine the GraphQL endpoint:
+ * - DEV: Connect directly to Hasura via VITE_ env var
+ * - PROD (browser): Use /api/graphql proxy (Qwik City route)
+ * - PROD (server/SSR): Also use Hasura directly if env var available
+ */
 const getEndpoint = () => {
-  if (isServer) {
-    // SSR/Server: Connect directly to Hasura using server env vars
-    // Check both process.env and import.meta.env for robust variable access
-    const serverUrl =
-      getServerEnv("HASURA_GRAPHQL_ENDPOINT") ||
-      import.meta.env["HASURA_GRAPHQL_ENDPOINT"];
-
-    if (serverUrl) return serverUrl;
-
-    // Fallback: If we can't find Hasura URL, try to construct a self-reference to the proxy
-    // (This works on Vercel)
-    const vercelUrl = getServerEnv("VERCEL_URL");
-    if (vercelUrl) return `https://${vercelUrl}/api/graphql`;
+  // In development, always use VITE_ var for direct Hasura connection
+  if (!import.meta.env.PROD) {
+    return import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT || "/api/graphql";
   }
 
-  // Client/Browser: Use proxy in PROD, or VITE var in DEV
-  const endpointPath = import.meta.env.PROD
-    ? "/api/graphql"
-    : import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT || "/api/graphql";
-
-  // Ensure we return an absolute URL in the browser to satisfy strict parsers
-  if (typeof window !== "undefined" && endpointPath.startsWith("/")) {
-    return `${window.location.origin}${endpointPath}`;
+  // In production browser: use the proxy route
+  if (typeof window !== "undefined") {
+    return `${window.location.origin}/api/graphql`;
   }
 
-  return endpointPath;
+  // In production server (SSR): try direct Hasura, fallback to proxy
+  if (typeof process !== "undefined" && process.env?.HASURA_GRAPHQL_ENDPOINT) {
+    return process.env.HASURA_GRAPHQL_ENDPOINT;
+  }
+
+  // Final fallback
+  return "/api/graphql";
 };
 
-// Helper to get admin secret
+/**
+ * Get admin secret (only in dev or server-side).
+ * In production browser, the proxy handles auth — no secret needed here.
+ */
 const getAdminSecret = () => {
-  if (isServer) {
-    return (
-      getServerEnv("HASURA_ADMIN_SECRET") ||
-      import.meta.env.VITE_HASURA_ADMIN_SECRET
-    );
+  // Dev: use VITE_ var
+  if (!import.meta.env.PROD) {
+    return import.meta.env.VITE_HASURA_ADMIN_SECRET;
   }
-  // On client, only use VITE_ var (which should only work in dev)
-  // In PROD client, this should return undefined (handled by proxy)
-  return !import.meta.env.PROD
-    ? import.meta.env.VITE_HASURA_ADMIN_SECRET
-    : undefined;
+
+  // Production server (SSR): use server env var
+  if (typeof window === "undefined" && typeof process !== "undefined") {
+    return process.env?.HASURA_ADMIN_SECRET;
+  }
+
+  // Production browser: proxy handles it, no secret needed
+  return undefined;
 };
 
 /**
