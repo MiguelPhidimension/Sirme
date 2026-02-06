@@ -12,6 +12,24 @@ import { GraphQLClient } from "graphql-request";
  * - Browser: /api/graphql proxy (Qwik City route handles secrets)
  * - Server (SSR / Edge): Direct Hasura if env var available, else proxy
  */
+const getServerOrigin = (): string | undefined => {
+  if (typeof process === "undefined") {
+    return undefined;
+  }
+
+  const rawOrigin =
+    process.env?.PUBLIC_SITE_URL ||
+    process.env?.SITE_URL ||
+    process.env?.APP_ORIGIN ||
+    process.env?.VERCEL_URL;
+
+  if (!rawOrigin) {
+    return undefined;
+  }
+
+  return rawOrigin.startsWith("http") ? rawOrigin : `https://${rawOrigin}`;
+};
+
 const getEndpoint = (): string => {
   const isBrowser = typeof window !== "undefined";
 
@@ -21,10 +39,17 @@ const getEndpoint = (): string => {
   }
 
   // Server (SSR / Edge): try server env, then proxy
-  return (
-    (typeof process !== "undefined" && process.env?.HASURA_GRAPHQL_ENDPOINT) ||
-    "/api/graphql"
-  );
+  const directEndpoint =
+    typeof process !== "undefined"
+      ? process.env?.HASURA_GRAPHQL_ENDPOINT
+      : undefined;
+
+  if (directEndpoint) {
+    return directEndpoint;
+  }
+
+  const origin = getServerOrigin();
+  return origin ? `${origin}/api/graphql` : "/api/graphql";
 };
 
 /**
