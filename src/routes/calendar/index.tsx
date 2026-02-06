@@ -244,6 +244,7 @@ export default component$(() => {
               employeeName: userName,
               date: entry.entry_date,
               role: userRole,
+              roleApplication: authContext.user?.role_application,
               projects: projects.map((p: any) => ({
                 id: p.tep_id,
                 clientName: p.project?.client?.name || "Unknown",

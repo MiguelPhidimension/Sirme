@@ -35,12 +35,15 @@ const GET_ALL_USERS = `
 
 const UPDATE_USER_ROLE = `
   mutation UpdateUserRole($user_id: uuid!, $role_application: String!) {
-    update_users_by_pk(
-      pk_columns: { user_id: $user_id }, 
+    update_users(
+      where: { user_id: { _eq: $user_id } }, 
       _set: { role_application: $role_application }
     ) {
-      user_id
-      role_application
+      affected_rows
+      returning {
+        user_id
+        role_application
+      }
     }
   }
 `;
@@ -60,6 +63,17 @@ export default component$(() => {
       const response = await graphqlClient.request<{ users: User[] }>(
         GET_ALL_USERS,
       );
+      console.log(
+        "Admin Users Fetch:",
+        JSON.stringify(
+          response.users.map((u) => ({
+            id: u.user_id,
+            role: u.role_application,
+          })),
+          null,
+          2,
+        ),
+      );
       return response.users;
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -70,14 +84,20 @@ export default component$(() => {
   const handleRoleChange = $(async (userId: string, newRole: string) => {
     updatingUserId.value = userId;
     try {
+      console.log(`Updating user ${userId} to role ${newRole}`);
       const response = await graphqlClient.request<{
-        update_users_by_pk: { user_id: string; role_application: string };
+        update_users: {
+          affected_rows: number;
+          returning: { user_id: string; role_application: string }[];
+        };
       }>(UPDATE_USER_ROLE, {
         user_id: userId,
         role_application: newRole,
       });
 
-      if (response.update_users_by_pk) {
+      console.log("Update response:", JSON.stringify(response));
+
+      if (response.update_users && response.update_users.affected_rows > 0) {
         toast.addToast(
           "Role updated successfully. The user must log in again to see the changes.",
           "success",
@@ -86,7 +106,7 @@ export default component$(() => {
         // Trigger refresh
         refreshTrigger.value++;
       } else {
-        throw new Error("Could not update user");
+        throw new Error("Could not update user (No rows affected)");
       }
     } catch (error) {
       console.error("Error updating role:", error);
@@ -188,7 +208,6 @@ export default component$(() => {
                         <td class="px-6 py-4">
                           <select
                             class="block w-full rounded-lg border border-slate-300 bg-slate-50 p-2 text-sm text-slate-900 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
-                            value={user.role_application || "colaborador"}
                             onChange$={(e) =>
                               handleRoleChange(
                                 user.user_id,
@@ -197,8 +216,23 @@ export default component$(() => {
                             }
                             disabled={updatingUserId.value === user.user_id}
                           >
-                            <option value="colaborador">Collaborator</option>
-                            <option value="administrador">Administrator</option>
+                            <option
+                              value="colaborador"
+                              selected={
+                                (user.role_application || "colaborador") ===
+                                "colaborador"
+                              }
+                            >
+                              Collaborator
+                            </option>
+                            <option
+                              value="administrador"
+                              selected={
+                                user.role_application === "administrador"
+                              }
+                            >
+                              Administrator
+                            </option>
                           </select>
                           {updatingUserId.value === user.user_id && (
                             <span class="ml-2 text-xs text-blue-500">

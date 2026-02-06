@@ -71,8 +71,15 @@ export const DayDetailsModal = component$<DayDetailsModalProps>(
                                 <span class="text-lg font-semibold text-slate-800 dark:text-slate-200">
                                   {employeeName}
                                 </span>
-                                <div class="rounded-full border border-blue-500/30 bg-blue-500/20 px-3 py-1 text-xs font-medium text-blue-700 dark:text-blue-300">
-                                  {entry?.role}
+                                <div class="flex gap-2">
+                                  <div class="rounded-full border border-purple-500/30 bg-purple-500/20 px-3 py-1 text-xs font-medium text-purple-700 dark:text-purple-300">
+                                    {entry?.role || "Employee"}
+                                  </div>
+                                  {entry?.roleApplication && (
+                                    <div class="rounded-full border border-blue-500/30 bg-blue-500/20 px-3 py-1 text-xs font-medium text-blue-700 capitalize dark:text-blue-300">
+                                      {entry.roleApplication}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             );

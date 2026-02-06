@@ -18,6 +18,7 @@ import type { ProjectEntry, EmployeeRole } from "~/types";
 interface ProjectEntryCardProps {
   project: ProjectEntry;
   role?: EmployeeRole;
+  roleApplication?: string;
   date?: string;
   isEditing?: boolean;
   onSave$?: QRL<(project: ProjectEntry) => void>;
@@ -45,6 +46,7 @@ export const ProjectEntryCard = component$<ProjectEntryCardProps>(
   ({
     project,
     role,
+    roleApplication,
     date,
     isEditing = false,
     onSave$,
@@ -276,6 +278,13 @@ export const ProjectEntryCard = component$<ProjectEntryCardProps>(
         <div class="border-b border-gray-200 bg-gradient-to-r from-slate-50 to-gray-100 px-6 py-4 dark:border-slate-600 dark:from-slate-700 dark:to-slate-600">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
+              {roleApplication && (
+                <div class="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800 dark:bg-sky-900 dark:text-sky-200">
+                  <LuUser class="mr-1 h-3 w-3" />
+                  {roleApplication}
+                </div>
+              )}
+
               {role && (
                 <div
                   class={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-white ${getRoleColor(role)}`}

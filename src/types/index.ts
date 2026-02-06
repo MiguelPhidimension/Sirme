@@ -36,6 +36,7 @@ export interface DailyTimeEntry {
   employeeName: string;
   date: string; // ISO date string (YYYY-MM-DD)
   role: EmployeeRole;
+  roleApplication?: string;
   projects: ProjectEntry[];
   totalHours: number;
   isPTO?: boolean;

@@ -15,6 +15,7 @@ interface SidebarUserProfileProps {
     role?: {
       role_name?: string;
     };
+    role_application?: string;
   };
   isExpanded: boolean;
   onLogout$: QRL<() => void>;
@@ -74,9 +75,12 @@ export const SidebarUserProfile = component$<SidebarUserProfileProps>(
               <p class="truncate text-sm font-semibold text-gray-900 dark:text-white">
                 {userData.first_name} {userData.last_name}
               </p>
-              <p class="truncate text-xs text-gray-500 dark:text-gray-400">
-                {userData.role?.role_name || "Employee"}
-              </p>
+
+              {userData.role_application && (
+                <p class="mt-0.5 truncate text-[10px] font-medium text-blue-500 capitalize">
+                  {userData.role_application}
+                </p>
+              )}
             </div>
           )}
         </div>

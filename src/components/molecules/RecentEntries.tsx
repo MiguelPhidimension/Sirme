@@ -97,6 +97,14 @@ export const RecentEntries = component$<RecentEntriesProps>(({ entries }) => {
                         >
                           {entry.role}
                         </Badge>
+                        {entry.roleApplication && (
+                          <Badge
+                            variant="primary"
+                            class="border-blue-500/30 bg-blue-500/20 text-blue-700 capitalize dark:text-blue-300"
+                          >
+                            {entry.roleApplication}
+                          </Badge>
+                        )}
                         {DateUtils.isToday(entry.date) && (
                           <Badge
                             variant="success"
