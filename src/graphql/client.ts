@@ -22,15 +22,30 @@ const getServerEnv = (key: string) => {
 const getEndpoint = () => {
   if (isServer) {
     // SSR/Server: Connect directly to Hasura using server env vars
-    // This avoids "Invalid URL" errors with relative paths in Node
-    const serverUrl = getServerEnv("HASURA_GRAPHQL_ENDPOINT");
+    // Check both process.env and import.meta.env for robust variable access
+    const serverUrl =
+      getServerEnv("HASURA_GRAPHQL_ENDPOINT") ||
+      import.meta.env["HASURA_GRAPHQL_ENDPOINT"];
+
     if (serverUrl) return serverUrl;
+
+    // Fallback: If we can't find Hasura URL, try to construct a self-reference to the proxy
+    // (This works on Vercel)
+    const vercelUrl = getServerEnv("VERCEL_URL");
+    if (vercelUrl) return `https://${vercelUrl}/api/graphql`;
   }
 
   // Client/Browser: Use proxy in PROD, or VITE var in DEV
-  return import.meta.env.PROD
+  const endpointPath = import.meta.env.PROD
     ? "/api/graphql"
     : import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT || "/api/graphql";
+
+  // Ensure we return an absolute URL in the browser to satisfy strict parsers
+  if (typeof window !== "undefined" && endpointPath.startsWith("/")) {
+    return `${window.location.origin}${endpointPath}`;
+  }
+
+  return endpointPath;
 };
 
 // Helper to get admin secret
