@@ -6,6 +6,7 @@ import {
   useComputed$,
   Resource,
   useResource$,
+  useVisibleTask$,
 } from "@builder.io/qwik";
 import type { DocumentHead } from "@builder.io/qwik-city";
 import { StatCard, ReportHeader, ReportFilters } from "~/components/molecules";
@@ -55,6 +56,11 @@ export default component$(() => {
 
   // Store current report data for export
   const currentReportData = useSignal<ReportData | null>(null);
+  const clientReady = useSignal(false);
+
+  useVisibleTask$(() => {
+    clientReady.value = true;
+  });
 
   // Computed filter for fetching data
   const filter = useComputed$(() => {
@@ -85,6 +91,10 @@ export default component$(() => {
   // Fetch all employees (static list)
   const employeesResource = useResource$(async () => {
     try {
+      if (!clientReady.value) {
+        return [];
+      }
+
       const data = await graphqlClient.request<{ users: any[] }>(`
         query GetEmployees {
           users(order_by: {first_name: asc}) { 
@@ -107,6 +117,10 @@ export default component$(() => {
   // Fetch all projects (for when no employee is selected)
   const allProjectsResource = useResource$(async () => {
     try {
+      if (!clientReady.value) {
+        return [];
+      }
+
       const data = await graphqlClient.request<{ projects: any[] }>(`
         query GetAllProjects {
           projects(order_by: {name: asc}) { project_id name }
@@ -151,13 +165,11 @@ export default component$(() => {
 
     isLoading.value = true;
     try {
-
       // Generate filename with date range
       const filename = generateReportFilename(startDate.value, endDate.value);
 
       // Export to Excel
       exportReportToExcel(reportData, startDate.value, endDate.value, filename);
-
     } catch (error) {
       console.error("Excel export failed:", error);
       alert(
@@ -302,8 +314,6 @@ export default component$(() => {
             // When an employee is selected, the backend already filters the data
             // So we just use the returned projects directly
             const filteredProjects = reportData.projectBreakdown;
-
-           
 
             return (
               <>

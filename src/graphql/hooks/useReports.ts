@@ -4,7 +4,7 @@
  * Custom hooks to fetch and aggregate data for reports.
  */
 
-import { useResource$ } from "@builder.io/qwik";
+import { useResource$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
 import { graphqlClient } from "../client";
 
 // ============================================================================
@@ -462,9 +462,16 @@ function buildReportData(
 // ============================================================================
 
 export const useReportsData = (filterSignal: { value: ReportFilter }) => {
+  const clientReady = useSignal(false);
+
+  useVisibleTask$(() => {
+    clientReady.value = true;
+  });
+
   return useResource$<ReportData>(async ({ track, cleanup }) => {
     // Track filter changes to re-run
     const filter = track(() => filterSignal.value);
+    const isClient = track(() => clientReady.value);
 
     // Abort controller for cleanup
     const controller = new AbortController();
@@ -484,6 +491,10 @@ export const useReportsData = (filterSignal: { value: ReportFilter }) => {
     };
 
     try {
+      if (!isClient) {
+        return { ...defaultState, loading: true };
+      }
+
       // 1. Fetch all data from independent queries
       const rawData = await fetchReportData(filter);
 
