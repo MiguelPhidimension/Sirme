@@ -4,6 +4,7 @@ import {
   $,
   useResource$,
   Resource,
+  useVisibleTask$,
 } from "@builder.io/qwik";
 import { useNavigate } from "@builder.io/qwik-city";
 import { RegisterForm } from "~/components/organisms";
@@ -31,12 +32,21 @@ export default component$(() => {
   const nav = useNavigate();
   const isLoading = useSignal(false);
   const error = useSignal("");
+  const clientReady = useSignal(false);
+
+  useVisibleTask$(() => {
+    clientReady.value = true;
+  });
 
   // Fetch roles for the select dropdown
   const rolesResource = useResource$<{
     roles: Array<{ role_id: string; role_name: string }>;
   }>(async () => {
     try {
+      if (!clientReady.value) {
+        return { roles: [] };
+      }
+
       const response = await graphqlClient.request<{
         roles: Array<{
           role_id: string;

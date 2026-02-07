@@ -5,7 +5,7 @@
  * Integrates with Qwik's reactivity system using useResource$ for SSR compatibility.
  */
 
-import { useResource$ } from "@builder.io/qwik";
+import { useResource$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
 import { graphqlClient } from "../client";
 
 // ============================================================================
@@ -89,8 +89,17 @@ const GET_USERS_QUERY = `
  * @returns Resource containing users array and total count
  */
 export const useUsers = () => {
+  const clientReady = useSignal(false);
+
+  useVisibleTask$(() => {
+    clientReady.value = true;
+  });
+
   return useResource$<{ users: UserData[]; total: number }>(async () => {
     try {
+      if (!clientReady.value) {
+        return { users: [], total: 0 };
+      }
 
       const data = await graphqlClient.request<UsersResponse>(GET_USERS_QUERY);
 

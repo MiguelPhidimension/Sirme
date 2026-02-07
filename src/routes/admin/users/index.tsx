@@ -5,6 +5,7 @@ import {
   useResource$,
   Resource,
   useContext,
+  useVisibleTask$,
 } from "@builder.io/qwik";
 import { type DocumentHead } from "@builder.io/qwik-city";
 import { graphqlClient } from "~/graphql/client";
@@ -53,10 +54,20 @@ export default component$(() => {
   const updatingUserId = useSignal<string | null>(null);
   const toast = useContext(ToastContext);
   const refreshTrigger = useSignal(0);
+  const clientReady = useSignal(false);
+
+  useVisibleTask$(() => {
+    clientReady.value = true;
+  });
 
   const usersResource = useResource$<User[]>(async ({ track }) => {
     track(filterText);
     track(refreshTrigger);
+    track(clientReady);
+
+    if (!clientReady.value) {
+      return [];
+    }
 
     // We'll fetch all and filter client side for better UX on small lists
     try {
