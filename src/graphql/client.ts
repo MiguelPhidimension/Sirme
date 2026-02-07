@@ -7,68 +7,74 @@
 
 import { GraphQLClient } from "graphql-request";
 
-// Determine if we are running on the server
-const isServer = typeof window === "undefined";
-
-// Helper to safely get server env vars
-const getServerEnv = (key: string) => {
-  if (isServer && typeof process !== "undefined" && process.env) {
-    return process.env[key];
+/**
+ * Determine the GraphQL endpoint dynamically on each call.
+ * - Browser: /api/graphql proxy (Qwik City route handles secrets)
+ * - Server (SSR / Edge): Direct Hasura if env var available, else proxy
+ */
+const getServerOrigin = (): string | undefined => {
+  if (typeof process === "undefined") {
+    return undefined;
   }
-  return undefined;
+
+  const rawOrigin =
+    process.env?.PUBLIC_SITE_URL ||
+    process.env?.SITE_URL ||
+    process.env?.APP_ORIGIN ||
+    process.env?.VERCEL_URL;
+
+  if (!rawOrigin) {
+    return undefined;
+  }
+
+  return rawOrigin.startsWith("http") ? rawOrigin : `https://${rawOrigin}`;
 };
 
-// Determine the endpoint dynamically
-const getEndpoint = () => {
-  if (isServer) {
-    // SSR/Server: Connect directly to Hasura using server env vars
-    // Check both process.env and import.meta.env for robust variable access
-    const serverUrl =
-      getServerEnv("HASURA_GRAPHQL_ENDPOINT") ||
-      import.meta.env["HASURA_GRAPHQL_ENDPOINT"];
+const getEndpoint = (): string => {
+  const isBrowser = typeof window !== "undefined";
 
-    if (serverUrl) return serverUrl;
-
-    // Fallback: If we can't find Hasura URL, try to construct a self-reference to the proxy
-    // (This works on Vercel)
-    const vercelUrl = getServerEnv("VERCEL_URL");
-    if (vercelUrl) return `https://${vercelUrl}/api/graphql`;
+  // Browser: always go through proxy
+  if (isBrowser) {
+    return `${window.location.origin}/api/graphql`;
   }
 
-  // Client/Browser: Use proxy in PROD, or VITE var in DEV
-  const endpointPath = import.meta.env.PROD
-    ? "/api/graphql"
-    : import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT || "/api/graphql";
+  // Server (SSR / Edge): try server env, then proxy
+  const directEndpoint =
+    typeof process !== "undefined"
+      ? process.env?.HASURA_GRAPHQL_ENDPOINT
+      : undefined;
 
-  // Ensure we return an absolute URL in the browser to satisfy strict parsers
-  if (typeof window !== "undefined" && endpointPath.startsWith("/")) {
-    return `${window.location.origin}${endpointPath}`;
+  if (directEndpoint) {
+    return directEndpoint;
   }
 
-  return endpointPath;
+  const origin = getServerOrigin();
+  return origin ? `${origin}/api/graphql` : "/api/graphql";
 };
 
-// Helper to get admin secret
-const getAdminSecret = () => {
-  if (isServer) {
-    return (
-      getServerEnv("HASURA_ADMIN_SECRET") ||
-      import.meta.env.VITE_HASURA_ADMIN_SECRET
-    );
+/**
+ * Get admin secret. Only needed when NOT going through the proxy.
+ * The proxy already injects the secret server-side.
+ */
+const getAdminSecret = (): string | undefined => {
+  const isBrowser = typeof window !== "undefined";
+
+  // Browser: proxy handles auth, no secret needed
+  if (isBrowser) {
+    return undefined;
   }
-  // On client, only use VITE_ var (which should only work in dev)
-  // In PROD client, this should return undefined (handled by proxy)
-  return !import.meta.env.PROD
-    ? import.meta.env.VITE_HASURA_ADMIN_SECRET
+
+  // Server (SSR / Edge): use server env
+  return typeof process !== "undefined"
+    ? process.env?.HASURA_ADMIN_SECRET
     : undefined;
 };
 
 /**
- * Create GraphQL client instance
- * Uses the proxy endpoint in production client.
- * Uses direct connection in server/dev.
+ * Create a fresh GraphQL client instance.
+ * Called dynamically to ensure correct endpoint resolution.
  */
-export const createGraphQLClient = () => {
+export const createGraphQLClient = (): GraphQLClient => {
   const endpoint = getEndpoint();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -79,16 +85,13 @@ export const createGraphQLClient = () => {
     headers["x-hasura-admin-secret"] = secret;
   }
 
-  return new GraphQLClient(endpoint, {
-    headers,
-  });
+  return new GraphQLClient(endpoint, { headers });
 };
 
 /**
- * Create GraphQL client instance with JWT authentication
- * Used for user-authenticated operations
+ * Create GraphQL client with JWT authentication
  */
-export const createAuthenticatedClient = (token: string) => {
+export const createAuthenticatedClient = (token: string): GraphQLClient => {
   return new GraphQLClient(getEndpoint(), {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -97,20 +100,31 @@ export const createAuthenticatedClient = (token: string) => {
   });
 };
 
-// Default client instance (with admin secret context if available)
-export const graphqlClient = createGraphQLClient();
+/**
+ * Dynamic client proxy — creates a fresh client on every `.request()` call.
+ * This ensures the endpoint is always resolved in the correct context
+ * (browser vs server), avoiding stale singleton issues in Edge Runtime.
+ */
+export const graphqlClient: GraphQLClient = new Proxy({} as GraphQLClient, {
+  get(_target, prop) {
+    const client = createGraphQLClient();
+    const value = (client as any)[prop];
+    if (typeof value === "function") {
+      return value.bind(client);
+    }
+    return value;
+  },
+});
 
 /**
  * GraphQL request wrapper with error handling
- * Provides consistent error handling across the application
  */
 export const graphqlRequest = async <T = any>(
   query: string,
   variables?: Record<string, any>,
 ): Promise<T> => {
   try {
-    const data = await graphqlClient.request<T>(query, variables);
-    return data;
+    return await graphqlClient.request<T>(query, variables);
   } catch (error) {
     console.error("GraphQL request failed:", error);
     throw error;
@@ -119,7 +133,6 @@ export const graphqlRequest = async <T = any>(
 
 /**
  * Batch GraphQL requests
- * Useful for fetching multiple queries at once
  */
 export const graphqlBatchRequest = async <T = any>(
   queries: Array<{ query: string; variables?: Record<string, any> }>,
