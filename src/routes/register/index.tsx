@@ -41,7 +41,9 @@ export default component$(() => {
   // Fetch roles for the select dropdown
   const rolesResource = useResource$<{
     roles: Array<{ role_id: string; role_name: string }>;
-  }>(async () => {
+  }>(async ({ track }) => {
+    track(() => clientReady.value);
+
     try {
       if (!clientReady.value) {
         return { roles: [] };
