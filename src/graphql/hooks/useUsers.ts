@@ -109,8 +109,6 @@ export const useUsers = () => {
         role: data.roles.find((role) => role.role_id === user.role_id),
       }));
 
-     
-
       return {
         users: usersWithRoles || [],
         total: data.users_aggregate?.aggregate?.count || 0,

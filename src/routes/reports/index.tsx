@@ -165,13 +165,11 @@ export default component$(() => {
 
     isLoading.value = true;
     try {
-
       // Generate filename with date range
       const filename = generateReportFilename(startDate.value, endDate.value);
 
       // Export to Excel
       exportReportToExcel(reportData, startDate.value, endDate.value, filename);
-
     } catch (error) {
       console.error("Excel export failed:", error);
       alert(
@@ -316,8 +314,6 @@ export default component$(() => {
             // When an employee is selected, the backend already filters the data
             // So we just use the returned projects directly
             const filteredProjects = reportData.projectBreakdown;
-
-           
 
             return (
               <>
