@@ -89,9 +89,10 @@ export default component$(() => {
   const employeeProjectsResource = useReportsData(employeeProjectsFilter);
 
   // Fetch all employees (static list)
-  const employeesResource = useResource$(async () => {
+  const employeesResource = useResource$(async ({ track }) => {
+    const isClient = track(() => clientReady.value);
     try {
-      if (!clientReady.value) {
+      if (!isClient) {
         return [];
       }
 
@@ -115,9 +116,10 @@ export default component$(() => {
   });
 
   // Fetch all projects (for when no employee is selected)
-  const allProjectsResource = useResource$(async () => {
+  const allProjectsResource = useResource$(async ({ track }) => {
+    const isClient = track(() => clientReady.value);
     try {
-      if (!clientReady.value) {
+      if (!isClient) {
         return [];
       }
 
@@ -212,60 +214,76 @@ export default component$(() => {
 
       {/* Main content */}
       <div class="mx-auto max-w-7xl space-y-6">
-        {/* Filters */}
+        {/* Filters - Always visible */}
         <Resource
-          value={employeeProjectsResource}
+          value={employeesResource}
           onPending={() => (
+            <div class="no-print rounded-2xl border border-white/20 bg-white/90 p-6 shadow-xl backdrop-blur-sm dark:border-slate-700/20 dark:bg-slate-800/90">
+              <div class="flex h-20 items-center justify-center">
+                <div class="border-t-brand-purple h-6 w-6 animate-spin rounded-full border-4 border-gray-300 dark:border-gray-600"></div>
+                <span class="ml-3 text-gray-600 dark:text-gray-400">
+                  Loading filters...
+                </span>
+              </div>
+            </div>
+          )}
+          onRejected={(error) => (
+            <div class="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-red-400">
+              Error loading filters: {error.message}
+            </div>
+          )}
+          onResolved={(employees) => (
             <Resource
-              value={employeesResource}
-              onResolved={(employees) => (
+              value={allProjectsResource}
+              onPending={() => (
+                <ReportFilters
+                  startDate={startDate}
+                  endDate={endDate}
+                  selectedEmployee={selectedEmployee}
+                  selectedProject={selectedProject}
+                  employeeOptions={employees}
+                  projectOptions={[]}
+                  onClearFilters$={handleClearFilters}
+                />
+              )}
+              onRejected={() => (
+                <ReportFilters
+                  startDate={startDate}
+                  endDate={endDate}
+                  selectedEmployee={selectedEmployee}
+                  selectedProject={selectedProject}
+                  employeeOptions={employees}
+                  projectOptions={[]}
+                  onClearFilters$={handleClearFilters}
+                />
+              )}
+              onResolved={(allProjects) => (
                 <Resource
-                  value={allProjectsResource}
-                  onResolved={(projects) => (
+                  value={employeeProjectsResource}
+                  onPending={() => (
                     <ReportFilters
                       startDate={startDate}
                       endDate={endDate}
                       selectedEmployee={selectedEmployee}
                       selectedProject={selectedProject}
                       employeeOptions={employees}
-                      projectOptions={projects}
+                      projectOptions={allProjects}
                       onClearFilters$={handleClearFilters}
                     />
                   )}
-                />
-              )}
-            />
-          )}
-          onRejected={() => (
-            <Resource
-              value={employeesResource}
-              onResolved={(employees) => (
-                <Resource
-                  value={allProjectsResource}
-                  onResolved={(projects) => (
+                  onRejected={() => (
                     <ReportFilters
                       startDate={startDate}
                       endDate={endDate}
                       selectedEmployee={selectedEmployee}
                       selectedProject={selectedProject}
                       employeeOptions={employees}
-                      projectOptions={projects}
+                      projectOptions={allProjects}
                       onClearFilters$={handleClearFilters}
                     />
                   )}
-                />
-              )}
-            />
-          )}
-          onResolved={(employeeProjectsData) => (
-            <Resource
-              value={employeesResource}
-              onResolved={(employees) => (
-                <Resource
-                  value={allProjectsResource}
-                  onResolved={(allProjects) => {
+                  onResolved={(employeeProjectsData) => {
                     // Filter projects based on selected employee
-                    // Use employeeProjectsData which doesn't have project filter applied
                     const projectOptions =
                       selectedEmployee.value === "all"
                         ? allProjects
