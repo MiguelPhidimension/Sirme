@@ -37,6 +37,7 @@ export interface TimeEntry {
   user_id: string;
   entry_date: string;
   is_pto?: boolean;
+  is_holiday?: boolean;
   projects: TimeEntryProject[];
 }
 
@@ -49,6 +50,7 @@ export interface CreateTimeEntryResponse {
     entry_date: string;
     user_id: string;
     is_pto?: boolean;
+    is_holiday?: boolean;
   };
 }
 
@@ -64,18 +66,21 @@ const CREATE_TIME_ENTRY_MUTATION = `
     $user_id: uuid!
     $entry_date: date!
     $is_pto: Boolean
+    $is_holiday: Boolean
   ) {
     insert_time_entries_one(
       object: {
         user_id: $user_id
         entry_date: $entry_date
         is_pto: $is_pto
+        is_holiday: $is_holiday
       }
     ) {
       time_entry_id
       entry_date
       user_id
       is_pto
+      is_holiday
     }
   }
 `;
@@ -123,6 +128,7 @@ const GET_TIME_ENTRIES_QUERY = `
       entry_date
       user_id
       is_pto
+      is_holiday
       created_at
       updated_at
     }
@@ -194,6 +200,7 @@ const GET_TIME_ENTRY_BY_ID_QUERY = `
       user_id
       entry_date
       is_pto
+      is_holiday
       created_at
       updated_at
     }
@@ -261,13 +268,14 @@ const DELETE_TIME_ENTRY_PROJECTS_MUTATION = `
  * Mutation to update time entry date and is_pto
  */
 const UPDATE_TIME_ENTRY_DATE_MUTATION = `
-  mutation UpdateTimeEntry($time_entry_id: uuid!, $entry_date: date!, $is_pto: Boolean) {
+  mutation UpdateTimeEntry($time_entry_id: uuid!, $entry_date: date!, $is_pto: Boolean, $is_holiday: Boolean) {
     update_time_entries_by_pk(
       pk_columns: {time_entry_id: $time_entry_id}, 
-      _set: {entry_date: $entry_date, is_pto: $is_pto}
+      _set: {entry_date: $entry_date, is_pto: $is_pto, is_holiday: $is_holiday}
     ) {
       time_entry_id
       is_pto
+      is_holiday
     }
   }
 `;
@@ -305,6 +313,7 @@ export const useCreateTimeEntry = () => {
             user_id: timeEntry.user_id,
             entry_date: timeEntry.entry_date,
             is_pto: timeEntry.is_pto || false,
+            is_holiday: timeEntry.is_holiday || false,
           },
         );
 
@@ -349,11 +358,12 @@ export const useUpdateTimeEntry = () => {
         throw new Error("Time entry ID is required for update");
       }
 
-      // Step 1: Update the time entry date and is_pto
+      // Step 1: Update the time entry date, is_pto, and is_holiday
       await graphqlClient.request(UPDATE_TIME_ENTRY_DATE_MUTATION, {
         time_entry_id: timeEntry.time_entry_id,
         entry_date: timeEntry.entry_date,
         is_pto: timeEntry.is_pto || false,
+        is_holiday: timeEntry.is_holiday || false,
       });
 
       // Step 2: Delete existing projects
@@ -415,7 +425,6 @@ export const useGetTimeEntries = () => {
       end_date: string;
     }) => {
       try {
-
         // First: Get the time entries
         const entriesResponse: any = await graphqlClient.request(
           GET_TIME_ENTRIES_QUERY,
@@ -432,8 +441,6 @@ export const useGetTimeEntries = () => {
         const timeEntryIds = timeEntries.map(
           (entry: any) => entry.time_entry_id,
         );
-
-        
 
         const projectsResponse: any = await graphqlClient.request(
           GET_TIME_ENTRY_PROJECTS_QUERY,
@@ -458,7 +465,6 @@ export const useGetTimeEntries = () => {
         }
 
         // Third: Get project details
-        
 
         const projectDetailsResponse: any = await graphqlClient.request(
           GET_PROJECTS_BY_IDS_QUERY,
@@ -479,8 +485,6 @@ export const useGetTimeEntries = () => {
         // Fourth: Get client details
         let clientsMap = new Map();
         if (uniqueClientIds.length > 0) {
-         
-
           const clientsResponse: any = await graphqlClient.request(
             GET_CLIENTS_BY_IDS_QUERY,
             {

@@ -13,7 +13,7 @@ import {
   EmployeeInfo,
   TimeEntryActions,
 } from "~/components/molecules";
-import { ProjectList } from "~/components/organisms";
+import { ProjectList } from "~/components/organisms/entry/ProjectList";
 import {
   useCreateTimeEntry,
   useGetTimeEntryById,
@@ -76,6 +76,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
       },
     ] as LocalProjectData[],
     isPTO: false,
+    isHoliday: false,
   });
 
   // Load user data from auth context
@@ -139,12 +140,14 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
         let entryDate = null;
         let entryRole = "";
         let isPTO = false;
+        let isHoliday = false;
         const userIds = new Set<string>();
         for (const id of entryIds) {
           const entry = await getTimeEntryById(id);
           if (entry) {
             entryDate = entry.entry_date;
             isPTO = isPTO || entry.is_pto;
+            isHoliday = isHoliday || entry.is_holiday;
             if (entry.user) {
               entryUser = entry.user;
               // Some user objects returned from the API don't include the user_id field,
@@ -197,6 +200,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
           selectedDate.value = entryDate;
         }
         formData.isPTO = isPTO;
+        formData.isHoliday = isHoliday;
         formData.projects = allProjects;
       } catch (error) {
         console.error("Error loading entry:", error);
@@ -254,6 +258,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
               user_id: userId,
               entry_date: dateToSave,
               is_pto: formData.isPTO || false,
+              is_holiday: formData.isHoliday || false,
               projects: !formData.isPTO
                 ? formData.projects
                     .filter((p) => p.time_entry_id === eid || !p.time_entry_id)
@@ -276,6 +281,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
             user_id: userId,
             entry_date: dateToSave,
             is_pto: formData.isPTO || false,
+            is_holiday: formData.isHoliday || false,
             projects: !formData.isPTO
               ? formData.projects.map((project) => ({
                   project_id: project.projectId!,
@@ -440,34 +446,51 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
                   Projects and Activities
                 </h3>
-                <label class="flex cursor-pointer items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.isPTO}
-                    onChange$={(e) => {
-                      formData.isPTO = (e.target as HTMLInputElement).checked;
-                      // Clear projects if PTO is selected
-                      if (formData.isPTO) {
-                        formData.projects = [];
-                      } else if (formData.projects.length === 0) {
-                        formData.projects = [
-                          {
-                            clientId: "",
-                            clientName: "",
-                            projectId: "",
-                            hours: 0,
-                            isMPS: false,
-                            notes: "",
-                          },
-                        ];
-                      }
-                    }}
-                    class="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500/20"
-                  />
-                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    PTO (Personal Time Off)
-                  </span>
-                </label>
+                <div class="flex items-center gap-4">
+                  <label class="flex cursor-pointer items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.isPTO}
+                      onChange$={(e) => {
+                        formData.isPTO = (e.target as HTMLInputElement).checked;
+                        // Clear projects if PTO is selected
+                        if (formData.isPTO) {
+                          formData.projects = [];
+                        } else if (formData.projects.length === 0) {
+                          formData.projects = [
+                            {
+                              clientId: "",
+                              clientName: "",
+                              projectId: "",
+                              hours: 0,
+                              isMPS: false,
+                              notes: "",
+                            },
+                          ];
+                        }
+                      }}
+                      class="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500/20"
+                    />
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      PTO (Personal Time Off)
+                    </span>
+                  </label>
+                  <label class="flex cursor-pointer items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.isHoliday}
+                      onChange$={(e) => {
+                        formData.isHoliday = (
+                          e.target as HTMLInputElement
+                        ).checked;
+                      }}
+                      class="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-2 focus:ring-green-500/20"
+                    />
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Holiday
+                    </span>
+                  </label>
+                </div>
               </div>
 
               {!formData.isPTO && (
@@ -491,7 +514,8 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
           <TimeEntryActions
             isLoading={isLoading.value}
             isDisabled={
-              !formData.employeeName || (!formData.isPTO && !hasValidProjects)
+              !formData.employeeName ||
+              (!formData.isPTO && !formData.isHoliday && !hasValidProjects)
             }
             onCancel$={closeModal}
             onSubmit$={handleSubmit}

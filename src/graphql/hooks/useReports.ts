@@ -33,6 +33,7 @@ export interface ReportTimeEntry {
   }>;
   totalHours: number;
   isPTO: boolean;
+  isHoliday: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -87,6 +88,7 @@ const GET_TIME_ENTRIES_QUERY = `
       updated_at
       user_id
       is_pto
+      is_holiday
     }
   }
 `;
@@ -409,6 +411,7 @@ function buildReportData(
       projects: mappedProjects,
       totalHours: entryTotalHours,
       isPTO: entry.is_pto || false,
+      isHoliday: entry.is_holiday || false,
       createdAt: entry.created_at || new Date().toISOString(),
       updatedAt:
         entry.updated_at || entry.created_at || new Date().toISOString(),

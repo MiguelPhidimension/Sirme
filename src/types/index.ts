@@ -23,6 +23,7 @@ export interface ProjectEntry {
   hours: number;
   isMPS: boolean; // MuleSoft Professional Services flag
   isPTO?: boolean; // Paid Time Off / 0 hours flag
+  isHoliday?: boolean; // Holiday flag
   notes?: string;
   role?: string; // Role assigned to this project entry
 }
@@ -40,6 +41,7 @@ export interface DailyTimeEntry {
   projects: ProjectEntry[];
   totalHours: number;
   isPTO?: boolean;
+  isHoliday?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -67,6 +69,7 @@ export interface TimeEntryFormData {
   role: EmployeeRole;
   projects: Omit<ProjectEntry, "id">[];
   isPTO?: boolean;
+  isHoliday?: boolean;
 }
 
 /**

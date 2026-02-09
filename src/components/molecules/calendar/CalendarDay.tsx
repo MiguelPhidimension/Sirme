@@ -106,7 +106,7 @@ export const CalendarDay = component$<CalendarDayProps>(
               {dayNumber}
             </span>
             {isToday && (
-              <span class="rounded-md bg-blue-500/80 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm dark:bg-blue-600/80">
+              <span class="rounded-md bg-blue-500/80 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-white uppercase shadow-sm dark:bg-blue-600/80">
                 Today
               </span>
             )}
@@ -155,6 +155,11 @@ export const CalendarDay = component$<CalendarDayProps>(
             {isPTO && (
               <div class="rounded-full bg-fuchsia-600 px-2 py-1 text-xs font-medium text-white shadow-sm backdrop-blur-sm">
                 PTO
+              </div>
+            )}
+            {day.entries.some((entry) => entry.isHoliday) && (
+              <div class="rounded-full bg-green-600 px-2 py-1 text-xs font-medium text-white shadow-sm backdrop-blur-sm">
+                Holiday
               </div>
             )}
             {day.entries.some((entry) =>
