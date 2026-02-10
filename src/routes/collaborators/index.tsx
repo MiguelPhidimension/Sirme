@@ -293,6 +293,8 @@ export default component$(() => {
                   collaborator={selectedCollaborator}
                   onClose$={handleCloseModal}
                   dateRange={dateRangeLabel}
+                  filterStartDate={startDate}
+                  filterEndDate={endDate}
                 />
               </>
             );
