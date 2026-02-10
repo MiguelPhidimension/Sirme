@@ -19,12 +19,15 @@ import {
   LuTarget,
 } from "@qwikest/icons/lucide";
 import type { CollaboratorData } from "~/graphql/hooks/useCollaborators";
+import { CollaboratorCalendar } from "./CollaboratorCalendar";
 
 interface CollaboratorDetailModalProps {
   isOpen: Signal<boolean>;
   collaborator: Signal<CollaboratorData | null>;
   onClose$: QRL<() => void>;
   dateRange: ReadonlySignal<string>;
+  filterStartDate: ReadonlySignal<string>;
+  filterEndDate: ReadonlySignal<string>;
 }
 
 // Color palette for project bars
@@ -323,6 +326,14 @@ export const CollaboratorDetailModal = component$<CollaboratorDetailModalProps>(
               </div>
             </div>
           )}
+
+          {/* Hours Calendar */}
+          <CollaboratorCalendar
+            userId={collaborator.userId}
+            startDate={props.filterStartDate.value}
+            endDate={props.filterEndDate.value}
+            fullName={collaborator.fullName}
+          />
 
           {/* Project Participation Details */}
           <div class="p-6 pt-0">
