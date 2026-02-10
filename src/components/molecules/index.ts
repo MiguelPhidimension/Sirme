@@ -24,3 +24,5 @@ export { SidebarNavItem } from "./layout/SidebarNavItem";
 export { SidebarUserProfile } from "./layout/SidebarUserProfile";
 export { SidebarToggleButton } from "./layout/SidebarToggleButton";
 export { MobileTopBar } from "./layout/MobileTopBar";
+export { CollaboratorsHeader } from "./collaborators/CollaboratorsHeader";
+export { CollaboratorsFilters } from "./collaborators/CollaboratorsFilters";

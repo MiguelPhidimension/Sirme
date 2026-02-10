@@ -13,3 +13,5 @@ export { ProjectBreakdownTable } from "./reports/ProjectBreakdownTable";
 export { RecentEntriesList } from "./reports/RecentEntriesList";
 export { DesktopSidebar } from "./layout/DesktopSidebar";
 export { MobileSidebar } from "./layout/MobileSidebar";
+export { CollaboratorCard } from "./collaborators/CollaboratorCard";
+export { CollaboratorDetailModal } from "./collaborators/CollaboratorDetailModal";
