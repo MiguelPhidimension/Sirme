@@ -2,7 +2,6 @@
 // Combined atoms to create more complex UI components
 
 export { CalendarCell } from "./CalendarCell";
-export { ProjectEntryCard } from "./ProjectEntryCard";
 export { StatCard } from "./StatCard";
 export { DashboardStats } from "./DashboardStats";
 export { WeeklyProgress } from "./WeeklyProgress";
@@ -25,3 +24,5 @@ export { SidebarNavItem } from "./layout/SidebarNavItem";
 export { SidebarUserProfile } from "./layout/SidebarUserProfile";
 export { SidebarToggleButton } from "./layout/SidebarToggleButton";
 export { MobileTopBar } from "./layout/MobileTopBar";
+export { CollaboratorsHeader } from "./collaborators/CollaboratorsHeader";
+export { CollaboratorsFilters } from "./collaborators/CollaboratorsFilters";

@@ -11,11 +11,12 @@
  * - Matches actual database schema exactly
  */
 
-import { Signal, useResource$ } from "@builder.io/qwik";
+import { $, Signal, useResource$ } from "@builder.io/qwik";
 import {
   useGraphQLClient,
   makeGraphQLRequest,
 } from "../../components/providers/GraphQLProvider";
+import { graphqlClient } from "../client";
 
 // ============================================================================
 // TYPE DEFINITIONS - Match Database Schema Exactly
@@ -107,6 +108,19 @@ const SEARCH_ROLES_QUERY = `
   }
 `;
 
+/**
+ * Mutation to create a new role
+ */
+const CREATE_ROLE_MUTATION = `
+  mutation CreateRole($role_name: String!, $description: String) {
+    insert_roles_one(object: { role_name: $role_name, description: $description }) {
+      role_id
+      role_name
+      description
+    }
+  }
+`;
+
 // ============================================================================
 // QUERY HOOKS - Following GraphQL Rules Pattern
 // ============================================================================
@@ -133,13 +147,18 @@ const SEARCH_ROLES_QUERY = `
  *   )}
  * />
  */
-export const useRoles = () => {
+export const useRoles = (trackSignal?: any) => {
   const { client } = useGraphQLClient();
 
   return useResource$<{ roles: RoleData[]; total: number }>(
     async ({ track }) => {
       // Track the GraphQL client to make resource reactive to client changes
       const currentClient = track(() => client);
+
+      // Track refresh trigger if provided
+      if (trackSignal) {
+        track(trackSignal);
+      }
 
       // Handle client unavailability gracefully with loading state
       if (!currentClient) {
@@ -306,6 +325,35 @@ export const useRoleSearch = (searchTerm: Signal<string>) => {
     } catch (error) {
       console.error("❌ Error searching roles:", error);
       return []; // Return empty array on error for better UX
+    }
+  });
+};
+
+/**
+ * Hook to create a new role
+ *
+ * @returns Function to create a role
+ *
+ * @example
+ * ```tsx
+ * const createRole = useCreateRole();
+ * const newRole = await createRole({ role_name: 'New Role' });
+ * ```
+ */
+export const useCreateRole = () => {
+  return $(async (roleData: { role_name: string; description?: string }) => {
+    try {
+      const response: any = await graphqlClient.request(CREATE_ROLE_MUTATION, {
+        role_name: roleData.role_name,
+        description: roleData.description || null,
+      });
+
+      return response.insert_roles_one as RoleData;
+    } catch (error) {
+      console.error("❌ Error creating role:", error);
+      throw new Error(
+        error instanceof Error ? error.message : "Failed to create role",
+      );
     }
   });
 };

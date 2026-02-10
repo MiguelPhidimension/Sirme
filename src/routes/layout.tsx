@@ -66,7 +66,8 @@ export default component$(() => {
             // Admin only routes
             if (
               (currentPath.startsWith("/reports") ||
-                currentPath.startsWith("/admin")) &&
+                currentPath.startsWith("/admin") ||
+                currentPath.startsWith("/collaborators")) &&
               userData.role_application !== "administrador"
             ) {
               // User not authorized to view reports

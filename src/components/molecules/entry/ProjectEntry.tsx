@@ -11,7 +11,7 @@ import {
   useClients,
   useCreateClient,
 } from "~/graphql/hooks/useProjects";
-import { useRoles } from "~/graphql/hooks/useRoles";
+import { useRoles, useCreateRole } from "~/graphql/hooks/useRoles";
 import { CreateProjectModal } from "../modals/CreateProjectModal";
 
 interface ProjectData {
@@ -57,7 +57,7 @@ export const ProjectEntry = component$<ProjectEntryProps>(
     // Load clients, projects, and roles from database
     const clientsResource = useClients(refreshTrigger);
     const projectsResource = useProjects(refreshTrigger);
-    const rolesResource = useRoles();
+    const rolesResource = useRoles(refreshTrigger);
 
     // State for modal
     const showModal = useSignal(false);
@@ -70,10 +70,15 @@ export const ProjectEntry = component$<ProjectEntryProps>(
     // Get create client hook
     const createClient = useCreateClient();
 
+    // State for creating new role
+    const showCreateRole = useSignal(false);
+    const newRoleName = useSignal("");
+    const isCreatingRole = useSignal(false);
+    const createRole = useCreateRole();
+
     // Handle project created from modal
     const handleProjectCreated = $(
       async (projectId: string, projectName: string, clientId?: string) => {
-
         // Update the form with the new project
         onUpdate$("projectId", projectId);
         onUpdate$("clientName", projectName);
@@ -177,7 +182,6 @@ export const ProjectEntry = component$<ProjectEntryProps>(
                     </div>
                   )}
                   onResolved={(clientsData) => {
-                   
                     return (
                       <select
                         value={project.clientId || ""}
@@ -287,14 +291,12 @@ export const ProjectEntry = component$<ProjectEntryProps>(
                   </div>
                 )}
                 onResolved={(data) => {
-
                   // If we have a projectId but no clientId, find and set the client
                   if (project.projectId && !project.clientId) {
                     const foundProject = data.projects.find(
                       (p) => p.project_id === project.projectId,
                     );
                     if (foundProject && foundProject.client_id) {
-                     
                       onUpdate$("clientId", foundProject.client_id);
                     }
                   }
@@ -381,13 +383,12 @@ export const ProjectEntry = component$<ProjectEntryProps>(
                 min="0"
                 max="24"
                 value={project.hours}
-                disabled={project.isPTO}
-                onInput$={(e) =>
-                  onUpdate$(
-                    "hours",
-                    parseFloat((e.target as HTMLInputElement).value) || 0,
-                  )
-                }
+                onInput$={(e) => {
+                  const hours =
+                    parseFloat((e.target as HTMLInputElement).value) || 0;
+                  onUpdate$("hours", hours);
+                  onUpdate$("isPTO", hours === 0);
+                }}
                 class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:disabled:bg-slate-800 dark:disabled:text-gray-400"
               />
             </div>
@@ -406,69 +407,111 @@ export const ProjectEntry = component$<ProjectEntryProps>(
                   MPS Project
                 </span>
               </label>
-
-              <label class="flex cursor-pointer items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={project.isPTO}
-                  onChange$={(e) => {
-                    const isChecked = (e.target as HTMLInputElement).checked;
-                    onUpdate$("isPTO", isChecked);
-                    // Si se marca como PTO, establecer horas en 0
-                    if (isChecked) {
-                      onUpdate$("hours", 0);
-                    }
-                  }}
-                  class="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500/20"
-                />
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  PTO / 0 Hours
-                </span>
-              </label>
             </div>
 
             <div>
               <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Role for this Project
               </label>
-              <Resource
-                value={rolesResource}
-                onPending={() => (
-                  <select
-                    disabled
-                    class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                  >
-                    <option>Loading roles...</option>
-                  </select>
-                )}
-                onRejected={(error) => (
-                  <div class="text-sm text-red-600 dark:text-red-400">
-                    Error loading roles: {error.message}
-                  </div>
-                )}
-                onResolved={(rolesData) => (
-                  <select
-                    value={project.role || userRole || ""}
-                    onChange$={(e) => {
-                      const selectedRole = (e.target as HTMLSelectElement)
-                        .value;
-                      onUpdate$("role", selectedRole);
+              {!showCreateRole.value ? (
+                <Resource
+                  value={rolesResource}
+                  onPending={() => (
+                    <select
+                      disabled
+                      class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                    >
+                      <option>Loading roles...</option>
+                    </select>
+                  )}
+                  onRejected={(error) => (
+                    <div class="text-sm text-red-600 dark:text-red-400">
+                      Error loading roles: {error.message}
+                    </div>
+                  )}
+                  onResolved={(rolesData) => (
+                    <select
+                      value={project.role || userRole || ""}
+                      onChange$={(e) => {
+                        const selectedRole = (e.target as HTMLSelectElement)
+                          .value;
+                        if (selectedRole === "__new__") {
+                          showCreateRole.value = true;
+                          return;
+                        }
+                        onUpdate$("role", selectedRole);
+                      }}
+                      class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                    >
+                      <option value="">Select a role...</option>
+                      <option
+                        value="__new__"
+                        class="font-semibold text-blue-600"
+                      >
+                        + Create New Role
+                      </option>
+                      {rolesData.roles && rolesData.roles.length > 0 ? (
+                        rolesData.roles.map((role) => (
+                          <option key={role.role_id} value={role.role_name}>
+                            {role.role_name}
+                          </option>
+                        ))
+                      ) : (
+                        <option disabled>No roles found</option>
+                      )}
+                    </select>
+                  )}
+                />
+              ) : (
+                <div class="flex gap-2">
+                  <input
+                    type="text"
+                    value={newRoleName.value}
+                    onInput$={(e) => {
+                      newRoleName.value = (e.target as HTMLInputElement).value;
                     }}
-                    class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                    placeholder="Enter role name..."
+                    class="flex-1 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick$={async () => {
+                      if (!newRoleName.value.trim()) return;
+                      isCreatingRole.value = true;
+                      try {
+                        const newRole = await createRole({
+                          role_name: newRoleName.value.trim(),
+                        });
+                        if (newRole) {
+                          onUpdate$("role", newRole.role_name);
+                          newRoleName.value = "";
+                          showCreateRole.value = false;
+                          refreshTrigger.value++;
+                        }
+                      } catch (error) {
+                        console.error("❌ Error creating role:", error);
+                      } finally {
+                        isCreatingRole.value = false;
+                      }
+                    }}
+                    disabled={isCreatingRole.value || !newRoleName.value.trim()}
+                    class="rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg transition-all duration-200 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <option value="">Select a role...</option>
-                    {rolesData.roles && rolesData.roles.length > 0 ? (
-                      rolesData.roles.map((role) => (
-                        <option key={role.role_id} value={role.role_name}>
-                          {role.role_name}
-                        </option>
-                      ))
-                    ) : (
-                      <option disabled>No roles found</option>
-                    )}
-                  </select>
-                )}
-              />
+                    {isCreatingRole.value ? "Saving..." : "Add"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick$={$(() => {
+                      showCreateRole.value = false;
+                      newRoleName.value = "";
+                    })}
+                    disabled={isCreatingRole.value}
+                    class="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:text-gray-300 dark:hover:bg-slate-800"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
             </div>
 
             <div class="md:col-span-2">

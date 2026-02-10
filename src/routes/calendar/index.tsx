@@ -235,6 +235,7 @@ export default component$(() => {
               })),
               totalHours,
               isPTO: entry.is_pto,
+              isHoliday: entry.is_holiday || false,
               createdAt: entry.created_at,
               updatedAt: entry.updated_at,
             });
@@ -301,7 +302,6 @@ export default component$(() => {
 
   // Handle range selection (drag to select multiple days)
   const handleRangeSelect = $((startDate: string, endDate: string) => {
-
     // Generate array of all dates in range
     const dates: string[] = [];
     const current = new Date(startDate);
@@ -312,7 +312,6 @@ export default component$(() => {
       dates.push(dateStr);
       current.setDate(current.getDate() + 1);
     }
-
 
     // Store all selected dates and open modal for first date
     timeEntrySelectedDates.value = dates;

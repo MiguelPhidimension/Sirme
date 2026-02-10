@@ -11,7 +11,12 @@ import { useLocation } from "@builder.io/qwik-city";
 import { SidebarContext } from "~/contexts/sidebar-context";
 import { MobileTopBar } from "~/components/molecules";
 import { DesktopSidebar, MobileSidebar } from "~/components/organisms";
-import { LuBarChart3, LuCalendar, LuUserCog } from "@qwikest/icons/lucide";
+import {
+  LuBarChart3,
+  LuCalendar,
+  LuUserCog,
+  LuUsers,
+} from "@qwikest/icons/lucide";
 
 /**
  * MainLayout Template Component
@@ -83,8 +88,14 @@ export const MainLayout = component$(() => {
           {
             path: "/admin/users",
             label: "Users",
-            icon: <LuUserCog class="h-6 w-6" />, // Using LuUserCog icon, need to import if not present or fallback
+            icon: <LuUserCog class="h-6 w-6" />,
             description: "Manage users",
+          },
+          {
+            path: "/collaborators",
+            label: "Collaborators",
+            icon: <LuUsers class="h-6 w-6" />,
+            description: "Team statistics",
           },
         ]
       : []),

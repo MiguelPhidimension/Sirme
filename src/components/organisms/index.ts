@@ -1,8 +1,6 @@
 // Atomic Design - Organisms
 // Complex components combining molecules and atoms
 
-export { TimeEntryForm } from "./TimeEntryForm";
-export { Dashboard } from "./Dashboard";
 export { Calendar } from "./Calendar";
 export { LoginForm } from "./LoginForm";
 export { RegisterForm } from "./RegisterForm";
@@ -14,3 +12,5 @@ export { ProjectBreakdownTable } from "./reports/ProjectBreakdownTable";
 export { RecentEntriesList } from "./reports/RecentEntriesList";
 export { DesktopSidebar } from "./layout/DesktopSidebar";
 export { MobileSidebar } from "./layout/MobileSidebar";
+export { CollaboratorCard } from "./collaborators/CollaboratorCard";
+export { CollaboratorDetailModal } from "./collaborators/CollaboratorDetailModal";
