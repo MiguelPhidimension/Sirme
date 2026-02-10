@@ -452,9 +452,10 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
                       type="checkbox"
                       checked={formData.isPTO}
                       onChange$={(e) => {
-                        formData.isPTO = (e.target as HTMLInputElement).checked;
-                        // Clear projects if PTO is selected
-                        if (formData.isPTO) {
+                        const checked = (e.target as HTMLInputElement).checked;
+                        formData.isPTO = checked;
+                        if (checked) {
+                          formData.isHoliday = false;
                           formData.projects = [];
                         } else if (formData.projects.length === 0) {
                           formData.projects = [
@@ -480,9 +481,23 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
                       type="checkbox"
                       checked={formData.isHoliday}
                       onChange$={(e) => {
-                        formData.isHoliday = (
-                          e.target as HTMLInputElement
-                        ).checked;
+                        const checked = (e.target as HTMLInputElement).checked;
+                        formData.isHoliday = checked;
+                        if (checked) {
+                          formData.isPTO = false;
+                          formData.projects = [];
+                        } else if (formData.projects.length === 0) {
+                          formData.projects = [
+                            {
+                              clientId: "",
+                              clientName: "",
+                              projectId: "",
+                              hours: 0,
+                              isMPS: false,
+                              notes: "",
+                            },
+                          ];
+                        }
                       }}
                       class="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-2 focus:ring-green-500/20"
                     />
@@ -493,7 +508,7 @@ export const TimeEntryModal = component$<TimeEntryModalProps>((props) => {
                 </div>
               </div>
 
-              {!formData.isPTO && (
+              {!formData.isPTO && !formData.isHoliday && (
                 <ProjectList
                   projects={formData.projects}
                   totalHours={totalHours}
